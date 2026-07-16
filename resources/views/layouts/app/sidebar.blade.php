@@ -26,6 +26,23 @@
                     </flux:sidebar.item>
                 </flux:sidebar.group>
                 @endrole
+
+                @role('Sekretaris')
+                <flux:sidebar.group :heading="__('Sekretaris')" class="grid">
+                    <flux:sidebar.item icon="chart-bar" :href="route('sekretaris.dashboard')" :current="request()->routeIs('sekretaris.dashboard')" wire:navigate>
+                        {{ __('Rekap Unit') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="document-check" :href="route('sekretaris.verifikasi')" :current="request()->routeIs('sekretaris.verifikasi')" wire:navigate>
+                        {{ __('Verifikasi Harian') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="table-cells" :href="route('sekretaris.transaksi')" :current="request()->routeIs('sekretaris.transaksi')" wire:navigate>
+                        {{ __('Kelola Jurnal') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="printer" :href="route('sekretaris.laporan')" :current="request()->routeIs('sekretaris.laporan')" wire:navigate>
+                        {{ __('Cetak Laporan') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+                @endrole
             </flux:sidebar.nav>
 
             <flux:spacer />

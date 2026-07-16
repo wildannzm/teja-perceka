@@ -8,6 +8,10 @@ class Journal extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'metadata' => 'array',
+    ];
+
     public function unit()
     {
         return $this->belongsTo(Unit::class);

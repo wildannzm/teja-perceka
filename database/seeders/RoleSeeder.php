@@ -40,5 +40,18 @@ class RoleSeeder extends Seeder
         if (!$admin->hasRole('Kepala Desa')) {
             $admin->assignRole('Kepala Desa');
         }
+
+        // Create default Sekretaris user
+        $sekretaris = User::firstOrCreate(
+            ['email' => 'sekretaris@bumdes.com'],
+            [
+                'name' => 'Sekretaris',
+                'password' => Hash::make('password123'),
+            ]
+        );
+
+        if (!$sekretaris->hasRole('Sekretaris')) {
+            $sekretaris->assignRole('Sekretaris');
+        }
     }
 }
