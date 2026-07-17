@@ -13,6 +13,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/laporan', \App\Livewire\Sekretaris\Report::class)->name('sekretaris.laporan');
     });
 
+    // Rute untuk Bendahara
+    Route::middleware(['auth', 'role:Bendahara'])->prefix('bendahara')->group(function () {
+        Route::get('/dashboard', \App\Livewire\Bendahara\Dashboard::class)->name('bendahara.dashboard');
+        Route::get('/verifikasi', \App\Livewire\Bendahara\TransactionVerification::class)->name('bendahara.verifikasi');
+        Route::get('/transaksi', \App\Livewire\Bendahara\TransactionList::class)->name('bendahara.transaksi');
+        Route::get('/laporan', \App\Livewire\Bendahara\Report::class)->name('bendahara.laporan');
+    });
+
     // Custom Dashboard Redirect
     Route::get('/dashboard', function () {
         $user = auth()->user();
@@ -23,6 +31,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
         if ($user->hasRole('Sekretaris')) {
             return redirect()->route('sekretaris.dashboard');
+        }
+        
+        if ($user->hasRole('Bendahara')) {
+            return redirect()->route('bendahara.dashboard');
         }
 
         return view('dashboard');
