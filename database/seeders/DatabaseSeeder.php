@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             UnitWisataSeeder::class,
             KodeAkunSeeder::class,
             KategoriTransaksiSeeder::class,
+            UserSeeder::class,
         ]);
 
         $this->call([

@@ -9,7 +9,21 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+    /* Poppins sebagai font utama seluruh aplikasi */
     --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Palette dark green BUMDes Teja Perceka */
+    --color-brand-50:  #f0fdf4;
+    --color-brand-100: #dcfce7;
+    --color-brand-200: #bbf7d0;
+    --color-brand-300: #86efac;
+    --color-brand-400: #4ade80;
+    --color-brand-500: #22c55e;
+    --color-brand-600: #16a34a;
+    --color-brand-700: #15803d;
+    --color-brand-800: #166534;
+    --color-brand-900: #14532d;
+    --color-brand-950: #052e16;
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -23,16 +37,18 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-emerald-800);
-    --color-accent-content: var(--color-emerald-800);
+    /* Flux accent = dark green (mode terang) */
+    --color-accent: var(--color-brand-800);
+    --color-accent-content: var(--color-brand-800);
     --color-accent-foreground: var(--color-white);
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-emerald-500);
-        --color-accent-content: var(--color-emerald-500);
-        --color-accent-foreground: var(--color-emerald-950);
+        /* Flux accent = green cerah di mode gelap supaya terbaca */
+        --color-accent: var(--color-brand-400);
+        --color-accent-content: var(--color-brand-400);
+        --color-accent-foreground: var(--color-brand-950);
     }
 }
 
@@ -44,6 +60,49 @@
     ::backdrop,
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
+    }
+
+    /* Hapus tap highlight di Android/iOS supaya interaksi terasa native */
+    * {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+        /* Smooth scroll untuk semua navigasi */
+        scroll-behavior: smooth;
+        /* Cegah teks terlalu kecil di mobile setelah rotate */
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        /* Safe area untuk HP dengan notch/dynamic island */
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+
+    /* Input font-size min 16px mencegah auto-zoom iOS saat focus */
+    input,
+    textarea,
+    select {
+        font-size: max(16px, 1rem);
+    }
+
+    /* Touch target minimum 44x44px (WCAG 2.1 guideline) */
+    button,
+    [role="button"],
+    a,
+    label[for],
+    input[type="checkbox"],
+    input[type="radio"] {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Override min-height untuk checkbox/radio agar tidak melar */
+    input[type="checkbox"],
+    input[type="radio"] {
+        min-height: unset;
+        min-width: unset;
     }
 }
 
