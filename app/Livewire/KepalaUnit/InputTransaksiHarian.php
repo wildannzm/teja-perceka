@@ -186,11 +186,14 @@ class InputTransaksiHarian extends Component
                 throw new \Exception('Akun Kas (1-1100) tidak ditemukan di sistem. Harap hubungi administrator.');
             }
 
-            $bulanTahun = $date->format('Y-m');
-            $prefixNomor = 'JU-'.$bulanTahun.'-';
+            // Prefix: 'D' (Pemasukan) + Kode Unit Wisata
+            $kodeUnit = strtoupper($this->unit->kode ?? 'XX');
+            $prefixNomor = 'D'.$kodeUnit;
 
-            // Generate nomor bukti aman dari race condition menggunakan lockForUpdate
+            // Generate nomor bukti aman dari race condition (berdasarkan bulan dan tahun berjalan)
             $lastJurnal = JurnalUmum::where('nomor_bukti', 'like', $prefixNomor.'%')
+                ->whereMonth('tanggal', $date->month)
+                ->whereYear('tanggal', $date->year)
                 ->lockForUpdate()
                 ->orderBy('nomor_bukti', 'desc')
                 ->first();

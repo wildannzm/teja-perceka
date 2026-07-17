@@ -16,6 +16,17 @@
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
+
+                @role('kepala_unit')
+                    <flux:sidebar.group :heading="__('Unit Wisata')" class="grid">
+                        <flux:sidebar.item icon="pencil-square" :href="route('dashboard.unit')" :current="request()->routeIs('dashboard.unit')" wire:navigate>
+                            Input Transaksi
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="document-chart-bar" :href="route('unit.riwayat-transaksi')" :current="request()->routeIs('unit.riwayat-transaksi')" wire:navigate>
+                            Riwayat & Rekap
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+                @endrole
             </flux:sidebar.nav>
 
             <flux:spacer />
