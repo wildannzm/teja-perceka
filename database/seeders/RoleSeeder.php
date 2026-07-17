@@ -14,44 +14,17 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        // Define roles (including other roles so Kepala Desa can manage them)
         $roles = [
-            'Kepala Desa',
-            'Direktur BUMDes',
-            'Sekretaris',
-            'Bendahara',
-            'Kepala Unit',
-            'Pengawas',
+            'kepala_unit',
+            'sekretaris',
+            'bendahara',
+            'direktur_bumdes',
+            'kepala_desa',
+            'pengawas',
         ];
 
         foreach ($roles as $role) {
             Role::firstOrCreate(['name' => $role]);
-        }
-
-        // Create default admin user (Kepala Desa)
-        $admin = User::firstOrCreate(
-            ['email' => 'kepaladesa@bumdes.com'],
-            [
-                'name' => 'Kepala Desa',
-                'password' => Hash::make('password123'),
-            ]
-        );
-
-        if (!$admin->hasRole('Kepala Desa')) {
-            $admin->assignRole('Kepala Desa');
-        }
-
-        // Create default Sekretaris user
-        $sekretaris = User::firstOrCreate(
-            ['email' => 'sekretaris@bumdes.com'],
-            [
-                'name' => 'Sekretaris',
-                'password' => Hash::make('password123'),
-            ]
-        );
-
-        if (!$sekretaris->hasRole('Sekretaris')) {
-            $sekretaris->assignRole('Sekretaris');
         }
     }
 }
