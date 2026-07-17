@@ -43,6 +43,23 @@
                     </flux:sidebar.item>
                 </flux:sidebar.group>
                 @endrole
+
+                @role('Bendahara')
+                <flux:sidebar.group :heading="__('Bendahara')" class="grid">
+                    <flux:sidebar.item icon="chart-bar" :href="route('bendahara.dashboard')" :current="request()->routeIs('bendahara.dashboard')" wire:navigate>
+                        {{ __('Rekap Keuangan') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="document-check" :href="route('bendahara.verifikasi')" :current="request()->routeIs('bendahara.verifikasi')" wire:navigate>
+                        {{ __('Verifikasi Harian') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="table-cells" :href="route('bendahara.transaksi')" :current="request()->routeIs('bendahara.transaksi')" wire:navigate>
+                        {{ __('Kelola Jurnal') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="printer" :href="route('bendahara.laporan')" :current="request()->routeIs('bendahara.laporan')" wire:navigate>
+                        {{ __('Cetak Laporan') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+                @endrole
             </flux:sidebar.nav>
 
             <flux:spacer />
