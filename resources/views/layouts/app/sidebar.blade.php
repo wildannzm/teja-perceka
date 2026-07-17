@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         @include('partials.head')
     </head>
@@ -11,11 +11,38 @@
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
-                <flux:sidebar.group :heading="__('Platform')" class="grid">
-                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
+                <!-- Dashboard Umum Dihapus Sesuai Permintaan -->
+
+                @role('Kepala Desa')
+                <flux:sidebar.group :heading="__('Kepala Desa')" class="grid">
+                    <flux:sidebar.item icon="chart-bar" :href="route('kepala-desa.dashboard')" :current="request()->routeIs('kepala-desa.dashboard')" wire:navigate>
+                        {{ __('Rekap Unit') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="printer" :href="route('kepala-desa.report')" :current="request()->routeIs('kepala-desa.report')" wire:navigate>
+                        {{ __('Cetak Laporan') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="users" :href="route('kepala-desa.users')" :current="request()->routeIs('kepala-desa.users')" wire:navigate>
+                        {{ __('Kelola Profil Akun') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
+                @endrole
+
+                @role('Sekretaris')
+                <flux:sidebar.group :heading="__('Sekretaris')" class="grid">
+                    <flux:sidebar.item icon="chart-bar" :href="route('sekretaris.dashboard')" :current="request()->routeIs('sekretaris.dashboard')" wire:navigate>
+                        {{ __('Rekap Unit') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="document-check" :href="route('sekretaris.verifikasi')" :current="request()->routeIs('sekretaris.verifikasi')" wire:navigate>
+                        {{ __('Verifikasi Harian') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="table-cells" :href="route('sekretaris.transaksi')" :current="request()->routeIs('sekretaris.transaksi')" wire:navigate>
+                        {{ __('Kelola Jurnal') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="printer" :href="route('sekretaris.laporan')" :current="request()->routeIs('sekretaris.laporan')" wire:navigate>
+                        {{ __('Cetak Laporan') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+                @endrole
             </flux:sidebar.nav>
 
             <flux:spacer />
