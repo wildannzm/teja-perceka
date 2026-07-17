@@ -22,9 +22,10 @@ class DatabaseSeeder extends Seeder
             KategoriTransaksiSeeder::class,
         ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            RoleSeeder::class,
+            UnitSeeder::class,
+            AccountSeeder::class,
         ]);
     }
 }
