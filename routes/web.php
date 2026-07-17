@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\KepalaUnit\RiwayatTransaksi;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -49,6 +50,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:kepala_unit'])->get('dashboard/unit', function () {
         return view('dashboard.unit');
     })->name('dashboard.unit');
+
+    Route::middleware(['role:kepala_unit'])
+        ->get('unit/riwayat-transaksi', RiwayatTransaksi::class)
+        ->name('unit.riwayat-transaksi');
 
     Route::middleware(['role:sekretaris|bendahara'])->get('dashboard/keuangan', function () {
         return view('dashboard.keuangan');
