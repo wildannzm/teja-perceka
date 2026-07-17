@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -24,27 +25,42 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Custom Dashboard Redirect
     Route::get('/dashboard', function () {
         $user = auth()->user();
-        
-        if ($user->hasRole('Kepala Desa')) {
-            return redirect()->route('kepala-desa.dashboard');
+
+        if ($user->hasRole('kepala_unit')) {
+            return redirect()->route('dashboard.unit');
         }
-        
-        if ($user->hasRole('Sekretaris')) {
-            return redirect()->route('sekretaris.dashboard');
+        if ($user->hasAnyRole(['sekretaris', 'bendahara'])) {
+            return redirect()->route('dashboard.keuangan');
+        }
+        if ($user->hasRole('direktur_bumdes')) {
+            return redirect()->route('dashboard.bumdes');
+        }
+        if ($user->hasAnyRole(['kepala_desa', 'pengawas'])) {
+            return redirect()->route('dashboard.laporan');
         }
         
         if ($user->hasRole('Bendahara')) {
             return redirect()->route('bendahara.dashboard');
         }
 
-        return view('dashboard');
-    })->middleware(['auth', 'verified'])->name('dashboard');
-});
+        abort(403, 'Role tidak dikenali.');
+    })->name('dashboard');
 
-Route::middleware(['auth', 'verified', 'role:Kepala Desa'])->prefix('kepala-desa')->name('kepala-desa.')->group(function () {
-    Route::get('/dashboard', \App\Livewire\KepalaDesa\Dashboard::class)->name('dashboard');
-    Route::get('/report', \App\Livewire\KepalaDesa\Report::class)->name('report');
-    Route::get('/users', \App\Livewire\KepalaDesa\UserManager::class)->name('users');
+    Route::middleware(['role:kepala_unit'])->get('dashboard/unit', function () {
+        return view('dashboard.unit');
+    })->name('dashboard.unit');
+
+    Route::middleware(['role:sekretaris|bendahara'])->get('dashboard/keuangan', function () {
+        return view('dashboard.keuangan');
+    })->name('dashboard.keuangan');
+
+    Route::middleware(['role:direktur_bumdes'])->get('dashboard/bumdes', function () {
+        return view('dashboard.bumdes');
+    })->name('dashboard.bumdes');
+
+    Route::middleware(['role:kepala_desa|pengawas'])->get('dashboard/laporan', function () {
+        return view('dashboard.laporan');
+    })->name('dashboard.laporan');
 });
 
 require __DIR__.'/settings.php';
