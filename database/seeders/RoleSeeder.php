@@ -14,14 +14,13 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        // Define roles (including other roles so Kepala Desa can manage them)
         $roles = [
-            'Kepala Desa',
-            'Direktur BUMDes',
-            'Sekretaris',
-            'Bendahara',
-            'Kepala Unit',
-            'Pengawas',
+            'kepala_unit',
+            'sekretaris',
+            'bendahara',
+            'direktur_bumdes',
+            'kepala_desa',
+            'pengawas',
         ];
 
         foreach ($roles as $role) {
