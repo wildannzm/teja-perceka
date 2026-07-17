@@ -4,7 +4,9 @@ namespace App\Livewire\KepalaUnit;
 
 use App\Enums\JenisTransaksi;
 use App\Enums\TipeKategori;
+use App\Models\JurnalUmum;
 use App\Models\KategoriTransaksi;
+use App\Models\KodeAkun;
 use App\Models\TransaksiDetail;
 use App\Models\TransaksiHarian;
 use App\Models\UnitWisata;
@@ -176,6 +178,76 @@ class InputTransaksiHarian extends Component
                     ]);
                 }
             }
+
+            // --- OTOMATISASI JURNAL UMUM ---
+
+            $akunKas = KodeAkun::where('kode', '1-1100')->first();
+            if (! $akunKas) {
+                throw new \Exception('Akun Kas (1-1100) tidak ditemukan di sistem. Harap hubungi administrator.');
+            }
+
+            $bulanTahun = $date->format('Y-m');
+            $prefixNomor = 'JU-'.$bulanTahun.'-';
+
+            // Generate nomor bukti aman dari race condition menggunakan lockForUpdate
+            $lastJurnal = JurnalUmum::where('nomor_bukti', 'like', $prefixNomor.'%')
+                ->lockForUpdate()
+                ->orderBy('nomor_bukti', 'desc')
+                ->first();
+
+            $nextUrut = 1;
+            if ($lastJurnal) {
+                $lastUrut = (int) substr($lastJurnal->nomor_bukti, -3);
+                $nextUrut = $lastUrut + 1;
+            }
+
+            $nomorBukti = $prefixNomor.str_pad($nextUrut, 3, '0', STR_PAD_LEFT);
+            $keteranganJurnal = 'Pemasukan Harian - '.$this->unit->nama;
+
+            // 1. Catat Debet ke Kas
+            JurnalUmum::create([
+                'nomor_bukti' => $nomorBukti,
+                'tanggal' => $this->tanggal,
+                'keterangan' => $keteranganJurnal,
+                'kode_akun_id' => $akunKas->id,
+                'debet' => $this->totalPemasukan,
+                'kredit' => 0,
+                'transaksi_harian_id' => $transaksi->id,
+                'unit_wisata_id' => $this->unitId,
+            ]);
+
+            // 2. Kelompokkan Kredit per kode_akun_id dari input yang ada
+            $kreditGroup = [];
+            foreach ($this->inputs as $id => $input) {
+                $subtotal = $input['subtotal'];
+                if ($subtotal > 0) {
+                    $akunId = $input['kategori']->kode_akun_id;
+                    if (! $akunId) {
+                        throw new \Exception('Kategori "'.$input['kategori']->nama.'" belum terhubung ke Kode Akun (Chart of Account).');
+                    }
+
+                    if (! isset($kreditGroup[$akunId])) {
+                        $kreditGroup[$akunId] = 0;
+                    }
+                    $kreditGroup[$akunId] += $subtotal;
+                }
+            }
+
+            // 3. Catat Kredit untuk masing-masing akun pendapatan
+            foreach ($kreditGroup as $akunId => $jumlahKredit) {
+                JurnalUmum::create([
+                    'nomor_bukti' => $nomorBukti,
+                    'tanggal' => $this->tanggal,
+                    'keterangan' => $keteranganJurnal,
+                    'kode_akun_id' => $akunId,
+                    'debet' => 0,
+                    'kredit' => $jumlahKredit,
+                    'transaksi_harian_id' => $transaksi->id,
+                    'unit_wisata_id' => $this->unitId,
+                ]);
+            }
+
+            // --- AKHIR JURNAL UMUM ---
 
             DB::commit();
 
