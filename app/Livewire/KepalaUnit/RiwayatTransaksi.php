@@ -3,7 +3,6 @@
 namespace App\Livewire\KepalaUnit;
 
 use App\Models\JurnalUmum;
-use App\Models\KodeAkun;
 use App\Models\UnitWisata;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
@@ -20,9 +19,6 @@ class RiwayatTransaksi extends Component
 {
     #[Locked]
     public ?int $unitId = null;
-
-    #[Locked]
-    public ?int $akunKasId = null;
 
     public ?UnitWisata $unit = null;
 
@@ -43,11 +39,6 @@ class RiwayatTransaksi extends Component
         $this->unitId = $user->unit_wisata_id;
         $this->unit = UnitWisata::findOrFail($this->unitId);
         $this->isMingguanOnly = $this->unit->frekuensi_input === 'mingguan';
-
-        $akunKas = KodeAkun::where('kode', '1-1100')->first();
-        if ($akunKas) {
-            $this->akunKasId = $akunKas->id;
-        }
 
         $this->mode = $this->isMingguanOnly ? 'mingguan' : 'harian';
 
@@ -132,40 +123,26 @@ class RiwayatTransaksi extends Component
     {
         [$start, $end] = $this->dateRange;
 
-        if (! $this->akunKasId) {
-            return collect([]);
-        }
-
-        // Ambil data dari Jurnal Umum khusus untuk akun Kas
-        $jurnals = JurnalUmum::with('kodeAkun')
+        // Ambil data dari Jurnal Umum untuk semua akun
+        return JurnalUmum::with('kodeAkun')
             ->where('unit_wisata_id', $this->unitId)
-            ->where('kode_akun_id', $this->akunKasId)
             ->whereBetween('tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')])
-            ->orderBy('tanggal', 'asc') // Urut dari terlama untuk logika running balance
+            ->orderBy('tanggal', 'asc')
+            ->orderBy('nomor_bukti', 'asc')
             ->orderBy('id', 'asc')
             ->get();
-
-        $saldo = 0;
-
-        return $jurnals->map(function ($jurnal) use (&$saldo) {
-            $saldo += $jurnal->debet;
-            $saldo -= $jurnal->kredit;
-
-            $jurnal->saldo_berjalan = $saldo;
-
-            return $jurnal;
-        });
     }
 
     #[Computed]
-    public function grandTotal(): float
+    public function totalDebet(): float
     {
-        $trxs = $this->transactions;
-        if ($trxs->isEmpty()) {
-            return 0;
-        }
+        return $this->transactions->sum('debet');
+    }
 
-        return (float) $trxs->last()->saldo_berjalan;
+    #[Computed]
+    public function totalKredit(): float
+    {
+        return $this->transactions->sum('kredit');
     }
 
     public function exportPdf()
@@ -179,16 +156,18 @@ class RiwayatTransaksi extends Component
         $transactions = $this->transactions;
         $periode = $this->periodeLabel;
         $unit = $this->unit;
-        $grandTotal = $this->grandTotal;
+        $totalDebet = $this->totalDebet;
+        $totalKredit = $this->totalKredit;
 
         $pdf = Pdf::loadView('pdf.riwayat-transaksi', compact(
             'transactions',
             'periode',
             'unit',
-            'grandTotal',
+            'totalDebet',
+            'totalKredit'
         ))->setPaper('a4', 'landscape'); // Landscape lebih cocok untuk tabel ledger
 
-        $filename = 'BukuKas_'.str_replace(' ', '_', $unit->nama).'_'.str_replace([' ', '-', '/'], '_', $periode).'.pdf';
+        $filename = 'JurnalUmum_'.str_replace(' ', '_', $unit->nama).'_'.str_replace([' ', '-', '/'], '_', $periode).'.pdf';
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();

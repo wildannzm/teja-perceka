@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buku Kas - {{ $unit->nama }}</title>
+    <title>Jurnal Umum - {{ $unit->nama }}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -17,52 +17,31 @@
 
         /* === HEADER DOKUMEN === */
         .doc-header {
+            text-align: center;
             border-bottom: 3px solid #14532d;
             padding-bottom: 12px;
-            margin-bottom: 16px;
+            margin-bottom: 24px;
         }
         .doc-header .org-name {
             font-size: 20px;
             font-weight: 700;
             color: #14532d;
-            letter-spacing: -0.3px;
-        }
-        .doc-header .org-subtitle {
-            font-size: 12px;
-            color: #6b7280;
-            margin-top: 2px;
+            letter-spacing: 0.5px;
         }
         .doc-header .report-title {
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 700;
             color: #166534;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #d1fae5;
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+        .doc-header .org-subtitle {
+            font-size: 13px;
+            color: #4b5563;
+            margin-top: 4px;
         }
 
-        /* === INFO META === */
-        .meta-table {
-            width: 100%;
-            margin-bottom: 14px;
-            border-collapse: collapse;
-        }
-        .meta-table td {
-            padding: 3px 0;
-            font-size: 12px;
-            color: #374151;
-        }
-        .meta-table td:first-child {
-            width: 100px;
-            font-weight: 600;
-            color: #111827;
-        }
-        .meta-table td:nth-child(2) {
-            width: 16px;
-            color: #9ca3af;
-        }
-
-        /* === TABEL DATA BUKU KAS === */
+        /* === TABEL DATA JURNAL UMUM === */
         .data-table {
             width: 100%;
             border-collapse: collapse;
@@ -102,7 +81,6 @@
         .font-mono { font-family: 'Courier New', Courier, monospace; font-size: 10px; color: #4b5563; }
         .text-debet { color: #15803d; font-weight: 600; }
         .text-kredit { color: #dc2626; font-weight: 600; }
-        .text-saldo { font-weight: 700; background-color: #f0fdf4; }
 
         /* === FOOTER === */
         .doc-footer {
@@ -126,46 +104,22 @@
 <body>
 
     <div class="doc-header">
-        <div class="org-name">BUMDes Teja Perceka</div>
-        <div class="org-subtitle">Badan Usaha Milik Desa</div>
-        <div class="report-title">Buku Kas &mdash; {{ $unit->nama }}</div>
+        <div class="org-name">WISATA {{ strtoupper($unit->nama) }}</div>
+        <div class="report-title">JURNAL UMUM</div>
+        <div class="org-subtitle">{{ $periode }}</div>
     </div>
-
-    <table class="meta-table">
-        <tr>
-            <td>Unit Wisata</td>
-            <td>:</td>
-            <td>{{ $unit->nama }}</td>
-        </tr>
-        @if ($transactions->isNotEmpty() && $transactions->first()->kodeAkun)
-        <tr>
-            <td>Akun</td>
-            <td>:</td>
-            <td>{{ $transactions->first()->kodeAkun->nama }} - <span class="font-mono">{{ $transactions->first()->kodeAkun->kode }}</span></td>
-        </tr>
-        @endif
-        <tr>
-            <td>Periode</td>
-            <td>:</td>
-            <td>{{ $periode }}</td>
-        </tr>
-        <tr>
-            <td>Total Entri</td>
-            <td>:</td>
-            <td>{{ $transactions->count() }} catatan</td>
-        </tr>
-    </table>
 
     @if ($transactions->isNotEmpty())
         <table class="data-table">
             <thead>
                 <tr>
-                    <th style="width:12%">Tanggal</th>
-                    <th style="width:16%">Bukti Transaksi</th>
-                    <th style="width:34%">Keterangan</th>
-                    <th style="width:12%" class="text-right">Debet</th>
-                    <th style="width:12%" class="text-right">Kredit</th>
-                    <th style="width:14%" class="text-right">Saldo</th>
+                    <th style="width:10%">TANGGAL</th>
+                    <th style="width:14%">BUKTI TRANSAKSI</th>
+                    <th style="width:30%">KETERANGAN</th>
+                    <th style="width:10%">KODE AKUN</th>
+                    <th style="width:10%" class="text-center">KODE BANTU</th>
+                    <th style="width:13%" class="text-right">DEBET</th>
+                    <th style="width:13%" class="text-right">KREDIT</th>
                 </tr>
             </thead>
             <tbody>
@@ -174,27 +128,27 @@
                         <td>{{ $trx->tanggal->format('d/m/Y') }}</td>
                         <td class="font-mono">{{ $trx->nomor_bukti }}</td>
                         <td>{{ $trx->keterangan }}</td>
+                        <td class="font-mono">{{ $trx->kodeAkun->kode ?? '-' }}</td>
+                        <td class="text-center">-</td>
                         <td class="text-right text-debet">
                             {{ $trx->debet > 0 ? number_format($trx->debet, 0, ',', '.') : '-' }}
                         </td>
                         <td class="text-right text-kredit">
                             {{ $trx->kredit > 0 ? number_format($trx->kredit, 0, ',', '.') : '-' }}
                         </td>
-                        <td class="text-right text-saldo">
-                            {{ number_format($trx->saldo_berjalan, 0, ',', '.') }}
-                        </td>
                     </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="5" class="text-right">SALDO AKHIR PERIODE INI</td>
-                    <td class="text-right">{{ number_format($grandTotal, 0, ',', '.') }}</td>
+                    <td colspan="5" class="text-right">TOTAL KESELURUHAN</td>
+                    <td class="text-right">{{ number_format($totalDebet, 0, ',', '.') }}</td>
+                    <td class="text-right">{{ number_format($totalKredit, 0, ',', '.') }}</td>
                 </tr>
             </tfoot>
         </table>
     @else
-        <div class="empty-state">Belum ada catatan buku kas untuk periode ini.</div>
+        <div class="empty-state">Belum ada catatan jurnal umum untuk periode ini.</div>
     @endif
 
     <div class="doc-footer">
