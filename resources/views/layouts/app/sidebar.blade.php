@@ -63,6 +63,9 @@
                         <flux:sidebar.item icon="document-chart-bar" :href="route('unit.riwayat-transaksi')" :current="request()->routeIs('unit.riwayat-transaksi')" wire:navigate>
                             Riwayat & Rekap
                         </flux:sidebar.item>
+                        <flux:sidebar.item icon="currency-dollar" :href="route('unit.kelola-harga')" :current="request()->routeIs('unit.kelola-harga')" wire:navigate>
+                            Kelola Harga
+                        </flux:sidebar.item>
                     </flux:sidebar.group>
                 @endrole
             </flux:sidebar.nav>
