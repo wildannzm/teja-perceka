@@ -12,7 +12,7 @@
                 <flux:select wire:model.live="unit_id" label="Pilih Unit Usaha">
                     <option value="">Semua Unit</option>
                     @foreach($units as $unit)
-                        <option value="{{ $unit->id }}">{{ $unit->name }}</option>
+                        <option value="{{ $unit->id }}">{{ $unit->nama }}</option>
                     @endforeach
                 </flux:select>
 
@@ -36,22 +36,22 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($journals as $journal)
-                            @foreach($journal->details as $detail)
+                        @forelse($journals as $nomorBukti => $group)
+                            @foreach($group as $jurnal)
                             <tr class="bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800">
                                 @if($loop->first)
-                                    <td rowspan="{{ $journal->details->count() }}" class="px-4 py-4 border-b border-r dark:border-neutral-700 align-top whitespace-nowrap">{{ \Carbon\Carbon::parse($journal->date)->format('d/m/Y') }}</td>
-                                    <td rowspan="{{ $journal->details->count() }}" class="px-4 py-4 border-b border-r dark:border-neutral-700 align-top">{{ $journal->unit->name }}</td>
-                                    <td rowspan="{{ $journal->details->count() }}" class="px-4 py-4 border-b border-r dark:border-neutral-700 align-top">{{ $journal->description }}</td>
+                                    <td rowspan="{{ $group->count() }}" class="px-4 py-4 border-b border-r dark:border-neutral-700 align-top whitespace-nowrap">{{ $jurnal->tanggal->format('d/m/Y') }}</td>
+                                    <td rowspan="{{ $group->count() }}" class="px-4 py-4 border-b border-r dark:border-neutral-700 align-top">{{ $jurnal->unitWisata->nama ?? '-' }}</td>
+                                    <td rowspan="{{ $group->count() }}" class="px-4 py-4 border-b border-r dark:border-neutral-700 align-top">{{ $jurnal->keterangan }}</td>
                                 @endif
                                 <td class="px-4 py-4 border-b dark:border-neutral-700">
-                                    {{ $detail->account->code }} - {{ $detail->account->name }}
+                                    {{ $jurnal->kodeAkun->kode ?? '-' }} - {{ $jurnal->kodeAkun->nama ?? 'Akun Tidak Ditemukan' }}
                                 </td>
                                 <td class="px-4 py-4 text-right border-b dark:border-neutral-700">
-                                    {{ $detail->debit > 0 ? number_format($detail->debit, 0, ',', '.') : '-' }}
+                                    {{ $jurnal->debet > 0 ? number_format($jurnal->debet, 0, ',', '.') : '-' }}
                                 </td>
                                 <td class="px-4 py-4 text-right border-b dark:border-neutral-700">
-                                    {{ $detail->credit > 0 ? number_format($detail->credit, 0, ',', '.') : '-' }}
+                                    {{ $jurnal->kredit > 0 ? number_format($jurnal->kredit, 0, ',', '.') : '-' }}
                                 </td>
                             </tr>
                             @endforeach

@@ -13,7 +13,7 @@
             <flux:sidebar.nav>
                 <!-- Dashboard Umum Dihapus Sesuai Permintaan -->
 
-                @role('Kepala Desa')
+                @role('kepala_desa')
                 <flux:sidebar.group :heading="__('Kepala Desa')" class="grid">
                     <flux:sidebar.item icon="chart-bar" :href="route('kepala-desa.dashboard')" :current="request()->routeIs('kepala-desa.dashboard')" wire:navigate>
                         {{ __('Rekap Unit') }}
@@ -27,13 +27,10 @@
                 </flux:sidebar.group>
                 @endrole
 
-                @role('Sekretaris')
+                @role('sekretaris')
                 <flux:sidebar.group :heading="__('Sekretaris')" class="grid">
                     <flux:sidebar.item icon="chart-bar" :href="route('sekretaris.dashboard')" :current="request()->routeIs('sekretaris.dashboard')" wire:navigate>
                         {{ __('Rekap Unit') }}
-                    </flux:sidebar.item>
-                    <flux:sidebar.item icon="document-check" :href="route('sekretaris.verifikasi')" :current="request()->routeIs('sekretaris.verifikasi')" wire:navigate>
-                        {{ __('Verifikasi Harian') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="table-cells" :href="route('sekretaris.transaksi')" :current="request()->routeIs('sekretaris.transaksi')" wire:navigate>
                         {{ __('Kelola Jurnal') }}
@@ -44,13 +41,10 @@
                 </flux:sidebar.group>
                 @endrole
 
-                @role('Bendahara')
+                @role('bendahara')
                 <flux:sidebar.group :heading="__('Bendahara')" class="grid">
                     <flux:sidebar.item icon="chart-bar" :href="route('bendahara.dashboard')" :current="request()->routeIs('bendahara.dashboard')" wire:navigate>
                         {{ __('Rekap Keuangan') }}
-                    </flux:sidebar.item>
-                    <flux:sidebar.item icon="document-check" :href="route('bendahara.verifikasi')" :current="request()->routeIs('bendahara.verifikasi')" wire:navigate>
-                        {{ __('Verifikasi Harian') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="table-cells" :href="route('bendahara.transaksi')" :current="request()->routeIs('bendahara.transaksi')" wire:navigate>
                         {{ __('Kelola Jurnal') }}
@@ -59,6 +53,7 @@
                         {{ __('Cetak Laporan') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
+                @endrole
 
                 @role('kepala_unit')
                     <flux:sidebar.group :heading="__('Unit Wisata')" class="grid">
@@ -87,7 +82,7 @@
 
             <flux:spacer />
 
-            <flux:dropdown position="top" align="end">
+            <flux:dropdown position="top" allign="end">
                 <flux:profile
                     :initials="auth()->user()->initials()"
                     icon-trailing="chevron-down"
