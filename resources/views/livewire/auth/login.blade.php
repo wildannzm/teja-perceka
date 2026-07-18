@@ -58,10 +58,5 @@
                 {{ __('Masuk') }}
             </flux:button>
         </form>
-
-        <div class="text-sm text-center text-zinc-500">
-            <span>{{ __('Belum punya akun?') }}</span>
-            <flux:link :href="route('register')" wire:navigate class="ml-1">{{ __('Daftar') }}</flux:link>
-        </div>
     </div>
 </x-layouts::auth>

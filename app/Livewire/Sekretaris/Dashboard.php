@@ -2,29 +2,33 @@
 
 namespace App\Livewire\Sekretaris;
 
+use App\Models\JurnalUmum;
 use Livewire\Component;
 
 class Dashboard extends Component
 {
     public function render()
     {
-        $pemasukan = \App\Models\JournalDetail::whereHas('account', function($q) {
-            $q->where('code', 'like', '4-%')->orWhere('code', 'like', '7-%');
-        })->sum('credit') - \App\Models\JournalDetail::whereHas('account', function($q) {
-            $q->where('code', 'like', '4-%')->orWhere('code', 'like', '7-%');
-        })->sum('debit');
+        // Akun pendapatan: prefix 4- (menggunakan kolom kredit)
+        $pemasukan = JurnalUmum::whereHas('kodeAkun', function ($q) {
+            $q->where('kode', 'like', '4-%')->orWhere('kode', 'like', '7-%');
+        })->sum('kredit');
 
-        $pengeluaran = \App\Models\JournalDetail::whereHas('account', function($q) {
-            $q->where('code', 'like', '5-%')->orWhere('code', 'like', '6-%');
-        })->sum('debit') - \App\Models\JournalDetail::whereHas('account', function($q) {
-            $q->where('code', 'like', '5-%')->orWhere('code', 'like', '6-%');
-        })->sum('credit');
+        // Akun beban/biaya: prefix 5- dan 6- (menggunakan kolom debet)
+        $pengeluaran = JurnalUmum::whereHas('kodeAkun', function ($q) {
+            $q->where('kode', 'like', '5-%')->orWhere('kode', 'like', '6-%');
+        })->sum('debet');
 
-        $saldo = \App\Models\JournalDetail::whereHas('account', function($q) {
-            $q->whereIn('code', ['1-1100', '1-1200']);
-        })->sum('debit') - \App\Models\JournalDetail::whereHas('account', function($q) {
-            $q->whereIn('code', ['1-1100', '1-1200']);
-        })->sum('credit');
+        // Saldo Kas: debet - kredit pada akun Kas (1-1100) dan Bank (1-1200)
+        $kasDebet = JurnalUmum::whereHas('kodeAkun', function ($q) {
+            $q->whereIn('kode', ['1-1100', '1-1200']);
+        })->sum('debet');
+
+        $kasKredit = JurnalUmum::whereHas('kodeAkun', function ($q) {
+            $q->whereIn('kode', ['1-1100', '1-1200']);
+        })->sum('kredit');
+
+        $saldo = $kasDebet - $kasKredit;
 
         return view('livewire.sekretaris.dashboard', [
             'pemasukan' => $pemasukan,

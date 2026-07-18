@@ -1,29 +1,22 @@
 <?php
 
+use App\Livewire\Bendahara\Dashboard as BendaharaDashboard;
+use App\Livewire\Bendahara\Report as BendaharaReport;
+use App\Livewire\Bendahara\TransactionList as BendaharaTransactionList;
+use App\Livewire\KepalaDesa\Dashboard as KepalaDesaDashboard;
+use App\Livewire\KepalaDesa\Report as KepalaDesaReport;
+use App\Livewire\KepalaDesa\UserManager as KepalaDesaUserManager;
 use App\Livewire\KepalaUnit\RiwayatTransaksi;
-use App\Models\User;
+use App\Livewire\Sekretaris\Dashboard as SekretarisDashboard;
+use App\Livewire\Sekretaris\Report as SekretarisReport;
+use App\Livewire\Sekretaris\TransactionList as SekretarisTransactionList;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Rute untuk Sekretaris
-    Route::middleware(['auth', 'role:Sekretaris'])->prefix('sekretaris')->group(function () {
-        Route::get('/dashboard', \App\Livewire\Sekretaris\Dashboard::class)->name('sekretaris.dashboard');
-        Route::get('/verifikasi', \App\Livewire\Sekretaris\TransactionVerification::class)->name('sekretaris.verifikasi');
-        Route::get('/transaksi', \App\Livewire\Sekretaris\TransactionList::class)->name('sekretaris.transaksi');
-        Route::get('/laporan', \App\Livewire\Sekretaris\Report::class)->name('sekretaris.laporan');
-    });
 
-    // Rute untuk Bendahara
-    Route::middleware(['auth', 'role:Bendahara'])->prefix('bendahara')->group(function () {
-        Route::get('/dashboard', \App\Livewire\Bendahara\Dashboard::class)->name('bendahara.dashboard');
-        Route::get('/verifikasi', \App\Livewire\Bendahara\TransactionVerification::class)->name('bendahara.verifikasi');
-        Route::get('/transaksi', \App\Livewire\Bendahara\TransactionList::class)->name('bendahara.transaksi');
-        Route::get('/laporan', \App\Livewire\Bendahara\Report::class)->name('bendahara.laporan');
-    });
-
-    // Custom Dashboard Redirect
+    // Redirect otomatis sesuai role setelah login
     Route::get('/dashboard', function () {
         $user = auth()->user();
 
@@ -36,36 +29,62 @@ Route::middleware(['auth', 'verified'])->group(function () {
         if ($user->hasRole('direktur_bumdes')) {
             return redirect()->route('dashboard.bumdes');
         }
-        if ($user->hasAnyRole(['kepala_desa', 'pengawas'])) {
-            return redirect()->route('dashboard.laporan');
+        if ($user->hasRole('kepala_desa')) {
+            return redirect()->route('kepala-desa.dashboard');
         }
-        
-        if ($user->hasRole('Bendahara')) {
-            return redirect()->route('bendahara.dashboard');
+        if ($user->hasRole('pengawas')) {
+            return redirect()->route('dashboard.laporan');
         }
 
         abort(403, 'Role tidak dikenali.');
     })->name('dashboard');
 
-    Route::middleware(['role:kepala_unit'])->get('dashboard/unit', function () {
-        return view('dashboard.unit');
-    })->name('dashboard.unit');
+    // ===== Kepala Unit =====
+    Route::middleware(['role:kepala_unit'])->group(function () {
+        Route::get('dashboard/unit', function () {
+            return view('dashboard.unit');
+        })->name('dashboard.unit');
 
-    Route::middleware(['role:kepala_unit'])
-        ->get('unit/riwayat-transaksi', RiwayatTransaksi::class)
-        ->name('unit.riwayat-transaksi');
+        Route::get('unit/riwayat-transaksi', RiwayatTransaksi::class)
+            ->name('unit.riwayat-transaksi');
+    });
 
+    // ===== Sekretaris =====
+    Route::middleware(['role:sekretaris'])->prefix('sekretaris')->group(function () {
+        Route::get('/dashboard', SekretarisDashboard::class)->name('sekretaris.dashboard');
+        Route::get('/transaksi', SekretarisTransactionList::class)->name('sekretaris.transaksi');
+        Route::get('/laporan', SekretarisReport::class)->name('sekretaris.laporan');
+    });
+
+    // ===== Bendahara =====
+    Route::middleware(['role:bendahara'])->prefix('bendahara')->group(function () {
+        Route::get('/dashboard', BendaharaDashboard::class)->name('bendahara.dashboard');
+        Route::get('/transaksi', BendaharaTransactionList::class)->name('bendahara.transaksi');
+        Route::get('/laporan', BendaharaReport::class)->name('bendahara.laporan');
+    });
+
+    // Dashboard gabungan Sekretaris & Bendahara (halaman placeholder umum)
     Route::middleware(['role:sekretaris|bendahara'])->get('dashboard/keuangan', function () {
         return view('dashboard.keuangan');
     })->name('dashboard.keuangan');
 
+    // ===== Kepala Desa =====
+    Route::middleware(['role:kepala_desa'])->prefix('kepala-desa')->group(function () {
+        Route::get('/dashboard', KepalaDesaDashboard::class)->name('kepala-desa.dashboard');
+        Route::get('/report', KepalaDesaReport::class)->name('kepala-desa.report');
+        Route::get('/users', KepalaDesaUserManager::class)->name('kepala-desa.users');
+    });
+
+    // ===== Direktur BUMDes =====
     Route::middleware(['role:direktur_bumdes'])->get('dashboard/bumdes', function () {
         return view('dashboard.bumdes');
     })->name('dashboard.bumdes');
 
-    Route::middleware(['role:kepala_desa|pengawas'])->get('dashboard/laporan', function () {
+    // ===== Pengawas =====
+    Route::middleware(['role:pengawas'])->get('dashboard/laporan', function () {
         return view('dashboard.laporan');
     })->name('dashboard.laporan');
+
 });
 
 require __DIR__.'/settings.php';
