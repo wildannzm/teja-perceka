@@ -55,6 +55,20 @@
                 </flux:sidebar.group>
                 @endrole
 
+                @role('direktur_bumdes')
+                <flux:sidebar.group :heading="__('Direktur BUMDes')" class="grid">
+                    <flux:sidebar.item icon="chart-bar" :href="route('direktur-bumdes.dashboard')" :current="request()->routeIs('direktur-bumdes.dashboard')" wire:navigate>
+                        {{ __('Dashboard & Rekap') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="table-cells" :href="route('direktur-bumdes.transaksi')" :current="request()->routeIs('direktur-bumdes.transaksi')" wire:navigate>
+                        {{ __('Kelola Jurnal') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="printer" :href="route('direktur-bumdes.laporan')" :current="request()->routeIs('direktur-bumdes.laporan')" wire:navigate>
+                        {{ __('Cetak Laporan') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+                @endrole
+
                 @role('kepala_unit')
                     <flux:sidebar.group :heading="__('Unit Wisata')" class="grid">
                         <flux:sidebar.item icon="pencil-square" :href="route('dashboard.unit')" :current="request()->routeIs('dashboard.unit')" wire:navigate>
