@@ -3,6 +3,9 @@
 use App\Livewire\Bendahara\Dashboard as BendaharaDashboard;
 use App\Livewire\Bendahara\Report as BendaharaReport;
 use App\Livewire\Bendahara\TransactionList as BendaharaTransactionList;
+use App\Livewire\DirekturBumdes\Dashboard as DirekturBumdesDashboard;
+use App\Livewire\DirekturBumdes\Report as DirekturBumdesReport;
+use App\Livewire\DirekturBumdes\TransactionList as DirekturBumdesTransactionList;
 use App\Livewire\KepalaDesa\Dashboard as KepalaDesaDashboard;
 use App\Livewire\KepalaDesa\Report as KepalaDesaReport;
 use App\Livewire\KepalaDesa\UserManager as KepalaDesaUserManager;
@@ -28,7 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             return redirect()->route('dashboard.keuangan');
         }
         if ($user->hasRole('direktur_bumdes')) {
-            return redirect()->route('dashboard.bumdes');
+            return redirect()->route('direktur-bumdes.dashboard');
         }
         if ($user->hasRole('kepala_desa')) {
             return redirect()->route('kepala-desa.dashboard');
@@ -80,9 +83,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // ===== Direktur BUMDes =====
-    Route::middleware(['role:direktur_bumdes'])->get('dashboard/bumdes', function () {
-        return view('dashboard.bumdes');
-    })->name('dashboard.bumdes');
+    Route::middleware(['role:direktur_bumdes'])->prefix('direktur-bumdes')->group(function () {
+        Route::get('/dashboard', DirekturBumdesDashboard::class)->name('direktur-bumdes.dashboard');
+        Route::get('/transaksi', DirekturBumdesTransactionList::class)->name('direktur-bumdes.transaksi');
+        Route::get('/laporan', DirekturBumdesReport::class)->name('direktur-bumdes.laporan');
+    });
 
     // ===== Pengawas =====
     Route::middleware(['role:pengawas'])->get('dashboard/laporan', function () {
