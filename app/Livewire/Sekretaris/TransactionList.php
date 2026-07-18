@@ -2,30 +2,33 @@
 
 namespace App\Livewire\Sekretaris;
 
-use Livewire\Component;
-use App\Models\Journal;
+use App\Models\JurnalUmum;
 use Illuminate\Support\Facades\DB;
+use Livewire\Component;
 
 class TransactionList extends Component
 {
     public function delete($id)
     {
-        $journal = Journal::find($id);
-        if ($journal) {
-            DB::transaction(function () use ($journal) {
-                // Cascading delete will handle journal_details
-                $journal->delete();
+        $jurnal = JurnalUmum::find($id);
+        if ($jurnal) {
+            DB::transaction(function () use ($jurnal) {
+                // Menghapus semua baris jurnal yang memiliki nomor_bukti yang sama
+                // karena satu transaksi pemasukan terdiri dari debet dan kredit
+                JurnalUmum::where('nomor_bukti', $jurnal->nomor_bukti)->delete();
             });
-            \Flux::toast(variant: 'success', text: 'Jurnal berhasil dihapus.');
+            \Flux::toast(variant: 'success', text: 'Satu set jurnal (debet & kredit) berhasil dihapus.');
         }
     }
 
     public function render()
     {
-        $journals = Journal::with(['unit', 'details.account'])
-            ->orderBy('date', 'desc')
-            ->orderBy('id', 'desc')
-            ->get();
+        $journals = JurnalUmum::with(['unitWisata', 'kodeAkun'])
+            ->orderBy('tanggal', 'desc')
+            ->orderBy('nomor_bukti', 'desc')
+            ->orderBy('id', 'asc')
+            ->get()
+            ->groupBy('nomor_bukti');
 
         return view('livewire.sekretaris.transaction-list', [
             'journals' => $journals,
