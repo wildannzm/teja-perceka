@@ -6,6 +6,7 @@ use App\Livewire\Bendahara\TransactionList as BendaharaTransactionList;
 use App\Livewire\KepalaDesa\Dashboard as KepalaDesaDashboard;
 use App\Livewire\KepalaDesa\Report as KepalaDesaReport;
 use App\Livewire\KepalaDesa\UserManager as KepalaDesaUserManager;
+use App\Livewire\KepalaUnit\KelolaHarga;
 use App\Livewire\KepalaUnit\RiwayatTransaksi;
 use App\Livewire\Sekretaris\Dashboard as SekretarisDashboard;
 use App\Livewire\Sekretaris\Report as SekretarisReport;
@@ -47,6 +48,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('unit/riwayat-transaksi', RiwayatTransaksi::class)
             ->name('unit.riwayat-transaksi');
+
+        Route::get('unit/kelola-harga', KelolaHarga::class)
+            ->name('unit.kelola-harga');
     });
 
     // ===== Sekretaris =====
