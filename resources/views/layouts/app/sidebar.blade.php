@@ -66,6 +66,9 @@
                     <flux:sidebar.item icon="printer" :href="route('direktur-bumdes.laporan')" :current="request()->routeIs('direktur-bumdes.laporan')" wire:navigate>
                         {{ __('Cetak Laporan') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="users" :href="route('direktur-bumdes.kelola-akun')" :current="request()->routeIs('direktur-bumdes.kelola-akun')" wire:navigate>
+                        {{ __('Kelola Akun Unit') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
                 @endrole
 
