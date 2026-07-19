@@ -12,6 +12,7 @@ use App\Livewire\KepalaDesa\Report as KepalaDesaReport;
 use App\Livewire\KepalaDesa\UserManager as KepalaDesaUserManager;
 use App\Livewire\KepalaUnit\KelolaHarga;
 use App\Livewire\KepalaUnit\RiwayatTransaksi;
+use App\Livewire\Pengeluaran\CatatPengeluaran;
 use App\Livewire\Sekretaris\Dashboard as SekretarisDashboard;
 use App\Livewire\Sekretaris\Report as SekretarisReport;
 use App\Livewire\Sekretaris\TransactionList as SekretarisTransactionList;
@@ -95,6 +96,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:pengawas'])->get('dashboard/laporan', function () {
         return view('dashboard.laporan');
     })->name('dashboard.laporan');
+
+    // ===== Pengeluaran (Shared: direktur_bumdes, sekretaris, bendahara) =====
+    Route::middleware(['role:direktur_bumdes|sekretaris|bendahara'])
+        ->get('pengeluaran/catat', CatatPengeluaran::class)
+        ->name('pengeluaran.catat');
 
 });
 

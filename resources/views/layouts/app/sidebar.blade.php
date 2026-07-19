@@ -38,6 +38,9 @@
                     <flux:sidebar.item icon="printer" :href="route('sekretaris.laporan')" :current="request()->routeIs('sekretaris.laporan')" wire:navigate>
                         {{ __('Cetak Laporan') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="minus-circle" :href="route('pengeluaran.catat')" :current="request()->routeIs('pengeluaran.catat')" wire:navigate>
+                        {{ __('Catat Pengeluaran') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
                 @endrole
 
@@ -52,6 +55,9 @@
                     <flux:sidebar.item icon="printer" :href="route('bendahara.laporan')" :current="request()->routeIs('bendahara.laporan')" wire:navigate>
                         {{ __('Cetak Laporan') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="minus-circle" :href="route('pengeluaran.catat')" :current="request()->routeIs('pengeluaran.catat')" wire:navigate>
+                        {{ __('Catat Pengeluaran') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
                 @endrole
 
@@ -65,6 +71,9 @@
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="printer" :href="route('direktur-bumdes.laporan')" :current="request()->routeIs('direktur-bumdes.laporan')" wire:navigate>
                         {{ __('Cetak Laporan') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="minus-circle" :href="route('pengeluaran.catat')" :current="request()->routeIs('pengeluaran.catat')" wire:navigate>
+                        {{ __('Catat Pengeluaran') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="users" :href="route('direktur-bumdes.kelola-akun')" :current="request()->routeIs('direktur-bumdes.kelola-akun')" wire:navigate>
                         {{ __('Kelola Akun Unit') }}
