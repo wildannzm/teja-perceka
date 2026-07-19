@@ -28,6 +28,31 @@ class KodeAkunSeeder extends Seeder
                 'nama' => 'Biaya Operasional',
                 'tipe' => 'beban',
             ],
+            [
+                'kode' => '6-0002',
+                'nama' => 'Gaji',
+                'tipe' => 'beban',
+            ],
+            [
+                'kode' => '6-0008',
+                'nama' => 'Biaya Listrik, Air dan Gas',
+                'tipe' => 'beban',
+            ],
+            [
+                'kode' => '6-0015',
+                'nama' => 'Biaya Perbaikan dan Pemeliharaan',
+                'tipe' => 'beban',
+            ],
+            [
+                'kode' => '6-0018',
+                'nama' => 'Biaya Asuransi',
+                'tipe' => 'beban',
+            ],
+            [
+                'kode' => '6-0023',
+                'nama' => 'Biaya Operasional Lainnya',
+                'tipe' => 'beban',
+            ],
         ];
 
         foreach ($accounts as $account) {
