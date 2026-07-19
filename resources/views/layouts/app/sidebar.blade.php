@@ -94,6 +94,20 @@
                         </flux:sidebar.item>
                     </flux:sidebar.group>
                 @endrole
+
+                @role('pengawas')
+                <flux:sidebar.group :heading="__('Pengawas')" class="grid">
+                    <flux:sidebar.item icon="chart-bar" :href="route('pengawas.dashboard')" :current="request()->routeIs('pengawas.dashboard')" wire:navigate>
+                        {{ __('Dashboard & Rekap') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="table-cells" :href="route('pengawas.transaksi')" :current="request()->routeIs('pengawas.transaksi')" wire:navigate>
+                        {{ __('Lihat Jurnal') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="printer" :href="route('pengawas.laporan')" :current="request()->routeIs('pengawas.laporan')" wire:navigate>
+                        {{ __('Cetak Laporan') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+                @endrole
             </flux:sidebar.nav>
 
             <flux:spacer />
