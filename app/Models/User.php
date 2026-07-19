@@ -31,7 +31,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $updated_at
  * @property int|null $unit_wisata_id
  */
-#[Fillable(['name', 'email', 'password', 'unit_wisata_id'])]
+#[Fillable(['name', 'email', 'password', 'unit_wisata_id', 'is_active'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -48,6 +48,7 @@ class User extends Authenticatable implements PasskeyUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 

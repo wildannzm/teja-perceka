@@ -4,6 +4,7 @@ use App\Livewire\Bendahara\Dashboard as BendaharaDashboard;
 use App\Livewire\Bendahara\Report as BendaharaReport;
 use App\Livewire\Bendahara\TransactionList as BendaharaTransactionList;
 use App\Livewire\DirekturBumdes\Dashboard as DirekturBumdesDashboard;
+use App\Livewire\DirekturBumdes\KelolaAkunUnit;
 use App\Livewire\DirekturBumdes\Report as DirekturBumdesReport;
 use App\Livewire\DirekturBumdes\TransactionList as DirekturBumdesTransactionList;
 use App\Livewire\KepalaDesa\Dashboard as KepalaDesaDashboard;
@@ -87,6 +88,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/dashboard', DirekturBumdesDashboard::class)->name('direktur-bumdes.dashboard');
         Route::get('/transaksi', DirekturBumdesTransactionList::class)->name('direktur-bumdes.transaksi');
         Route::get('/laporan', DirekturBumdesReport::class)->name('direktur-bumdes.laporan');
+        Route::get('/kelola-akun', KelolaAkunUnit::class)->name('direktur-bumdes.kelola-akun');
     });
 
     // ===== Pengawas =====

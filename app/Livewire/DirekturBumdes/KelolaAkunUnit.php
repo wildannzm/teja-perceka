@@ -1,0 +1,120 @@
+<?php
+
+namespace App\Livewire\DirekturBumdes;
+
+use App\Models\UnitWisata;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Livewire\Component;
+
+#[Layout('layouts.app')]
+#[Title('Kelola Akun Kepala Unit')]
+class KelolaAkunUnit extends Component
+{
+    // Edit state
+    public ?int $editingUserId = null;
+
+    public string $editName = '';
+
+    public ?int $editUnitWisataId = null;
+
+    // Reset password state
+    public ?int $resetPasswordUserId = null;
+
+    public ?string $generatedPassword = null;
+
+    public function mount(): void
+    {
+        if (! Auth::user()->hasRole('direktur_bumdes')) {
+            abort(403, 'Akses ditolak.');
+        }
+    }
+
+    // ── EDIT USER ─────────────────────────────────────────────────────────────
+
+    public function startEdit(int $userId): void
+    {
+        $user = User::role('kepala_unit')->findOrFail($userId);
+        $this->editingUserId = $user->id;
+        $this->editName = $user->name;
+        $this->editUnitWisataId = $user->unit_wisata_id;
+        $this->generatedPassword = null;
+    }
+
+    public function cancelEdit(): void
+    {
+        $this->reset(['editingUserId', 'editName', 'editUnitWisataId']);
+    }
+
+    public function saveEdit(): void
+    {
+        $this->validate([
+            'editName' => 'required|string|max:255',
+            'editUnitWisataId' => 'nullable|exists:unit_wisata,id',
+        ]);
+
+        $user = User::role('kepala_unit')->findOrFail($this->editingUserId);
+        $user->update([
+            'name' => $this->editName,
+            'unit_wisata_id' => $this->editUnitWisataId,
+        ]);
+
+        \Flux::toast(variant: 'success', text: 'Data akun berhasil diperbarui.');
+        $this->cancelEdit();
+    }
+
+    // ── RESET PASSWORD ─────────────────────────────────────────────────────────
+
+    public function startResetPassword(int $userId): void
+    {
+        $this->resetPasswordUserId = $userId;
+        $this->generatedPassword = null;
+        $this->cancelEdit();
+    }
+
+    public function generatePassword(): void
+    {
+        $user = User::role('kepala_unit')->findOrFail($this->resetPasswordUserId);
+
+        $newPassword = Str::random(10);
+        $user->update(['password' => $newPassword]);
+
+        $this->generatedPassword = $newPassword;
+    }
+
+    public function cancelResetPassword(): void
+    {
+        $this->reset(['resetPasswordUserId', 'generatedPassword']);
+    }
+
+    // ── TOGGLE STATUS ─────────────────────────────────────────────────────────
+
+    public function toggleStatus(int $userId): void
+    {
+        $user = User::role('kepala_unit')->findOrFail($userId);
+        $user->update(['is_active' => ! $user->is_active]);
+
+        $status = $user->is_active ? 'diaktifkan' : 'dinonaktifkan';
+        \Flux::toast(variant: 'success', text: "Akun {$user->name} berhasil {$status}.");
+    }
+
+    // ── RENDER ────────────────────────────────────────────────────────────────
+
+    public function render()
+    {
+        $users = User::role('kepala_unit')
+            ->with('unitWisata')
+            ->orderBy('name')
+            ->get();
+
+        $units = UnitWisata::orderBy('nama')->get();
+
+        return view('livewire.direktur-bumdes.kelola-akun-unit', [
+            'users' => $users,
+            'units' => $units,
+        ]);
+    }
+}
