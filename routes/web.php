@@ -12,6 +12,9 @@ use App\Livewire\KepalaDesa\Report as KepalaDesaReport;
 use App\Livewire\KepalaDesa\UserManager as KepalaDesaUserManager;
 use App\Livewire\KepalaUnit\KelolaHarga;
 use App\Livewire\KepalaUnit\RiwayatTransaksi;
+use App\Livewire\Pengawas\Dashboard as PengawasDashboard;
+use App\Livewire\Pengawas\LihatJurnal as PengawasLihatJurnal;
+use App\Livewire\Pengawas\Report as PengawasReport;
 use App\Livewire\Pengeluaran\CatatPengeluaran;
 use App\Livewire\Sekretaris\Dashboard as SekretarisDashboard;
 use App\Livewire\Sekretaris\Report as SekretarisReport;
@@ -39,7 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             return redirect()->route('kepala-desa.dashboard');
         }
         if ($user->hasRole('pengawas')) {
-            return redirect()->route('dashboard.laporan');
+            return redirect()->route('pengawas.dashboard');
         }
 
         abort(403, 'Role tidak dikenali.');
@@ -93,9 +96,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // ===== Pengawas =====
-    Route::middleware(['role:pengawas'])->get('dashboard/laporan', function () {
-        return view('dashboard.laporan');
-    })->name('dashboard.laporan');
+    Route::middleware(['role:pengawas'])->prefix('pengawas')->group(function () {
+        Route::get('/dashboard', PengawasDashboard::class)->name('pengawas.dashboard');
+        Route::get('/transaksi', PengawasLihatJurnal::class)->name('pengawas.transaksi');
+        Route::get('/laporan', PengawasReport::class)->name('pengawas.laporan');
+    });
 
     // ===== Pengeluaran (Shared: direktur_bumdes, sekretaris, bendahara) =====
     Route::middleware(['role:direktur_bumdes|sekretaris|bendahara'])
