@@ -107,7 +107,7 @@
         <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
             <div>
                 <h2 class="text-sm font-semibold text-zinc-800">7 Transaksi Terakhir</h2>
-                <p class="text-xs text-zinc-400 mt-0.5">{{ $totalTransaksiBulanIni }} transaksi bulan ini</p>
+                <p class="text-xs text-zinc-400 mt-0.5">{{ $this->totalTransaksiBulanIni }} transaksi bulan ini</p>
             </div>
             <flux:button
                 size="sm"
