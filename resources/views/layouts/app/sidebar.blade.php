@@ -92,7 +92,10 @@
 
  @role('kepala_unit')
  <flux:sidebar.group :heading="__('Unit Wisata')" class="grid">
- <flux:sidebar.item icon="pencil-square" :href="route('dashboard.unit')" :current="request()->routeIs('dashboard.unit')" wire:navigate>
+ <flux:sidebar.item icon="home" :href="route('dashboard.unit')" :current="request()->routeIs('dashboard.unit')" wire:navigate>
+ Dashboard
+ </flux:sidebar.item>
+ <flux:sidebar.item icon="pencil-square" :href="route('unit.input-transaksi')" :current="request()->routeIs('unit.input-transaksi')" wire:navigate>
  Input Transaksi
  </flux:sidebar.item>
  <flux:sidebar.item icon="document-chart-bar" :href="route('unit.riwayat-transaksi')" :current="request()->routeIs('unit.riwayat-transaksi')" wire:navigate>
