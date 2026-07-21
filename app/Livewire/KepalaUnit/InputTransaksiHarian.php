@@ -33,6 +33,8 @@ class InputTransaksiHarian extends Component
     // Format: [kategori_id => ['qty' => value, 'nominal' => value, 'aktif' => boolean, 'subtotal' => value]]
     public array $inputs = [];
 
+    public bool $sudahInput = false;
+
     public float $totalPemasukan = 0;
 
     public function mount()
@@ -58,6 +60,7 @@ class InputTransaksiHarian extends Component
             $this->tanggal = $today->format('Y-m-d');
         }
 
+        $this->checkSudahInput();
         $this->initKategoriInputs();
     }
 
@@ -71,6 +74,8 @@ class InputTransaksiHarian extends Component
             $this->tanggalAkhir = $date->copy()->endOfWeek()->format('Y-m-d');
         }
 
+        $this->checkSudahInput();
+
         // Hitung ulang semua subtotal karena harga mungkin berbeda di tanggal yang baru
         $this->calculateAllSubtotals();
     }
@@ -80,13 +85,43 @@ class InputTransaksiHarian extends Component
         $this->calculateAllSubtotals();
     }
 
+    private function checkSudahInput()
+    {
+        if ($this->isMingguan) {
+            $this->sudahInput = TransaksiHarian::where('unit_wisata_id', $this->unitId)
+                ->where('tanggal', $this->tanggal)
+                ->where('tanggal_akhir', $this->tanggalAkhir)
+                ->exists();
+        } else {
+            $this->sudahInput = TransaksiHarian::where('unit_wisata_id', $this->unitId)
+                ->whereDate('tanggal', $this->tanggal)
+                ->exists();
+        }
+    }
+
     private function initKategoriInputs()
     {
+        $this->inputs = [];
         $kategoriList = KategoriTransaksi::where('unit_wisata_id', $this->unitId)
             ->where('jenis', JenisTransaksi::Pemasukan)
             ->get();
 
+        $currentYear = Carbon::parse($this->tanggal)->year;
+
         foreach ($kategoriList as $kategori) {
+            // Logic khusus untuk kategori Tahunan
+            if ($kategori->tipe === TipeKategori::Tahunan) {
+                // Cek apakah sudah pernah diinput di tahun berjalan
+                $sudahAdaTahunan = TransaksiDetail::where('kategori_transaksi_id', $kategori->id)
+                    ->whereHas('transaksiHarian', function ($query) use ($currentYear) {
+                        $query->whereYear('tanggal', $currentYear);
+                    })->exists();
+
+                if ($sudahAdaTahunan) {
+                    continue; // Sembunyikan jika sudah pernah diinput tahun ini
+                }
+            }
+
             $this->inputs[$kategori->id] = [
                 'kategori' => $kategori,
                 'tipe' => $kategori->tipe->value,
@@ -107,7 +142,7 @@ class InputTransaksiHarian extends Component
             $kategori = $input['kategori'];
             $subtotal = 0;
 
-            if ($input['tipe'] === TipeKategori::HargaXQty->value) {
+            if ($input['tipe'] === TipeKategori::HargaXQty->value || $input['tipe'] === TipeKategori::Tahunan->value) {
                 $qty = (int) ($input['qty'] ?: 0);
                 if ($qty > 0) {
                     $hargaSatuan = $kategori->hargaSaat($date);

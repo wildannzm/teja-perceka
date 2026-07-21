@@ -5,8 +5,6 @@
  <!-- Session Status -->
  <x-auth-session-status class="text-center" :status="session('status')" />
 
- <x-passkey-verify />
-
  <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-5">
  @csrf
 
@@ -46,7 +44,7 @@
  </div>
 
  <!-- Remember Me -->
- <flux:checkbox name="remember" :label="__('Ingat saya')" :checked="old('remember')" />
+ <input type="hidden" name="remember" value="1">
 
  <!-- Submit — tinggi eksplisit 52px agar mudah disentuh di HP -->
  <flux:button

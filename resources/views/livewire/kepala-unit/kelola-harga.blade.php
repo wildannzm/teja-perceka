@@ -6,12 +6,9 @@
 
  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
  @forelse ($categories as $category)
- <div class="bg-white p-5 rounded-2xl shadow-sm border border-brand-100 flex flex-col gap-4 relative">
+ <div class="bg-white p-5 rounded-2xl shadow-sm border border-brand-100 flex flex-col gap-4">
  <div>
  <h3 class="text-lg font-semibold text-zinc-900">{{ $category->nama }}</h3>
- <div class="text-xs text-zinc-500 mt-1 uppercase tracking-wider font-medium">
- {{ $category->jenis->value }} &bull; Tipe: {{ $category->tipe->value }}
- </div>
  </div>
 
  <form wire:submit.prevent="updateHarga({{ $category->id }})" class="flex flex-col gap-3 mt-auto">
