@@ -10,6 +10,7 @@ use App\Livewire\DirekturBumdes\TransactionList as DirekturBumdesTransactionList
 use App\Livewire\KepalaDesa\Dashboard as KepalaDesaDashboard;
 use App\Livewire\KepalaDesa\Report as KepalaDesaReport;
 use App\Livewire\KepalaDesa\UserManager as KepalaDesaUserManager;
+use App\Livewire\KepalaUnit\Dashboard as KepalaUnitDashboard;
 use App\Livewire\KepalaUnit\KelolaHarga;
 use App\Livewire\KepalaUnit\RiwayatTransaksi;
 use App\Livewire\Pengawas\Dashboard as PengawasDashboard;
@@ -21,7 +22,8 @@ use App\Livewire\Sekretaris\Report as SekretarisReport;
 use App\Livewire\Sekretaris\TransactionList as SekretarisTransactionList;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
+// Root redirect ke /login
+Route::redirect('/', '/login')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
@@ -50,9 +52,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // ===== Kepala Unit =====
     Route::middleware(['role:kepala_unit'])->group(function () {
-        Route::get('dashboard/unit', function () {
-            return view('dashboard.unit');
-        })->name('dashboard.unit');
+        Route::get('dashboard/unit', KepalaUnitDashboard::class)
+            ->name('dashboard.unit');
+
+        Route::get('unit/input-transaksi', function () {
+            return view('dashboard.unit-input');
+        })->name('unit.input-transaksi');
 
         Route::get('unit/riwayat-transaksi', RiwayatTransaksi::class)
             ->name('unit.riwayat-transaksi');

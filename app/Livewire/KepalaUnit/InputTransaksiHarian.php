@@ -262,7 +262,7 @@ class InputTransaksiHarian extends Component
             session()->flash('status', 'Transaksi berhasil disimpan!');
 
             // Redirect ke halaman yang sama untuk merender ulang state yang bersih
-            return $this->redirect(route('dashboard.unit'), navigate: true);
+            return $this->redirect(route('unit.input-transaksi'), navigate: true);
 
         } catch (\Exception $e) {
             DB::rollBack();
