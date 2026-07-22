@@ -8,6 +8,8 @@ use Livewire\Component;
 
 class TransactionList extends Component
 {
+    use \App\Traits\ExportsJurnalPdf;
+
     public function delete($id)
     {
         $jurnal = JurnalUmum::find($id);
@@ -35,3 +37,4 @@ class TransactionList extends Component
         ])->layout('layouts.app', ['title' => 'Kelola Jurnal']);
     }
 }
+

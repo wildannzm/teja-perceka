@@ -19,8 +19,8 @@
  Periode Transaksi
  </h2>
  
- <flux:field>
- <flux:label>Tanggal Input</flux:label>
+ <div class="flex flex-col gap-1.5">
+ <label class="text-sm font-medium text-zinc-700">Tanggal Input</label>
  @if ($isMingguan)
  <div class="p-4 bg-brand-50 border border-brand-200 rounded-xl text-brand-900 font-medium">
  {{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }} - {{ \Carbon\Carbon::parse($tanggalAkhir)->translatedFormat('d F Y') }}
@@ -32,10 +32,10 @@
  Otomatis menyesuaikan minggu berjalan (Senin-Minggu)
  </div>
  @else
- <flux:input type="date" wire:model.live="tanggal" class="text-base" />
+ <input type="date" wire:model.live="tanggal" class="text-base w-full rounded-xl border-2 border-brand-500 px-3.5 py-2.5 text-zinc-900 focus:outline-none focus:border-brand-600 focus:ring-0 transition-colors shadow-sm @error('tanggal') border-red-400 @enderror" />
  @endif
- <flux:error name="tanggal" />
- </flux:field>
+ @error('tanggal') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+ </div>
  </div>
 
  {{-- Daftar Kategori --}}
@@ -53,7 +53,7 @@
  @foreach($inputs as $id => $input)
  <div class="p-5 flex flex-col gap-3">
  <div class="flex justify-between items-start mb-2">
- <flux:label class="text-base font-semibold text-zinc-900">{{ $input['kategori']->nama }}</flux:label>
+ <label class="text-base font-semibold text-zinc-900">{{ $input['kategori']->nama }}</label>
  @if ($input['tipe'] === 'harga_x_qty' || $input['tipe'] === 'flat')
  <span class="text-xs font-semibold px-2.5 py-1 bg-brand-100 text-brand-800 rounded-md border border-brand-200">
  Rp {{ number_format($input['kategori']->hargaSaat(\Carbon\Carbon::parse($tanggal)), 0, ',', '.') }}
@@ -64,7 +64,7 @@
  @if ($input['tipe'] === 'harga_x_qty')
  <div class="flex gap-4 items-center">
  <div class="w-1/2">
- <flux:input type="number" inputmode="numeric" placeholder="Jumlah" wire:model.live.debounce.300ms="inputs.{{ $id }}.qty" class="text-base" min="0" />
+ <input type="number" inputmode="numeric" placeholder="Jumlah" wire:model.live.debounce.300ms="inputs.{{ $id }}.qty" class="text-base w-full rounded-xl border-2 border-brand-500 px-3.5 py-2.5 text-zinc-900 focus:outline-none focus:border-brand-600 focus:ring-0 transition-colors shadow-sm" min="0" />
  </div>
  <div class="w-1/2 text-right">
  <div class="text-xs text-zinc-500 mb-1 font-medium uppercase tracking-wider">Subtotal</div>
@@ -75,7 +75,10 @@
  </div>
  @elseif ($input['tipe'] === 'flat')
  <div class="flex gap-4 items-center justify-between bg-zinc-50 p-3 rounded-xl border border-zinc-100">
- <flux:checkbox wire:model.live="inputs.{{ $id }}.aktif" label="Ada Pemasukan" />
+ <label class="flex items-center gap-2 cursor-pointer">
+ <input type="checkbox" wire:model.live="inputs.{{ $id }}.aktif" class="size-4 rounded border-2 border-brand-500 text-brand-600 focus:ring-0">
+ <span class="text-sm font-medium text-zinc-700">Ada Pemasukan</span>
+ </label>
  <div class="text-right">
  <div class="text-lg font-semibold text-brand-700">
  Rp {{ number_format($input['subtotal'], 0, ',', '.') }}
@@ -86,7 +89,7 @@
  <div class="flex gap-4 items-center">
  <div class="w-full relative">
  <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-zinc-500 font-medium pointer-events-none">Rp</span>
- <flux:input type="number" inputmode="numeric" placeholder="0" wire:model.live.debounce.300ms="inputs.{{ $id }}.nominal" class="text-base pl-10 w-full font-medium" min="0" />
+ <input type="number" inputmode="numeric" placeholder="0" wire:model.live.debounce.300ms="inputs.{{ $id }}.nominal" class="text-base pl-10 w-full font-medium rounded-xl border-2 border-brand-500 px-3.5 py-2.5 text-zinc-900 focus:outline-none focus:border-brand-600 focus:ring-0 transition-colors shadow-sm" min="0" />
  </div>
  </div>
  @endif

@@ -99,11 +99,10 @@ class Security extends Component
     {
         try {
             $validated = $this->validate([
-                'current_password' => $this->currentPasswordRules(),
                 'password' => $this->passwordRules(),
             ]);
         } catch (ValidationException $e) {
-            $this->reset('current_password', 'password', 'password_confirmation');
+            $this->reset('password', 'password_confirmation');
 
             throw $e;
         }
@@ -112,9 +111,9 @@ class Security extends Component
             'password' => $validated['password'],
         ]);
 
-        $this->reset('current_password', 'password', 'password_confirmation');
+        $this->reset('password', 'password_confirmation');
 
-        Flux::toast(variant: 'success', text: __('Password updated.'));
+        session()->flash('status', 'password-updated');
     }
 
     /**

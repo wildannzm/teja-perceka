@@ -89,7 +89,7 @@
  <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs w-full min-w-[200px]">Keterangan</th>
  <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs">Kode Akun</th>
  <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Kode Bantu</th>
- <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-right">Debet</th>
+ <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-right">Debit</th>
  <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-right">Kredit</th>
  </tr>
  </thead>
@@ -133,7 +133,7 @@
  </div>
  <div class="flex gap-6 text-right">
  <div>
- <div class="text-brand-900 text-[10px] font-medium uppercase tracking-wider mb-0.5">Total Debet</div>
+ <div class="text-brand-900 text-[10px] font-medium uppercase tracking-wider mb-0.5">Total Debit</div>
  <div class="text-xl font-bold text-brand-950 tracking-tight">
  Rp {{ number_format($this->totalDebet, 0, ',', '.') }}
  </div>
