@@ -8,6 +8,23 @@
  </div>
  @endif
 
+ @if($sudahInput)
+ <div class="bg-white rounded-2xl p-8 sm:p-10 shadow-sm border border-brand-100 text-center flex flex-col items-center justify-center">
+ <div class="size-16 rounded-full bg-brand-100 flex items-center justify-center mb-4">
+ <svg class="size-8 text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+ <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+ </svg>
+ </div>
+ <h2 class="text-xl font-bold text-brand-900 mb-2">Transaksi Sudah Diisi</h2>
+ <p class="text-zinc-500 mb-6 max-w-md">
+ Anda sudah mengisi transaksi untuk {{ $isMingguan ? 'minggu' : 'tanggal' }} ini ({{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }}).
+ Silakan cek halaman Riwayat & Rekap untuk melihat atau mengubah detailnya.
+ </p>
+ <flux:button variant="primary" :href="route('unit.riwayat-transaksi')" wire:navigate icon="document-chart-bar">
+ Lihat Riwayat & Rekap
+ </flux:button>
+ </div>
+ @else
  <form wire:submit="submit" class="flex flex-col gap-5 sm:gap-6">
  
  {{-- Header / Tanggal --}}
@@ -61,7 +78,7 @@
  @endif
  </div>
 
- @if ($input['tipe'] === 'harga_x_qty')
+ @if ($input['tipe'] === 'harga_x_qty' || $input['tipe'] === 'tahunan')
  <div class="flex gap-4 items-center">
  <div class="w-1/2">
  <input type="number" inputmode="numeric" placeholder="Jumlah" wire:model.live.debounce.300ms="inputs.{{ $id }}.qty" class="text-base w-full rounded-xl border-2 border-brand-500 px-3.5 py-2.5 text-zinc-900 focus:outline-none focus:border-brand-600 focus:ring-0 transition-colors shadow-sm" min="0" />
@@ -125,4 +142,5 @@
  </div>
 
  </form>
+ @endif
 </div>
