@@ -59,7 +59,7 @@
 
  {{-- Action Buttons --}}
  <div class="flex flex-wrap items-center gap-2 shrink-0">
- <button wire:click="startEdit({{ $user->id }})" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-zinc-300 text-zinc-700 hover:bg-zinc-100 :bg-zinc-800 transition-colors">
+ <button wire:click="startEdit({{ $user->id }})" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-2 border-brand-500 text-zinc-700 hover:bg-zinc-100 :bg-zinc-800 transition-colors">
  <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" /><path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" /></svg>
  Edit
  </button>
@@ -91,7 +91,7 @@
  <div>
  <label class="block text-xs font-medium text-zinc-600 mb-1">Nama Lengkap</label>
  <input type="text" wire:model="editName"
- class="w-full rounded-xl border-zinc-300 text-zinc-900 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500"
+ class="w-full rounded-xl border-2 border-brand-500 text-zinc-900 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none"
  placeholder="Nama lengkap"
  >
  @error('editName') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
@@ -99,7 +99,7 @@
  <div>
  <label class="block text-xs font-medium text-zinc-600 mb-1">Unit Wisata</label>
  <select wire:model="editUnitWisataId"
- class="w-full rounded-xl border-zinc-300 text-zinc-900 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500"
+ class="w-full rounded-xl border-2 border-brand-500 text-zinc-900 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none"
  >
  <option value="">— Tidak Di-assign —</option>
  @foreach ($units as $unit)
@@ -111,7 +111,7 @@
  </div>
  <div class="flex gap-2 mt-4">
  <button wire:click="saveEdit" class="px-4 py-2 rounded-xl bg-brand-300 hover:bg-brand-400 text-zinc-900 text-sm font-semibold transition-colors">Simpan</button>
- <button wire:click="cancelEdit" class="px-4 py-2 rounded-xl border border-zinc-300 text-zinc-700 text-sm font-semibold hover:bg-zinc-100 :bg-zinc-700 transition-colors">Batal</button>
+ <button wire:click="cancelEdit" class="px-4 py-2 rounded-xl border border-2 border-brand-500 text-zinc-700 text-sm font-semibold hover:bg-zinc-100 :bg-zinc-700 transition-colors">Batal</button>
  </div>
  </div>
  @endif
@@ -123,7 +123,7 @@
  <p class="text-xs text-amber-600 mb-3">Password baru akan di-<em>generate</em> secara acak dan ditampilkan di sini untuk disampaikan ke Kepala Unit terkait.</p>
  <div class="flex gap-2">
  <button wire:click="generatePassword" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors">Generate Password Baru</button>
- <button wire:click="cancelResetPassword" class="px-4 py-2 rounded-xl border border-zinc-300 text-zinc-700 text-sm font-semibold hover:bg-zinc-100 :bg-zinc-700 transition-colors">Batal</button>
+ <button wire:click="cancelResetPassword" class="px-4 py-2 rounded-xl border border-2 border-brand-500 text-zinc-700 text-sm font-semibold hover:bg-zinc-100 :bg-zinc-700 transition-colors">Batal</button>
  </div>
  </div>
  @endif

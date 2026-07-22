@@ -16,12 +16,9 @@
  <div class="flex min-h-dvh flex-col items-center justify-center gap-4 p-4 sm:gap-6 sm:p-6 md:p-10">
  <div class="flex w-full max-w-sm flex-col gap-3">
  <a href="{{ route('home') }}" class="flex flex-col items-center gap-2 font-medium" wire:navigate>
- <span class="flex h-12 w-12 mb-1 items-center justify-center rounded-xl bg-brand-500 shadow-lg">
- <x-app-logo-icon class="size-8 fill-current text-white" />
- </span>
- <span class="text-base font-semibold text-brand-900 tracking-wide">{{ config('app.name', 'Laravel') }}</span>
+ <span class="text-xl font-bold text-brand-900 tracking-wide uppercase">BUMDES Teja Perceka</span>
  </a>
- <div class="flex flex-col gap-5 bg-white rounded-2xl p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-zinc-100">
+ <div class="flex flex-col gap-5 bg-white rounded-2xl p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-brand-500">
  {{ $slot }}
  </div>
  </div>

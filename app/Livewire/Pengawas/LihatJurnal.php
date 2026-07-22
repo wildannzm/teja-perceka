@@ -13,6 +13,8 @@ use Livewire\Component;
 #[Title('Lihat Jurnal Transaksi')]
 class LihatJurnal extends Component
 {
+    use \App\Traits\ExportsJurnalPdf;
+
     public $unit_id = '';
 
     public $month = '';
@@ -48,3 +50,4 @@ class LihatJurnal extends Component
         ]);
     }
 }
+

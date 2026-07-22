@@ -1,9 +1,9 @@
 <section class="w-full">
  @include('partials.settings-heading')
 
- <flux:heading class="sr-only">{{ __('Profile settings') }}</flux:heading>
+ <flux:heading class="sr-only">{{ __('Pengaturan Profil') }}</flux:heading>
 
- <x-settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
+ <x-settings.layout :heading="__('Profil')" :subheading="__('Perbarui nama dan alamat email Anda')">
         <div class="my-6 w-full space-y-6">
             <div class="flex flex-col gap-2 p-5 bg-white border border-zinc-200 rounded-xl shadow-sm">
                 <div class="text-sm font-medium text-zinc-500">Nama Lengkap</div>
@@ -17,9 +17,9 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="flex flex-col gap-2 p-5 bg-brand-50 border border-brand-100 rounded-xl shadow-sm">
-                    <div class="text-sm font-medium text-brand-700">Role Akses</div>
+                    <div class="text-sm font-medium text-brand-700">Hak Akses</div>
                     <div class="text-base font-semibold text-brand-900 uppercase">
-                        {{ auth()->user()->roles->first()?->name ?? 'User' }}
+                        {{ str(auth()->user()->roles->first()?->name ?? 'User')->replace('_', ' ')->title() }}
                     </div>
                 </div>
 
