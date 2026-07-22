@@ -21,6 +21,8 @@ class Dashboard extends Component
 
     public ?UnitWisata $unit = null;
 
+    public bool $isPeriodeBerjalanSudahDiisi = false;
+
     public function mount(): void
     {
         $user = Auth::user();
@@ -31,6 +33,20 @@ class Dashboard extends Component
 
         $this->unitId = $user->unit_wisata_id;
         $this->unit = UnitWisata::findOrFail($this->unitId);
+
+        $today = Carbon::today();
+        $isMingguan = $this->unit->frekuensi_input === 'mingguan';
+        
+        if ($isMingguan) {
+            $this->isPeriodeBerjalanSudahDiisi = TransaksiHarian::where('unit_wisata_id', $this->unitId)
+                ->where('tanggal', $today->copy()->startOfWeek()->format('Y-m-d'))
+                ->where('tanggal_akhir', $today->copy()->endOfWeek()->format('Y-m-d'))
+                ->exists();
+        } else {
+            $this->isPeriodeBerjalanSudahDiisi = TransaksiHarian::where('unit_wisata_id', $this->unitId)
+                ->whereDate('tanggal', $today->format('Y-m-d'))
+                ->exists();
+        }
     }
 
     public function getPemasukanHariIniProperty(): float
