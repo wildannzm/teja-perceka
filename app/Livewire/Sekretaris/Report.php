@@ -8,6 +8,8 @@ use Livewire\Component;
 
 class Report extends Component
 {
+    use \App\Traits\ExportsJurnalPdf;
+
     public $unit_id = '';
 
     public $start_date = '';
@@ -42,3 +44,4 @@ class Report extends Component
         ])->layout('layouts.app', ['title' => 'Cetak Laporan Sekretaris']);
     }
 }
+

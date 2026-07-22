@@ -19,7 +19,7 @@
  <div class="grid grid-cols-2 gap-3">
  <label
  class="flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all
- {{ $jenisPengeluaran === 'per_unit' ? 'border-brand-500 bg-brand-50 ' : 'border-zinc-200 hover:border-zinc-300' }}"
+ {{ $jenisPengeluaran === 'per_unit' ? 'border-brand-500 bg-brand-50 ' : 'border-zinc-200 hover:border-2 border-brand-500' }}"
  >
  <input type="radio" wire:model.live="jenisPengeluaran" value="per_unit" class="sr-only">
  <div class="size-4 rounded-full border-2 flex items-center justify-center shrink-0
@@ -36,7 +36,7 @@
 
  <label
  class="flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all
- {{ $jenisPengeluaran === 'umum_bumdes' ? 'border-brand-500 bg-brand-50 ' : 'border-zinc-200 hover:border-zinc-300' }}"
+ {{ $jenisPengeluaran === 'umum_bumdes' ? 'border-brand-500 bg-brand-50 ' : 'border-zinc-200 hover:border-2 border-brand-500' }}"
  >
  <input type="radio" wire:model.live="jenisPengeluaran" value="umum_bumdes" class="sr-only">
  <div class="size-4 rounded-full border-2 flex items-center justify-center shrink-0
@@ -60,7 +60,7 @@
  <select
  id="unitWisataId"
  wire:model="unitWisataId"
- class="w-full rounded-xl border-zinc-300 text-zinc-900 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 @error('unitWisataId') border-red-400 @enderror"
+ class="w-full rounded-xl border-2 border-brand-500 text-zinc-900 px-3.5 py-2.5 text-base shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none @error('unitWisataId') border-red-400 @enderror"
  >
  <option value="">— Pilih Unit Wisata —</option>
  @foreach ($units as $unit)
@@ -78,7 +78,7 @@
  type="date"
  id="tanggal"
  wire:model="tanggal"
- class="w-full rounded-xl border-zinc-300 text-zinc-900 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 @error('tanggal') border-red-400 @enderror"
+ class="w-full rounded-xl border-2 border-brand-500 text-zinc-900 px-3.5 py-2.5 text-base shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none @error('tanggal') border-red-400 @enderror"
  >
  @error('tanggal') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
  </div>
@@ -89,7 +89,7 @@
  <select
  id="kodeAkunId"
  wire:model="kodeAkunId"
- class="w-full rounded-xl border-zinc-300 text-zinc-900 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 @error('kodeAkunId') border-red-400 @enderror"
+ class="w-full rounded-xl border-2 border-brand-500 text-zinc-900 px-3.5 py-2.5 text-base shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none @error('kodeAkunId') border-red-400 @enderror"
  >
  <option value="">— Pilih Jenis Biaya —</option>
  @foreach ($akunBiaya as $akun)
@@ -107,7 +107,7 @@
  id="keterangan"
  wire:model="keterangan"
  placeholder="cth: Gaji Karyawan Bulan Juli 2026"
- class="w-full rounded-xl border-zinc-300 text-zinc-900 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 @error('keterangan') border-red-400 @enderror"
+ class="w-full rounded-xl border-2 border-brand-500 text-zinc-900 px-3.5 py-2.5 text-base shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none @error('keterangan') border-red-400 @enderror"
  >
  @error('keterangan') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
  </div>
@@ -126,7 +126,7 @@
  min="1"
  step="1000"
  placeholder="0"
- class="pl-10 w-full rounded-xl border-zinc-300 text-zinc-900 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 @error('nominal') border-red-400 @enderror"
+ class="pl-10 w-full rounded-xl border-2 border-brand-500 text-zinc-900 px-3.5 py-2.5 text-base shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none @error('nominal') border-red-400 @enderror"
  >
  </div>
  @error('nominal') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror

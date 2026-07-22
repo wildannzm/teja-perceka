@@ -9,6 +9,9 @@
  <div class="bg-white p-5 rounded-2xl shadow-sm border border-brand-100 flex flex-col gap-4">
  <div>
  <h3 class="text-lg font-semibold text-zinc-900">{{ $category->nama }}</h3>
+ <div class="text-xs text-zinc-500 mt-1 uppercase tracking-wider font-medium">
+ {{ $category->jenis->value }}
+ </div>
  </div>
 
  <form wire:submit.prevent="updateHarga({{ $category->id }})" class="flex flex-col gap-3 mt-auto">
@@ -22,7 +25,7 @@
  type="number" 
  id="price_{{ $category->id }}" 
  wire:model="prices.{{ $category->id }}" 
- class="pl-10 block w-full rounded-xl border-zinc-300 text-zinc-900 focus:border-brand-500 focus:ring-brand-500 transition-colors shadow-sm @error('prices.'.$category->id) border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500 @enderror" 
+ class="pl-10 block w-full rounded-xl border-2 border-brand-500 text-zinc-900 focus:outline-none focus:border-brand-600 focus:ring-0 transition-colors shadow-sm @error('prices.'.$category->id) border-red-400 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-0 @enderror" 
  placeholder="0" 
  required 
  min="1"

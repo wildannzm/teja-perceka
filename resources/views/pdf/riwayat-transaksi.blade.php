@@ -3,42 +3,29 @@
 <head>
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>Jurnal Umum - {{ $unit->nama }}</title>
+ <title>Jurnal Umum - {{ $unit ? $unit->nama : 'Semua Unit' }}</title>
  <style>
  * { box-sizing: border-box; margin: 0; padding: 0; }
 
  body {
- font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+ font-family: Arial, sans-serif;
  font-size: 11px;
- color: #1c1917;
+ color: #000000;
  line-height: 1.5;
- background: #fff;
+ background: #ffffff;
+ margin: 30px; /* Memberikan space agar tidak mepet ke tepi kertas */
  }
 
  /* === HEADER DOKUMEN === */
  .doc-header {
- text-align: center;
- border-bottom: 3px solid #14532d;
- padding-bottom: 12px;
+ text-align: left;
  margin-bottom: 24px;
+ margin-top: 10px;
  }
- .doc-header .org-name {
- font-size: 20px;
- font-weight: 700;
- color: #14532d;
- letter-spacing: 0.5px;
- }
- .doc-header .report-title {
- font-size: 16px;
- font-weight: 700;
- color: #166534;
- margin-top: 4px;
- letter-spacing: 1px;
- }
- .doc-header .org-subtitle {
- font-size: 13px;
- color: #4b5563;
- margin-top: 4px;
+ .doc-header div {
+ font-weight: bold;
+ margin-bottom: 2px;
+ text-transform: uppercase;
  }
 
  /* === TABEL DATA JURNAL UMUM === */
@@ -47,113 +34,85 @@
  border-collapse: collapse;
  margin-bottom: 20px;
  }
+ .data-table th, .data-table td {
+ border: 1px solid #000000;
+ padding: 6px;
+ font-size: 11px;
+ vertical-align: middle;
+ }
  .data-table th {
- background-color: #f0fdf4;
- color: #14532d;
- font-weight: 700;
- font-size: 10px;
- padding: 8px 6px;
- text-align: left;
- border: 1px solid #bbf7d0;
+ text-align: center;
+ font-weight: bold;
  text-transform: uppercase;
- letter-spacing: 0.3px;
  }
  .data-table td {
- padding: 6px;
- border: 1px solid #e5e7eb;
- font-size: 11px;
- vertical-align: top;
+ text-align: left;
  }
- .data-table tbody tr:nth-child(even) {
- background-color: #fafafa;
- }
- .data-table tfoot tr td {
- background-color: #dcfce7;
- font-weight: 700;
- color: #14532d;
- font-size: 12px;
- border: 1px solid #bbf7d0;
- padding: 8px 6px;
- }
- .text-right { text-align: right; }
- .text-center { text-align: center; }
+ .text-right { text-align: right !important; }
+ .text-center { text-align: center !important; }
+ .font-bold { font-weight: bold; }
  
- .font-mono { font-family: 'Courier New', Courier, monospace; font-size: 10px; color: #4b5563; }
- .text-debet { color: #15803d; font-weight: 600; }
- .text-kredit { color: #dc2626; font-weight: 600; }
-
  /* === FOOTER === */
  .doc-footer {
  margin-top: 24px;
- padding-top: 10px;
- border-top: 1px solid #e5e7eb;
  font-size: 10px;
- color: #9ca3af;
- text-align: right;
- }
-
- /* === KOSONG === */
- .empty-state {
- text-align: center;
- padding: 30px;
- color: #6b7280;
- font-style: italic;
+ text-align: left;
  }
  </style>
 </head>
 <body>
 
  <div class="doc-header">
- <div class="org-name">WISATA {{ strtoupper($unit->nama) }}</div>
- <div class="report-title">JURNAL UMUM</div>
- <div class="org-subtitle">{{ $periode }}</div>
+ <div>{{ $unit ? 'WISATA ' . strtoupper($unit->nama) : 'SEMUA UNIT BUMDES' }}</div>
+ <div>{{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
+ <div>JURNAL UMUM</div>
+ <div>Jam : {{ \Carbon\Carbon::now()->format('H:i') }}</div>
+ <div>{{ $periode }}</div>
  </div>
 
- @if ($transactions->isNotEmpty())
  <table class="data-table">
  <thead>
  <tr>
  <th style="width:10%">TANGGAL</th>
  <th style="width:14%">BUKTI TRANSAKSI</th>
- <th style="width:30%">KETERANGAN</th>
- <th style="width:10%">KODE AKUN</th>
- <th style="width:10%" class="text-center">KODE BANTU</th>
- <th style="width:13%" class="text-right">DEBET</th>
- <th style="width:13%" class="text-right">KREDIT</th>
+ <th style="width:25%">KETERANGAN</th>
+ <th style="width:12%">POS AKUN</th>
+ <th style="width:9%" class="text-center">KODE BANTU</th>
+ <th style="width:15%" class="text-right">Debit</th>
+ <th style="width:15%" class="text-right">KREDIT</th>
  </tr>
  </thead>
  <tbody>
+ @if ($transactions->isNotEmpty())
  @foreach ($transactions as $trx)
  <tr>
- <td>{{ $trx->tanggal->format('d/m/Y') }}</td>
- <td class="font-mono">{{ $trx->nomor_bukti }}</td>
+ <td class="text-center">{{ $trx->tanggal->format('d-m-y') }}</td>
+ <td class="text-center">{{ $trx->nomor_bukti }}</td>
  <td>{{ $trx->keterangan }}</td>
- <td class="font-mono">{{ $trx->kodeAkun->kode ?? '-' }}</td>
- <td class="text-center">-</td>
- <td class="text-right text-debet">
- {{ $trx->debet > 0 ? number_format($trx->debet, 0, ',', '.') : '-' }}
+ <td>{{ $trx->kodeAkun->nama ?? '-' }}<br>{{ $trx->kodeAkun->kode ?? '-' }}</td>
+ <td class="text-center">0</td>
+ <td class="text-right">
+ {{ $trx->debet > 0 ? number_format($trx->debet, 0, ',', '.') : '' }}
  </td>
- <td class="text-right text-kredit">
- {{ $trx->kredit > 0 ? number_format($trx->kredit, 0, ',', '.') : '-' }}
+ <td class="text-right">
+ {{ $trx->kredit > 0 ? number_format($trx->kredit, 0, ',', '.') : '' }}
  </td>
  </tr>
  @endforeach
+ @else
+ <tr>
+ <td colspan="7" class="text-center" style="font-style: italic;">Belum ada catatan jurnal umum untuk periode ini.</td>
+ </tr>
+ @endif
  </tbody>
  <tfoot>
  <tr>
- <td colspan="5" class="text-right">TOTAL KESELURUHAN</td>
- <td class="text-right">{{ number_format($totalDebet, 0, ',', '.') }}</td>
- <td class="text-right">{{ number_format($totalKredit, 0, ',', '.') }}</td>
+ <td colspan="5" class="text-right font-bold">TOTAL KESELURUHAN</td>
+ <td class="text-right font-bold">{{ number_format($totalDebet, 0, ',', '.') }}</td>
+ <td class="text-right font-bold">{{ number_format($totalKredit, 0, ',', '.') }}</td>
  </tr>
  </tfoot>
  </table>
- @else
- <div class="empty-state">Belum ada catatan jurnal umum untuk periode ini.</div>
- @endif
-
- <div class="doc-footer">
- Dicetak pada {{ \Carbon\Carbon::now()->translatedFormat('d F Y, H:i') }} WIB
- </div>
 
 </body>
 </html>

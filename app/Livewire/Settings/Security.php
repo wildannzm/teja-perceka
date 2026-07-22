@@ -72,17 +72,23 @@ class Security extends Component
      */
     public function updatePassword(): void
     {
-        $this->validate([
-            'password' => ['required', 'string', 'min:8'],
-        ]);
+        try {
+            $validated = $this->validate([
+                'password' => $this->passwordRules(),
+            ]);
+        } catch (ValidationException $e) {
+            $this->reset('password', 'password_confirmation');
+
+            throw $e;
+        }
 
         Auth::user()->update([
             'password' => $this->password,
         ]);
 
-        $this->reset('password');
+        $this->reset('password', 'password_confirmation');
 
-        Flux::toast(variant: 'success', text: __('Password updated.'));
+        session()->flash('status', 'password-updated');
     }
 
     /**
