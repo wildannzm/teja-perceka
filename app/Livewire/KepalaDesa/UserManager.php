@@ -50,9 +50,14 @@ class UserManager extends Component
 
     public function render()
     {
-        $users = User::where('name', 'like', '%' . $this->search . '%')
-            ->orWhere('email', 'like', '%' . $this->search . '%')
-            ->paginate(10);
+        $users = User::whereHas('roles', function ($query) {
+            $query->whereNotIn('name', ['kepala_desa', 'pengawas']);
+        })
+        ->where(function ($q) {
+            $q->where('name', 'like', '%' . $this->search . '%')
+              ->orWhere('email', 'like', '%' . $this->search . '%');
+        })
+        ->paginate(10);
 
         return view('livewire.kepala-desa.user-manager', [
             'users' => $users,

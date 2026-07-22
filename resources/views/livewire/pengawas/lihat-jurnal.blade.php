@@ -29,7 +29,7 @@
  <th scope="col" class="px-4 py-3 border-b">Unit Usaha</th>
  <th scope="col" class="px-4 py-3 border-b">Keterangan</th>
  <th scope="col" class="px-4 py-3 border-b">Akun (COA)</th>
- <th scope="col" class="px-4 py-3 text-right border-b">Debet</th>
+ <th scope="col" class="px-4 py-3 text-right border-b">Debit</th>
  <th scope="col" class="px-4 py-3 text-right border-b">Kredit</th>
  </tr>
  </thead>

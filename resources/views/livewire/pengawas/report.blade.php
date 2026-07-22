@@ -1,8 +1,8 @@
 <div>
  <div class="flex h-full w-full flex-col gap-6">
  <div class="flex items-center justify-between">
- <h1 class="text-2xl font-semibold text-neutral-900">Cetak Laporan BUMDes</h1>
- <flux:button variant="primary" icon="printer" onclick="window.print()">Cetak Laporan</flux:button>
+ <h1 class="text-2xl font-semibold text-neutral-900">Ekspor PDF BUMDes</h1>
+ <flux:button variant="primary" icon="document-arrow-down" wire:click="exportPdf" wire:loading.attr="disabled">Ekspor PDF</flux:button>
  </div>
 
  <div class="bg-white p-6 rounded-xl border border-neutral-200 print:hidden">
@@ -31,7 +31,7 @@
  <th scope="col" class="px-4 py-3 border-b">Unit Usaha</th>
  <th scope="col" class="px-4 py-3 border-b">Keterangan</th>
  <th scope="col" class="px-4 py-3 border-b">Akun (COA)</th>
- <th scope="col" class="px-4 py-3 text-right border-b">Debet</th>
+ <th scope="col" class="px-4 py-3 text-right border-b">Debit</th>
  <th scope="col" class="px-4 py-3 text-right border-b">Kredit</th>
  </tr>
  </thead>
@@ -68,3 +68,4 @@
  </div>
  </div>
 </div>
+
