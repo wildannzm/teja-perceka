@@ -59,14 +59,14 @@ class KategoriTransaksiSeeder extends Seeder
                     'harga' => 10000,
                 ],
                 [
-                    'nama' => 'Kios (retribusi harian flat)',
-                    'tipe' => TipeKategori::Flat,
+                    'nama' => 'Kios (retribusi harian)',
+                    'tipe' => TipeKategori::HargaXQty,
                     'jenis' => JenisTransaksi::Pemasukan,
                     'harga' => 150000,
                 ],
                 [
-                    'nama' => 'Kaki Lima (retribusi harian flat)',
-                    'tipe' => TipeKategori::Flat,
+                    'nama' => 'Kaki Lima (retribusi harian)',
+                    'tipe' => TipeKategori::HargaXQty,
                     'jenis' => JenisTransaksi::Pemasukan,
                     'harga' => 20000,
                 ],
@@ -114,6 +114,18 @@ class KategoriTransaksiSeeder extends Seeder
                     'jenis' => JenisTransaksi::Pemasukan,
                     'harga' => 10000,
                 ],
+                [
+                    'nama' => 'Sewa Kios 3x2',
+                    'tipe' => TipeKategori::Tahunan,
+                    'jenis' => JenisTransaksi::Pemasukan,
+                    'harga' => 2000000,
+                ],
+                [
+                    'nama' => 'Sewa Kios 1,5x1',
+                    'tipe' => TipeKategori::Tahunan,
+                    'jenis' => JenisTransaksi::Pemasukan,
+                    'harga' => 1000000,
+                ],
             ],
             'BS' => [
                 [
@@ -129,6 +141,12 @@ class KategoriTransaksiSeeder extends Seeder
                     'tipe' => TipeKategori::HargaXQty,
                     'jenis' => JenisTransaksi::Pemasukan,
                     'harga' => 20000,
+                ],
+                [
+                    'nama' => 'Sewa Kios Buper',
+                    'tipe' => TipeKategori::Tahunan,
+                    'jenis' => JenisTransaksi::Pemasukan,
+                    'harga' => 1000000,
                 ],
             ],
             'TPS' => [
