@@ -26,7 +26,38 @@
         </div>
     </div>
 
+    {{-- Alert Belum Input Transaksi --}}
+    @if(!$isPeriodeBerjalanSudahDiisi)
+        <div class="rounded-xl border border-red-200 bg-red-50 p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-start sm:items-center gap-3 min-w-0">
+                <div class="size-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                    <svg class="size-5 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <div class="min-w-0">
+                    <h2 class="text-base font-bold text-red-900 leading-tight">
+                        Peringatan: Belum Input Transaksi!
+                    </h2>
+                    <p class="text-sm text-red-700 mt-0.5 leading-relaxed">
+                        Anda belum mengisi transaksi untuk {{ $unit->frekuensi_input === 'mingguan' ? 'minggu' : 'hari' }} ini. Silakan segera isi data transaksi.
+                    </p>
+                </div>
+            </div>
+            <flux:button
+                variant="danger"
+                :href="route('unit.input-transaksi')"
+                wire:navigate
+                class="w-full sm:w-auto shrink-0"
+                icon="pencil-square"
+            >
+                Input Sekarang
+            </flux:button>
+        </div>
+    @endif
+
     {{-- Tanggal Hari Ini --}}
+
     <p class="text-xs text-zinc-400 px-1">
         {{ \Illuminate\Support\Carbon::now()->translatedFormat('l, d F Y') }}
     </p>
