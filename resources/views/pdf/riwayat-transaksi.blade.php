@@ -13,25 +13,36 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Times New Roman', Times, serif; /* Sering dipakai di Excel/Laporan formal */
             font-size: 11px;
             color: #000000;
             line-height: 1.5;
             background: #ffffff;
-            margin: 30px;
-            /* Memberikan space agar tidak mepet ke tepi kertas */
+            margin: 40px;
         }
 
         /* === HEADER DOKUMEN === */
         .doc-header {
-            text-align: left;
-            margin-bottom: 24px;
+            text-align: center;
+            margin-bottom: 20px;
             margin-top: 10px;
         }
 
-        .doc-header div {
+        .doc-header .company-name {
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 2px;
+            text-transform: uppercase;
+        }
+
+        .doc-header .report-title {
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .doc-header .report-period {
+            font-size: 12px;
+            font-weight: bold;
             text-transform: uppercase;
         }
 
@@ -45,7 +56,7 @@
         .data-table th,
         .data-table td {
             border: 1px solid #000000;
-            padding: 6px;
+            padding: 4px 6px; /* Padding lebih mirip Excel */
             font-size: 11px;
             vertical-align: middle;
         }
@@ -54,6 +65,7 @@
             text-align: center;
             font-weight: bold;
             text-transform: uppercase;
+            /* Header tabel di Excel biasanya ada background atau bold */
         }
 
         .data-table td {
@@ -84,23 +96,27 @@
 <body>
 
     <div class="doc-header">
-        <div>{{ $unit ? 'WISATA ' . strtoupper($unit->nama) : 'SEMUA UNIT BUMDES' }}</div>
-        <div>{{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
-        <div>JURNAL UMUM</div>
-        <div>Jam : {{ \Carbon\Carbon::now()->format('H:i') }}</div>
-        <div>{{ $periode }}</div>
+        <div class="company-name">{{ $unit ? 'WISATA ' . strtoupper($unit->nama) : 'BUMDESA TEJA PERCEKA' }}</div>
+        <div class="report-title">JURNAL UMUM</div>
+        <div class="report-period">
+            @if ($periode === 'Laporan Jurnal Umum')
+                {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}
+            @else
+                {{ $periode }}
+            @endif
+        </div>
     </div>
 
     <table class="data-table">
         <thead>
             <tr>
                 <th style="width:10%">TANGGAL</th>
-                <th style="width:14%">BUKTI TRANSAKSI</th>
-                <th style="width:25%">KETERANGAN</th>
-                <th style="width:12%">POS AKUN</th>
+                <th style="width:15%">BUKTI TRANSAKSI</th>
+                <th style="width:30%">KETERANGAN</th>
+                <th style="width:10%">KODE AKUN</th>
                 <th style="width:9%" class="text-center">KODE BANTU</th>
-                <th style="width:15%" class="text-right">Debit</th>
-                <th style="width:15%" class="text-right">KREDIT</th>
+                <th style="width:13%" class="text-right">DEBET</th>
+                <th style="width:13%" class="text-right">KREDIT</th>
             </tr>
         </thead>
         <tbody>
@@ -110,20 +126,19 @@
                         <td class="text-center">{{ $trx->tanggal->format('d-m-y') }}</td>
                         <td class="text-center">{{ $trx->nomor_bukti }}</td>
                         <td>{{ $trx->keterangan }}</td>
-                        <td>{{ $trx->kodeAkun->nama ?? '-' }}<br>{{ $trx->kodeAkun->kode ?? '-' }}</td>
-                        <td class="text-center">0</td>
+                        <td class="text-center">{{ $trx->kodeAkun->kode ?? '-' }}</td>
+                        <td class="text-center"></td>
                         <td class="text-right">
-                            {{ $trx->debet > 0 ? number_format($trx->debet, 0, ',', '.') : '' }}
+                            {{ $trx->debet > 0 ? number_format($trx->debet, 0, ',', '.') : '-' }}
                         </td>
                         <td class="text-right">
-                            {{ $trx->kredit > 0 ? number_format($trx->kredit, 0, ',', '.') : '' }}
+                            {{ $trx->kredit > 0 ? number_format($trx->kredit, 0, ',', '.') : '-' }}
                         </td>
                     </tr>
                 @endforeach
             @else
                 <tr>
-                    <td colspan="7" class="text-center" style="font-style: italic;">Belum ada catatan jurnal umum
-                        untuk periode ini.</td>
+                    <td colspan="7" class="text-center" style="font-style: italic;">Belum ada catatan jurnal umum untuk periode ini.</td>
                 </tr>
             @endif
         </tbody>
@@ -139,3 +154,4 @@
 </body>
 
 </html>
+
