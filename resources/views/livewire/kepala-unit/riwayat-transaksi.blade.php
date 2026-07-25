@@ -54,9 +54,62 @@
             </div>
 
             {{-- Date Picker Tersembunyi tapi interaktif --}}
-            <div class="mt-2 relative">
-                <input type="date" wire:model.live="currentDate"
-                    class="block w-full text-sm rounded-lg border-zinc-300 text-zinc-700 shadow-sm focus:border-brand-500 focus:ring-brand-500 transition-colors cursor-pointer">
+            <div class="mt-1.5 flex justify-center" wire:ignore x-data="{
+                val: $wire.entangle('currentDate').live,
+                mode: $wire.entangle('mode').live,
+                fpHarian: null,
+                fpBulanan: null,
+                get formatted() {
+                    if (this.mode === 'bulanan') return this.val.substring(0, 7);
+                    if (this.mode === 'tahunan') return this.val.substring(0, 4);
+                    return this.val;
+                },
+                set formatted(v) {
+                    if (!v) return;
+                    if (this.mode === 'bulanan') this.val = v + '-01';
+                    else if (this.mode === 'tahunan') this.val = v + '-01-01';
+                    else this.val = v;
+                },
+                init() {
+                    this.$watch('val', (value) => {
+                        if (this.fpHarian) this.fpHarian.setDate(value, false);
+                        if (this.fpBulanan) this.fpBulanan.setDate(this.formatted, false);
+                    });
+                }
+            }">
+                <div x-show="mode === 'harian' || mode === 'mingguan'">
+                    <input type="text" x-model="formatted"
+                        x-init="fpHarian = window.flatpickr($el, {
+                            locale: window.flatpickrIndonesian,
+                            dateFormat: 'Y-m-d',
+                            altInput: true,
+                            altFormat: 'd M Y',
+                            disableMobile: true
+                        })"
+                        class="block w-40 h-8 px-3 text-sm font-medium text-zinc-600 bg-zinc-50/50 border border-zinc-200/80 rounded-full hover:bg-zinc-100 hover:text-zinc-900 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all cursor-pointer text-center outline-none shadow-sm">
+                </div>
+                
+                <div x-show="mode === 'bulanan'">
+                    <input type="text" x-model="formatted"
+                        x-init="fpBulanan = window.flatpickr($el, {
+                            locale: window.flatpickrIndonesian,
+                            plugins: [
+                                new window.flatpickrMonthSelect({
+                                    shorthand: true,
+                                    dateFormat: 'Y-m',
+                                    altFormat: 'F Y'
+                                })
+                            ],
+                            altInput: true,
+                            disableMobile: true
+                        })"
+                        class="block w-40 h-8 px-3 text-sm font-medium text-zinc-600 bg-zinc-50/50 border border-zinc-200/80 rounded-full hover:bg-zinc-100 hover:text-zinc-900 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all cursor-pointer text-center outline-none shadow-sm">
+                </div>
+                
+                <div x-show="mode === 'tahunan'">
+                    <input type="number" x-model.debounce.500ms="formatted" min="2000" max="2100"
+                        class="block w-28 h-8 px-3 text-sm font-medium text-zinc-600 bg-zinc-50/50 border border-zinc-200/80 rounded-full hover:bg-zinc-100 hover:text-zinc-900 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all cursor-pointer text-center outline-none shadow-sm" placeholder="Tahun">
+                </div>
             </div>
         </div>
 

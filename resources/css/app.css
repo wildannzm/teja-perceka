@@ -1,3 +1,5 @@
+@import "flatpickr/dist/plugins/monthSelect/style.css";
+@import "flatpickr/dist/flatpickr.min.css";
 @import "tailwindcss";
 @import "../../vendor/livewire/flux/dist/flux.css";
 
@@ -113,3 +115,5 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+

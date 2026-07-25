@@ -53,7 +53,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // ===== Kepala Unit =====
     Route::middleware(['role:kepala_unit'])->group(function () {
-        Route::get('dashboard/unit', KepalaUnitDashboard::class)
+        Route::get('unit/dashboard', KepalaUnitDashboard::class)
             ->name('dashboard.unit');
 
         Route::get('unit/input-transaksi', function () {

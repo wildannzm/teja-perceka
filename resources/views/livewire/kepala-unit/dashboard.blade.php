@@ -7,17 +7,10 @@
                 <span class="inline-block h-10 w-1.5 rounded-full bg-brand-400 shrink-0"></span>
                 <div class="min-w-0">
                     <h1 class="text-xl sm:text-2xl font-semibold text-brand-900 leading-tight">
-                        Dashboard — {{ $unit->nama ?? 'Unit Wisata' }}
+                        Dashboard — {{ $unit->nama ?? 'Unit Usaha' }}
                     </h1>
-                    <p class="text-sm text-zinc-500 mt-0.5 leading-relaxed">
-                        Rekap pemasukan & statistik harian BUMDes Teja Perceka
-                    </p>
                 </div>
             </div>
-            <flux:button variant="primary" :href="route('unit.input-transaksi')" wire:navigate
-                class="w-full sm:w-auto shrink-0" icon="pencil-square">
-                Input Transaksi
-            </flux:button>
         </div>
     </div>
 
@@ -75,7 +68,8 @@
             <div class="text-xl font-bold text-brand-900 leading-tight">
                 Rp {{ number_format($this->pemasukanHariIni, 0, ',', '.') }}
             </div>
-            <div class="text-xs text-zinc-400">{{ \Illuminate\Support\Carbon::today()->format('d M Y') }}</div>
+            <div class="text-xs text-zinc-400">{{ \Illuminate\Support\Carbon::today()->translatedFormat('d M Y') }}
+            </div>
         </div>
 
         {{-- Minggu Ini --}}
@@ -95,7 +89,7 @@
             </div>
             <div class="text-xs text-zinc-400">
                 {{ \Illuminate\Support\Carbon::now()->startOfWeek()->format('d') }} –
-                {{ \Illuminate\Support\Carbon::now()->endOfWeek()->format('d M Y') }}
+                {{ \Illuminate\Support\Carbon::now()->endOfWeek()->translatedFormat('d M Y') }}
             </div>
         </div>
 
@@ -162,7 +156,7 @@
                     </div>
                     <div>
                         <div class="text-sm font-medium text-zinc-800">
-                            {{ $trx->tanggal instanceof \Illuminate\Support\Carbon ? $trx->tanggal->format('d M Y') : \Illuminate\Support\Carbon::parse($trx->tanggal)->format('d M Y') }}
+                            {{ $trx->tanggal instanceof \Illuminate\Support\Carbon ? $trx->tanggal->translatedFormat('d M Y') : \Illuminate\Support\Carbon::parse($trx->tanggal)->translatedFormat('d M Y') }}
                         </div>
                         <div class="text-xs text-zinc-400">
                             {{ $trx->tanggalAkhir ? 'Mingguan' : 'Harian' }}

@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class InputTransaksiHarian extends Component
@@ -99,16 +100,20 @@ class InputTransaksiHarian extends Component
         }
     }
 
+    #[Computed]
+    public function kategoriList()
+    {
+        return KategoriTransaksi::where('unit_wisata_id', $this->unitId)
+            ->where('jenis', JenisTransaksi::Pemasukan)
+            ->get()->keyBy('id');
+    }
+
     private function initKategoriInputs()
     {
         $this->inputs = [];
-        $kategoriList = KategoriTransaksi::where('unit_wisata_id', $this->unitId)
-            ->where('jenis', JenisTransaksi::Pemasukan)
-            ->get();
-
         $currentYear = Carbon::parse($this->tanggal)->year;
 
-        foreach ($kategoriList as $kategori) {
+        foreach ($this->kategoriList as $kategori) {
             // Logic khusus untuk kategori Tahunan
             if ($kategori->tipe === TipeKategori::Tahunan) {
                 // Cek apakah sudah pernah diinput di tahun berjalan
@@ -123,7 +128,6 @@ class InputTransaksiHarian extends Component
             }
 
             $this->inputs[$kategori->id] = [
-                'kategori' => $kategori,
                 'tipe' => $kategori->tipe->value,
                 'qty' => '',
                 'nominal' => '',
@@ -139,7 +143,9 @@ class InputTransaksiHarian extends Component
         $date = Carbon::parse($this->tanggal);
 
         foreach ($this->inputs as $id => $input) {
-            $kategori = $input['kategori'];
+            $kategori = $this->kategoriList->get($id);
+            if (!$kategori) continue;
+            
             $subtotal = 0;
 
             if ($input['tipe'] === TipeKategori::HargaXQty->value || $input['tipe'] === TipeKategori::Tahunan->value) {
@@ -193,7 +199,7 @@ class InputTransaksiHarian extends Component
             foreach ($this->inputs as $id => $input) {
                 $subtotal = $input['subtotal'];
                 if ($subtotal > 0) {
-                    $kategori = $input['kategori'];
+                    $kategori = $this->kategoriList->get($id);
                     $hargaSatuan = 0;
                     $qty = null;
 
@@ -259,9 +265,10 @@ class InputTransaksiHarian extends Component
             foreach ($this->inputs as $id => $input) {
                 $subtotal = $input['subtotal'];
                 if ($subtotal > 0) {
-                    $akunId = $input['kategori']->kode_akun_id;
+                    $kategori = $this->kategoriList->get($id);
+                    $akunId = $kategori->kode_akun_id;
                     if (! $akunId) {
-                        throw new \Exception('Kategori "'.$input['kategori']->nama.'" belum terhubung ke Kode Akun (Chart of Account).');
+                        throw new \Exception('Kategori "'.$kategori->nama.'" belum terhubung ke Kode Akun (Chart of Account).');
                     }
 
                     if (! isset($kreditGroup[$akunId])) {

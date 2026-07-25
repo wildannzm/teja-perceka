@@ -62,8 +62,19 @@
                             Otomatis menyesuaikan minggu berjalan (Senin-Minggu)
                         </div>
                     @else
-                        <input type="date" wire:model.live="tanggal"
-                            class="text-base w-full rounded-xl border-2 border-brand-500 px-3.5 py-2.5 text-zinc-900 focus:outline-none focus:border-brand-600 focus:ring-0 transition-colors shadow-sm @error('tanggal') border-red-400 @enderror" />
+                        <div wire:ignore x-data="{ val: $wire.entangle('tanggal').live }">
+                            <input type="text" x-model="val"
+                                x-init="window.flatpickr($el, {
+                                    locale: window.flatpickrIndonesian,
+                                    dateFormat: 'Y-m-d',
+                                    maxDate: 'today',
+                                    defaultDate: val,
+                                    altInput: true,
+                                    altFormat: 'd F Y',
+                                    disableMobile: true
+                                })"
+                                class="text-base w-full rounded-xl border-2 border-brand-500 px-3.5 py-2.5 text-zinc-900 focus:outline-none focus:border-brand-600 focus:ring-0 transition-colors shadow-sm cursor-pointer" />
+                        </div>
                     @endif
                     @error('tanggal')
                         <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
@@ -77,8 +88,8 @@
                     <h2 class="text-lg font-semibold text-brand-900 flex items-center gap-2">
                         <svg class="size-5 text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <text x="12" y="15.5" text-anchor="middle" font-weight="700" font-size="10" fill="currentColor" stroke="none" font-family="sans-serif">Rp</text>
                         </svg>
                         Rincian Pemasukan
                     </h2>
@@ -89,12 +100,12 @@
                         <div class="p-5 flex flex-col gap-3">
                             <div class="flex justify-between items-start mb-2">
                                 <label
-                                    class="text-base font-semibold text-zinc-900">{{ $input['kategori']->nama }}</label>
+                                    class="text-base font-semibold text-zinc-900">{{ $this->kategoriList->get($id)->nama }}</label>
                                 @if ($input['tipe'] === 'harga_x_qty' || $input['tipe'] === 'flat')
                                     <span
                                         class="text-xs font-semibold px-2.5 py-1 bg-brand-100 text-brand-800 rounded-md border border-brand-200">
                                         Rp
-                                        {{ number_format($input['kategori']->hargaSaat(\Carbon\Carbon::parse($tanggal)), 0, ',', '.') }}
+                                        {{ number_format($this->kategoriList->get($id)->hargaSaat(\Carbon\Carbon::parse($tanggal)), 0, ',', '.') }}
                                     </span>
                                 @endif
                             </div>
@@ -163,16 +174,16 @@
 
             {{-- Footer Sticky / Total --}}
             <div
-                class="sticky bottom-0 z-10 bg-brand-300 rounded-t-2xl p-5 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] border-t border-brand-400 flex flex-col gap-4 mt-2">
+                class="sticky bottom-4 z-10 bg-white rounded-2xl p-5 sm:p-6 shadow-md border border-brand-100 flex flex-col gap-4 mt-2">
                 <div class="flex justify-between items-center px-1">
-                    <span class="text-brand-900 font-medium">Total Pemasukan</span>
-                    <span class="text-2xl font-bold text-brand-950 tracking-tight">Rp
+                    <span class="text-zinc-500 font-medium">Total Pemasukan</span>
+                    <span class="text-2xl sm:text-3xl font-extrabold text-brand-600 tracking-tight">Rp
                         {{ number_format($totalPemasukan, 0, ',', '.') }}</span>
                 </div>
 
                 {{-- Tombol submit tinggi minimum 52px agar touch friendly --}}
                 <button type="submit"
-                    class="w-full min-h-[52px] rounded-xl text-base font-semibold shadow-lg border-0 bg-white text-brand-950 hover:bg-brand-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    class="w-full min-h-[56px] rounded-2xl text-base font-semibold shadow-md border border-transparent bg-brand-600 text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer">
                     <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round"

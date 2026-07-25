@@ -19,12 +19,12 @@
                     <div>
                         <label for="price_{{ $category->id }}"
                             class="block text-sm font-medium text-zinc-700 mb-1">Harga Saat Ini / Baru</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span class="text-zinc-500 sm:text-sm">Rp</span>
+                        <div class="relative mt-1">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <span class="text-zinc-500 font-medium text-lg sm:text-xl">Rp</span>
                             </div>
                             <input type="number" id="price_{{ $category->id }}" wire:model="prices.{{ $category->id }}"
-                                class="pl-10 block w-full rounded-xl border-2 border-brand-500 text-zinc-900 focus:outline-none focus:border-brand-600 focus:ring-0 transition-colors shadow-sm @error('prices.' . $category->id) border-red-400 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-0 @enderror"
+                                class="pl-14 py-3 sm:py-4 block w-full rounded-2xl border-2 border-zinc-200 bg-zinc-50/50 text-zinc-900 text-lg sm:text-xl font-bold focus:outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:bg-white transition-all shadow-sm @error('prices.' . $category->id) border-red-400 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 @enderror [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 placeholder="0" required min="1">
                         </div>
                         @error('prices.' . $category->id)

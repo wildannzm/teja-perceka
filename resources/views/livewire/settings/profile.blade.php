@@ -25,7 +25,7 @@
 
                 @if (auth()->user()->unitWisata)
                     <div class="flex flex-col gap-2 p-5 bg-brand-50 border border-brand-100 rounded-xl shadow-sm">
-                        <div class="text-sm font-medium text-brand-700">Unit Wisata</div>
+                        <div class="text-sm font-medium text-brand-700">Unit Usaha</div>
                         <div class="text-base font-semibold text-brand-900">
                             {{ auth()->user()->unitWisata->nama }}
                         </div>

@@ -29,7 +29,7 @@
                         @endif
                     </div>
                     <div>
-                        <div class="text-sm font-semibold text-zinc-900">Per Unit Wisata</div>
+                        <div class="text-sm font-semibold text-zinc-900">Per Unit Usaha</div>
                         <div class="text-xs text-zinc-500">Terikat ke satu unit</div>
                     </div>
                 </label>
@@ -56,11 +56,11 @@
         {{-- 2. Pilih Unit (kondisional) --}}
         @if ($jenisPengeluaran === 'per_unit')
             <div>
-                <label for="unitWisataId" class="block text-sm font-semibold text-zinc-700 mb-1.5">Unit Wisata <span
+                <label for="unitWisataId" class="block text-sm font-semibold text-zinc-700 mb-1.5">Unit Usaha <span
                         class="text-red-500">*</span></label>
                 <select id="unitWisataId" wire:model="unitWisataId"
                     class="w-full rounded-xl border-2 border-brand-500 text-zinc-900 px-3.5 py-2.5 text-base shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none @error('unitWisataId') border-red-400 @enderror">
-                    <option value="">— Pilih Unit Wisata —</option>
+                    <option value="">— Pilih Unit Usaha —</option>
                     @foreach ($units as $unit)
                         <option value="{{ $unit->id }}">{{ $unit->nama }} ({{ $unit->kode }})</option>
                     @endforeach
