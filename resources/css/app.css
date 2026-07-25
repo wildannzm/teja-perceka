@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import '../../vendor/livewire/flux/dist/flux.css';
+@import "tailwindcss";
+@import "../../vendor/livewire/flux/dist/flux.css";
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -8,10 +8,12 @@
 
 @theme {
     /* Poppins sebagai font utama seluruh aplikasi */
-    --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans:
+        "Poppins", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+        "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
     /* Palette dark green BUMDes Teja Perceka */
-    --color-brand-50:  #f0fbf0;
+    --color-brand-50: #f0fbf0;
     --color-brand-100: #dbf6db;
     --color-brand-200: #baf0ba;
     --color-brand-300: #90ee90;
@@ -42,7 +44,6 @@
 }
 
 @layer base {
-
     *,
     ::after,
     ::before,
@@ -100,7 +101,7 @@
 }
 
 [data-flux-label] {
-    @apply  !text-zinc-900 !font-semibold !mb-0 !leading-tight;
+    @apply !text-zinc-900 !font-semibold !mb-0 !leading-tight;
 }
 
 input:focus[data-flux-control],

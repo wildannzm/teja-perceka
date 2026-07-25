@@ -20,6 +20,7 @@ use App\Livewire\Pengeluaran\CatatPengeluaran;
 use App\Livewire\Sekretaris\Dashboard as SekretarisDashboard;
 use App\Livewire\Sekretaris\Report as SekretarisReport;
 use App\Livewire\Sekretaris\TransactionList as SekretarisTransactionList;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Root redirect ke /login
@@ -28,8 +29,8 @@ Route::redirect('/', '/login')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
 
     // Redirect otomatis sesuai role setelah login
-    Route::get('/dashboard', function () {
-        $user = auth()->user();
+    Route::get('/dashboard', function (Request $request) {
+        $user = $request->user();
 
         if ($user->hasRole('kepala_unit')) {
             return redirect()->route('dashboard.unit');

@@ -15,13 +15,8 @@
                         </p>
                     </div>
                 </div>
-                <flux:button
-                    variant="ghost"
-                    :href="route('dashboard.unit')"
-                    wire:navigate
-                    class="w-full sm:w-auto shrink-0"
-                    icon="arrow-left"
-                >
+                <flux:button variant="ghost" :href="route('dashboard.unit')" wire:navigate
+                    class="w-full sm:w-auto shrink-0" icon="arrow-left">
                     Kembali ke Dashboard
                 </flux:button>
             </div>
