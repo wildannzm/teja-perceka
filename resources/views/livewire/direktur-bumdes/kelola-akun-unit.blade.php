@@ -6,30 +6,6 @@
             Unit.</p>
     </div>
 
-    {{-- Generated Password Alert (sekali tampil) --}}
-    @if ($generatedPassword)
-        <div class="p-4 bg-amber-50 border border-amber-300 rounded-2xl flex flex-col gap-2" role="alert">
-            <div class="flex items-center gap-2 font-semibold text-amber-800">
-                <svg class="size-5 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd"
-                        d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
-                        clip-rule="evenodd" />
-                </svg>
-                Password Baru Telah Dibuat — Catat dan Sampaikan ke Kepala Unit!
-            </div>
-            <p class="text-sm text-amber-700">Password ini hanya ditampilkan <strong>sekali</strong>. Setelah halaman
-                direfresh, password tidak bisa dilihat lagi.</p>
-            <div class="mt-1 flex items-center gap-3 bg-white border border-amber-200 rounded-xl px-4 py-3">
-                <code
-                    class="text-lg font-bold font-mono text-zinc-900 tracking-wider flex-1">{{ $generatedPassword }}</code>
-                <button
-                    onclick="navigator.clipboard.writeText('{{ $generatedPassword }}').then(() => this.textContent = 'Tersalin!')"
-                    class="text-xs font-semibold text-brand-600 hover:text-brand-800 transition-colors shrink-0">Salin</button>
-            </div>
-            <button wire:click="cancelResetPassword" class="text-xs text-amber-600 underline mt-1 text-left">Tutup pesan
-                ini</button>
-        </div>
-    @endif
 
     {{-- Daftar User Kepala Unit --}}
     <div class="flex flex-col gap-4">
@@ -53,20 +29,7 @@
                         </div>
                     </div>
 
-                    {{-- Status Badge --}}
-                    <div class="flex items-center gap-2 shrink-0">
-                        @if ($user->is_active)
-                            <span
-                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-100 text-brand-700">
-                                <span class="size-1.5 rounded-full bg-brand-500"></span> Aktif
-                            </span>
-                        @else
-                            <span
-                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-                                <span class="size-1.5 rounded-full bg-red-500"></span> Nonaktif
-                            </span>
-                        @endif
-                    </div>
+
 
                     {{-- Action Buttons --}}
                     <div class="flex flex-wrap items-center gap-2 shrink-0">
@@ -81,37 +44,7 @@
                             </svg>
                             Edit
                         </button>
-                        <button wire:click="startResetPassword({{ $user->id }})"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-amber-300 text-amber-700 hover:bg-amber-50 :bg-amber-900/20 transition-colors">
-                            <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                fill="currentColor">
-                                <path fill-rule="evenodd"
-                                    d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                            Reset Password
-                        </button>
-                        <button wire:click="toggleStatus({{ $user->id }})"
-                            wire:confirm="{{ $user->is_active ? 'Nonaktifkan akun ini? User tidak akan bisa login.' : 'Aktifkan kembali akun ini?' }}"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors {{ $user->is_active ? 'border-red-300 text-red-600 hover:bg-red-50 :bg-red-900/20' : 'border-brand-300 text-brand-600 hover:bg-brand-50 :bg-emerald-900/20' }}">
-                            @if ($user->is_active)
-                                <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M4.5 2A1.5 1.5 0 003 3.5v13A1.5 1.5 0 004.5 18h11a1.5 1.5 0 001.5-1.5V7.621a1.5 1.5 0 00-.44-1.06l-4.12-4.122A1.5 1.5 0 0011.378 2H4.5zm2.25 8.5a.75.75 0 000 1.5h6.5a.75.75 0 000-1.5h-6.5z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                Nonaktifkan
-                            @else
-                                <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                Aktifkan
-                            @endif
-                        </button>
+
                     </div>
                 </div>
 
@@ -121,52 +54,57 @@
                         <p class="text-sm font-semibold text-zinc-700 mb-3">Edit Data Akun</p>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-medium text-zinc-600 mb-1">Nama Lengkap</label>
+                                <label class="block text-sm font-medium text-zinc-700 mb-1.5">Nama Lengkap</label>
                                 <input type="text" wire:model="editName"
-                                    class="w-full rounded-xl border-2 border-brand-500 text-zinc-900 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none"
-                                    placeholder="Nama lengkap">
+                                    class="block w-full px-3.5 py-2.5 bg-white border-2 border-zinc-200 rounded-xl text-zinc-900 text-sm placeholder-zinc-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 hover:border-zinc-300 transition-all outline-none shadow-sm"
+                                    placeholder="Masukkan nama lengkap">
                                 @error('editName')
-                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                    <p class="mt-1.5 text-xs text-red-600 font-medium">{{ $message }}</p>
                                 @enderror
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-zinc-600 mb-1">Unit Wisata</label>
+                                <label class="block text-sm font-medium text-zinc-700 mb-1.5">Unit Usaha</label>
                                 <select wire:model="editUnitWisataId"
-                                    class="w-full rounded-xl border-2 border-brand-500 text-zinc-900 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none">
+                                    class="block w-full pl-3.5 pr-10 py-2.5 bg-[position:right_0.875rem_center] bg-white border-2 border-zinc-200 rounded-xl text-zinc-900 text-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 hover:border-zinc-300 transition-all outline-none shadow-sm">
                                     <option value="">— Tidak Di-assign —</option>
                                     @foreach ($units as $unit)
                                         <option value="{{ $unit->id }}">{{ $unit->nama }}</option>
                                     @endforeach
                                 </select>
                                 @error('editUnitWisataId')
-                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                    <p class="mt-1.5 text-xs text-red-600 font-medium">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-sm font-medium text-zinc-700 mb-1.5">Password Baru (Opsional)</label>
+                                <div class="relative" x-data="{ show: false }">
+                                    <input :type="show ? 'text' : 'password'" wire:model="editPassword"
+                                        class="block w-full pl-3.5 pr-10 py-2.5 bg-white border-2 border-zinc-200 rounded-xl text-zinc-900 text-sm placeholder-zinc-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 hover:border-zinc-300 transition-all outline-none shadow-sm"
+                                        placeholder="Kosongkan jika tidak ingin mengubah password">
+                                    <button type="button" @click="show = !show" class="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-400 hover:text-zinc-600 focus:outline-none">
+                                        <svg x-show="!show" class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                        </svg>
+                                        <svg x-show="show" x-cloak class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                @error('editPassword')
+                                    <p class="mt-1.5 text-xs text-red-600 font-medium">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
-                        <div class="flex gap-2 mt-4">
+                        <div class="flex gap-2 mt-5">
                             <button wire:click="saveEdit"
-                                class="px-4 py-2 rounded-xl bg-brand-300 hover:bg-brand-400 text-zinc-900 text-sm font-semibold transition-colors">Simpan</button>
+                                class="px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white text-sm font-semibold transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">Simpan Perubahan</button>
                             <button wire:click="cancelEdit"
-                                class="px-4 py-2 rounded-xl border border-2 border-brand-500 text-zinc-700 text-sm font-semibold hover:bg-zinc-100 :bg-zinc-700 transition-colors">Batal</button>
+                                class="px-5 py-2.5 rounded-xl border border-zinc-200 bg-white text-zinc-700 text-sm font-semibold hover:bg-zinc-50 hover:border-zinc-300 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2">Batal</button>
                         </div>
                     </div>
                 @endif
 
-                {{-- Panel Reset Password (collapsible) --}}
-                @if ($resetPasswordUserId === $user->id && !$generatedPassword)
-                    <div class="border-t border-zinc-200 bg-amber-50/50 px-5 py-4">
-                        <p class="text-sm font-semibold text-amber-700 mb-1">Reset Password Akun Ini</p>
-                        <p class="text-xs text-amber-600 mb-3">Password baru akan di-<em>generate</em> secara acak dan
-                            ditampilkan di sini untuk disampaikan ke Kepala Unit terkait.</p>
-                        <div class="flex gap-2">
-                            <button wire:click="generatePassword"
-                                class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors">Generate
-                                Password Baru</button>
-                            <button wire:click="cancelResetPassword"
-                                class="px-4 py-2 rounded-xl border border-2 border-brand-500 text-zinc-700 text-sm font-semibold hover:bg-zinc-100 :bg-zinc-700 transition-colors">Batal</button>
-                        </div>
-                    </div>
-                @endif
 
             </div>
         @empty

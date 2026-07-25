@@ -21,6 +21,8 @@ class KelolaAkunUnit extends Component
 
     public ?int $editUnitWisataId = null;
 
+    public string $editPassword = '';
+
     // Reset password state
     public ?int $resetPasswordUserId = null;
 
@@ -41,12 +43,13 @@ class KelolaAkunUnit extends Component
         $this->editingUserId = $user->id;
         $this->editName = $user->name;
         $this->editUnitWisataId = $user->unit_wisata_id;
+        $this->editPassword = '';
         $this->generatedPassword = null;
     }
 
     public function cancelEdit(): void
     {
-        $this->reset(['editingUserId', 'editName', 'editUnitWisataId']);
+        $this->reset(['editingUserId', 'editName', 'editUnitWisataId', 'editPassword']);
     }
 
     public function saveEdit(): void
@@ -54,13 +57,21 @@ class KelolaAkunUnit extends Component
         $this->validate([
             'editName' => 'required|string|max:255',
             'editUnitWisataId' => 'nullable|exists:unit_wisata,id',
+            'editPassword' => 'nullable|string|min:8',
         ]);
 
         $user = User::role('kepala_unit')->findOrFail($this->editingUserId);
-        $user->update([
+        
+        $data = [
             'name' => $this->editName,
             'unit_wisata_id' => $this->editUnitWisataId,
-        ]);
+        ];
+
+        if (!empty($this->editPassword)) {
+            $data['password'] = $this->editPassword;
+        }
+
+        $user->update($data);
 
         \Flux::toast(variant: 'success', text: 'Data akun berhasil diperbarui.');
         $this->cancelEdit();

@@ -59,13 +59,13 @@ class KategoriTransaksiSeeder extends Seeder
                     'harga' => 10000,
                 ],
                 [
-                    'nama' => 'Kios (retribusi harian)',
+                    'nama' => 'Kios',
                     'tipe' => TipeKategori::HargaXQty,
                     'jenis' => JenisTransaksi::Pemasukan,
                     'harga' => 150000,
                 ],
                 [
-                    'nama' => 'Kaki Lima (retribusi harian)',
+                    'nama' => 'Kaki Lima',
                     'tipe' => TipeKategori::HargaXQty,
                     'jenis' => JenisTransaksi::Pemasukan,
                     'harga' => 20000,
@@ -109,7 +109,7 @@ class KategoriTransaksiSeeder extends Seeder
                     'harga' => 10000,
                 ],
                 [
-                    'nama' => 'Sewa Bebek Goes',
+                    'nama' => 'Sewa Bebek Gowes',
                     'tipe' => TipeKategori::HargaXQty,
                     'jenis' => JenisTransaksi::Pemasukan,
                     'harga' => 10000,

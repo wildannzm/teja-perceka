@@ -28,6 +28,8 @@ class RiwayatTransaksi extends Component
 
     public string $currentDate = '';
 
+    public array $dates = [];
+
     public function mount(): void
     {
         $user = Auth::user();
@@ -43,9 +45,14 @@ class RiwayatTransaksi extends Component
         $this->mode = $this->isMingguanOnly ? 'mingguan' : 'harian';
 
         $today = Carbon::today();
-        $this->currentDate = $this->mode === 'mingguan'
-            ? $today->copy()->startOfWeek()->format('Y-m-d')
-            : $today->format('Y-m-d');
+        $this->dates = [
+            'harian' => $today->format('Y-m-d'),
+            'mingguan' => $today->copy()->startOfWeek()->format('Y-m-d'),
+            'bulanan' => $today->copy()->startOfMonth()->format('Y-m-d'),
+            'tahunan' => $today->copy()->startOfYear()->format('Y-m-d'),
+        ];
+
+        $this->currentDate = $this->dates[$this->mode];
     }
 
     public function updatedCurrentDate(): void
@@ -59,11 +66,12 @@ class RiwayatTransaksi extends Component
         } elseif ($this->mode === 'tahunan') {
             $this->currentDate = $date->startOfYear()->format('Y-m-d');
         }
+        $this->dates[$this->mode] = $this->currentDate;
     }
 
     public function updatedMode(): void
     {
-        $this->updatedCurrentDate();
+        $this->currentDate = $this->dates[$this->mode];
     }
 
     public function previousPeriod(): void
@@ -76,6 +84,7 @@ class RiwayatTransaksi extends Component
             'bulanan' => $date->subMonth()->startOfMonth()->format('Y-m-d'),
             'tahunan' => $date->subYear()->startOfYear()->format('Y-m-d'),
         };
+        $this->dates[$this->mode] = $this->currentDate;
     }
 
     public function nextPeriod(): void
@@ -88,6 +97,7 @@ class RiwayatTransaksi extends Component
             'bulanan' => $date->addMonth()->startOfMonth()->format('Y-m-d'),
             'tahunan' => $date->addYear()->startOfYear()->format('Y-m-d'),
         };
+        $this->dates[$this->mode] = $this->currentDate;
     }
 
     #[Computed]

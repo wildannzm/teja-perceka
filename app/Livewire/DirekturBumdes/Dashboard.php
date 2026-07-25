@@ -34,6 +34,6 @@ class Dashboard extends Component
             'pemasukan' => $pemasukan,
             'pengeluaran' => $pengeluaran,
             'saldo' => $saldo,
-        ])->layout('layouts.app', ['title' => 'Dashboard Direktur BUMDes']);
+        ])->layout('layouts.app', ['title' => 'Dashboard']);
     }
 }
