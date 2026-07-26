@@ -35,8 +35,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         if ($user->hasRole('kepala_unit')) {
             return redirect()->route('dashboard.unit');
         }
-        if ($user->hasAnyRole(['sekretaris', 'bendahara'])) {
-            return redirect()->route('dashboard.keuangan');
+        if ($user->hasRole('sekretaris')) {
+            return redirect()->route('sekretaris.dashboard');
+        }
+        if ($user->hasRole('bendahara')) {
+            return redirect()->route('bendahara.dashboard');
         }
         if ($user->hasRole('direktur_bumdes')) {
             return redirect()->route('direktur-bumdes.dashboard');
