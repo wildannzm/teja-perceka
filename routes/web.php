@@ -20,6 +20,7 @@ use App\Livewire\Pengeluaran\CatatPengeluaran;
 use App\Livewire\Sekretaris\Dashboard as SekretarisDashboard;
 use App\Livewire\Sekretaris\Report as SekretarisReport;
 use App\Livewire\Sekretaris\TransactionList as SekretarisTransactionList;
+use App\Livewire\LaporanLabaRugi\LabaRugi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -115,6 +116,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:direktur_bumdes|sekretaris|bendahara'])
         ->get('pengeluaran/catat', CatatPengeluaran::class)
         ->name('pengeluaran.catat');
+
+    // ===== Laporan Laba Rugi (Semua role kecuali non-relevant) =====
+    Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])
+        ->get('laporan/laba-rugi', LabaRugi::class)
+        ->name('laporan.laba-rugi');
 
 });
 

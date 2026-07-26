@@ -25,7 +25,22 @@ class KodeAkun extends Model
         'kode',
         'nama',
         'tipe',
+        'urutan',
+        'is_header',
     ];
+
+    /**
+     * Get the casts for the model.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'urutan' => 'integer',
+            'is_header' => 'boolean',
+        ];
+    }
 
     /**
      * Get the transaction categories associated with the account.
