@@ -111,14 +111,14 @@
                             </div>
 
                             @if ($input['tipe'] === 'harga_x_qty' || $input['tipe'] === 'tahunan')
-                                <div class="flex gap-4 items-center">
-                                    <div class="w-1/2">
+                                <div class="flex flex-col sm:flex-row gap-4 sm:items-center">
+                                    <div class="w-full sm:w-1/2">
                                         <input type="number" inputmode="numeric" placeholder="Jumlah"
                                             wire:model.live.debounce.300ms="inputs.{{ $id }}.qty"
                                             class="text-base w-full rounded-xl border-2 border-brand-500 px-3.5 py-2.5 text-zinc-900 focus:outline-none focus:border-brand-600 focus:ring-0 transition-colors shadow-sm"
                                             min="0" />
                                     </div>
-                                    <div class="w-1/2 text-right">
+                                    <div class="w-full sm:w-1/2 sm:text-right">
                                         <div class="text-xs text-zinc-500 mb-1 font-medium uppercase tracking-wider">
                                             Subtotal</div>
                                         <div class="text-lg font-semibold text-brand-700">
@@ -128,20 +128,20 @@
                                 </div>
                             @elseif ($input['tipe'] === 'flat')
                                 <div
-                                    class="flex gap-4 items-center justify-between bg-zinc-50 p-3 rounded-xl border border-zinc-100">
+                                    class="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between bg-zinc-50 p-3 rounded-xl border border-zinc-100">
                                     <label class="flex items-center gap-2 cursor-pointer">
                                         <input type="checkbox" wire:model.live="inputs.{{ $id }}.aktif"
                                             class="size-4 rounded border-2 border-brand-500 text-brand-600 focus:ring-0">
                                         <span class="text-sm font-medium text-zinc-700">Ada Pemasukan</span>
                                     </label>
-                                    <div class="text-right">
+                                    <div class="sm:text-right">
                                         <div class="text-lg font-semibold text-brand-700">
                                             Rp {{ number_format($input['subtotal'], 0, ',', '.') }}
                                         </div>
                                     </div>
                                 </div>
                             @elseif ($input['tipe'] === 'bebas')
-                                <div class="flex gap-4 items-center">
+                                <div class="flex flex-col sm:flex-row gap-4 sm:items-center">
                                     <div class="w-full relative">
                                         <span
                                             class="absolute inset-y-0 left-0 flex items-center pl-4 text-zinc-500 font-medium pointer-events-none">Rp</span>
