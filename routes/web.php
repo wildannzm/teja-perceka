@@ -21,6 +21,8 @@ use App\Livewire\Sekretaris\Dashboard as SekretarisDashboard;
 use App\Livewire\Sekretaris\Report as SekretarisReport;
 use App\Livewire\Sekretaris\TransactionList as SekretarisTransactionList;
 use App\Livewire\LaporanLabaRugi\LabaRugi;
+use App\Livewire\LaporanPendapatan\Pendapatan;
+use App\Livewire\Transaksi\RiwayatRekap;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -64,7 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             return view('dashboard.unit-input');
         })->name('unit.input-transaksi');
 
-        Route::get('unit/riwayat-transaksi', RiwayatTransaksi::class)
+        Route::get('unit/riwayat-transaksi', fn() => redirect()->route('riwayat-rekap'))
             ->name('unit.riwayat-transaksi');
 
         Route::get('unit/kelola-harga', KelolaHarga::class)
@@ -121,6 +123,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])
         ->get('laporan/laba-rugi', LabaRugi::class)
         ->name('laporan.laba-rugi');
+
+    // ===== Pendapatan (Semua role) — redirect ke Riwayat & Rekap =====
+    Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])
+        ->get('pendapatan', fn() => redirect()->route('riwayat-rekap', ['tab' => 'pendapatan']))
+        ->name('pendapatan');
+
+    // ===== Riwayat & Rekap (Gabungan Pendapatan + Jurnal Umum) =====
+    Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])
+        ->get('riwayat-rekap', RiwayatRekap::class)
+        ->name('riwayat-rekap');
+
+    // Redirect lama: unit/riwayat-transaksi → riwayat-rekap
+    Route::middleware(['role:kepala_unit'])
+        ->get('unit/riwayat-transaksi-lama', fn() => redirect()->route('riwayat-rekap'))
+        ->name('unit.riwayat-transaksi.redirect');
 
 });
 
