@@ -23,6 +23,8 @@ use App\Livewire\Sekretaris\TransactionList as SekretarisTransactionList;
 use App\Livewire\LaporanLabaRugi\LabaRugi;
 use App\Livewire\LaporanPendapatan\Pendapatan;
 use App\Livewire\Transaksi\RiwayatRekap;
+use App\Livewire\Laporan\BukuBesar;
+use App\Livewire\Laporan\NeracaSaldo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -119,10 +121,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->get('pengeluaran/catat', CatatPengeluaran::class)
         ->name('pengeluaran.catat');
 
-    // ===== Laporan Laba Rugi (Semua role kecuali non-relevant) =====
-    Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])
-        ->get('laporan/laba-rugi', LabaRugi::class)
-        ->name('laporan.laba-rugi');
+    // ===== Laporan Keuangan Terpusat =====
+    Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])->group(function () {
+        Route::get('laporan/laba-rugi', LabaRugi::class)->name('laporan.laba-rugi');
+        Route::get('laporan/buku-besar', BukuBesar::class)->name('laporan.buku-besar');
+        Route::get('laporan/neraca-saldo', NeracaSaldo::class)->name('laporan.neraca-saldo');
+    });
 
     // ===== Pendapatan (Semua role) — redirect ke Riwayat & Rekap =====
     Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])
