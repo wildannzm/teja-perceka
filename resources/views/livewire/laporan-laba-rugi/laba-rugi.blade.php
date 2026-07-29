@@ -25,7 +25,7 @@
                 <div class="flex flex-col gap-1.5">
                     <label class="text-sm font-medium text-zinc-700">Unit Usaha</label>
                     <select wire:model.live="unit_id"
-                        class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none transition-colors">
+                        class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none transition-colors">
                         <option value="">Semua Unit (Konsolidasi)</option>
                         @foreach($this->units as $u)
                             <option value="{{ $u->id }}">{{ $u->nama }}</option>
@@ -38,7 +38,7 @@
             <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-medium text-zinc-700">Periode</label>
                 <select wire:model.live="mode"
-                    class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none transition-colors">
+                    class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none transition-colors">
                     <option value="bulanan">Bulanan</option>
                     <option value="tahunan">Tahunan</option>
                 </select>
@@ -49,12 +49,12 @@
                 @if($mode === 'bulanan')
                     <label class="text-sm font-medium text-zinc-700">Bulan</label>
                     <input type="month" wire:model.live="periode"
-                        class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none transition-colors">
+                        class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none transition-colors">
                 @else
                     <label class="text-sm font-medium text-zinc-700">Tahun</label>
                     <input type="number" wire:model.live="periode" min="2020" max="2099"
                         placeholder="{{ date('Y') }}"
-                        class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none transition-colors">
+                        class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none transition-colors">
                 @endif
             </div>
         </div>
