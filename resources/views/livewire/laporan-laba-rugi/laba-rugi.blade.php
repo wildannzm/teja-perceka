@@ -26,7 +26,7 @@
                     <label class="text-sm font-medium text-zinc-700">Unit Usaha</label>
                     <select wire:model.live="unit_id"
                         class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none transition-colors">
-                        <option value="">Semua Unit (Konsolidasi)</option>
+                        <option value="">Semua Unit</option>
                         @foreach($this->units as $u)
                             <option value="{{ $u->id }}">{{ $u->nama }}</option>
                         @endforeach

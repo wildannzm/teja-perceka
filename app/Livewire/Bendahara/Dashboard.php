@@ -3,10 +3,13 @@
 namespace App\Livewire\Bendahara;
 
 use App\Models\JurnalUmum;
+use App\Traits\DashboardChartData;
 use Livewire\Component;
 
 class Dashboard extends Component
 {
+    use DashboardChartData;
+
     public function render()
     {
         // Akun pendapatan: prefix 4- (menggunakan kolom kredit)
@@ -29,11 +32,14 @@ class Dashboard extends Component
         })->sum('kredit');
 
         $saldo = $kasDebet - $kasKredit;
+        $chartData = $this->getChartData();
 
         return view('livewire.bendahara.dashboard', [
             'pemasukan' => $pemasukan,
             'pengeluaran' => $pengeluaran,
             'saldo' => $saldo,
+            'chartPemasukan' => $chartData['pemasukan'],
+            'chartPengeluaran' => $chartData['pengeluaran'],
         ])->layout('layouts.app', ['title' => 'Dashboard Bendahara']);
     }
 }

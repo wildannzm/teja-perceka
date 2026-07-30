@@ -12,7 +12,7 @@
                                 Input Transaksi Harian
                             </h1>
                             <p class="text-sm text-zinc-500 mt-0.5 leading-relaxed">
-                                Catat pemasukan harian unit wisata Anda
+                                Catat pemasukan harian unit usaha Anda
                             </p>
                         </div>
                     </div>

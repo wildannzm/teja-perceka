@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-6 max-w-4xl mx-auto w-full pb-20">
     <div class="flex flex-col gap-2">
         <h1 class="text-2xl font-bold text-zinc-900">Kelola Harga Kategori</h1>
-        <p class="text-sm text-zinc-500">Atur harga untuk kategori transaksi di unit wisata Anda ({{ $unitNama }}).
+        <p class="text-sm text-zinc-500">Atur harga untuk kategori transaksi di unit usaha Anda ({{ $unitNama }}).
         </p>
     </div>
 

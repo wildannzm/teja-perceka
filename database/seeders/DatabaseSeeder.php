@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             KodeAkunSeeder::class,
             KategoriTransaksiSeeder::class,
             UserSeeder::class,
+            TransaksiHarianSeeder::class,
         ]);
     }
 }

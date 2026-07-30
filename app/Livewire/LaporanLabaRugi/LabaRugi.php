@@ -7,6 +7,7 @@ use App\Models\KodeAkun;
 use App\Models\UnitWisata;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -54,6 +55,7 @@ class LabaRugi extends Component
     {
         if ($this->mode === 'tahunan') {
             $year = (int) ($this->periode ?: Carbon::now()->format('Y'));
+
             return [
                 Carbon::create($year, 1, 1)->startOfDay(),
                 Carbon::create($year, 12, 31)->endOfDay(),
@@ -61,6 +63,7 @@ class LabaRugi extends Component
         }
 
         $date = Carbon::parse($this->periode ?: Carbon::now()->format('Y-m'));
+
         return [
             $date->copy()->startOfMonth(),
             $date->copy()->endOfMonth(),
@@ -72,6 +75,7 @@ class LabaRugi extends Component
         if ($this->mode === 'tahunan') {
             return 'Tahun '.($this->periode ?: Carbon::now()->format('Y'));
         }
+
         return Carbon::parse($this->periode ?: Carbon::now()->format('Y-m'))->translatedFormat('F Y');
     }
 
@@ -82,6 +86,7 @@ class LabaRugi extends Component
         if ($this->unit_id) {
             $q->where('unit_wisata_id', $this->unit_id);
         }
+
         return $q;
     }
 
@@ -93,7 +98,7 @@ class LabaRugi extends Component
         return UnitWisata::orderBy('nama')->get();
     }
 
-    private function akunDenganSaldo(string $tipe, string $arahNormal): \Illuminate\Support\Collection
+    private function akunDenganSaldo(string $tipe, string $arahNormal): Collection
     {
         $base = $this->buildQuery();
 
@@ -109,7 +114,7 @@ class LabaRugi extends Component
 
         $sums = (clone $base)
             ->whereIn('kode_akun_id', $akunIds)
-            ->selectRaw('kode_akun_id, ' . ($arahNormal === 'kredit'
+            ->selectRaw('kode_akun_id, '.($arahNormal === 'kredit'
                 ? 'SUM(kredit) - SUM(debet) as jumlah'
                 : 'SUM(debet) - SUM(kredit) as jumlah'))
             ->groupBy('kode_akun_id')
@@ -183,9 +188,9 @@ class LabaRugi extends Component
             abort(403);
         }
 
-        $data      = $this->reportData;
-        $periodeLabel   = $this->periodeLabel();
-        $unit      = $this->selectedUnit;
+        $data = $this->reportData;
+        $periodeLabel = $this->periodeLabel();
+        $unit = $this->selectedUnit;
         $namaEntitas = $unit ? 'WISATA '.strtoupper($unit->nama) : 'BUMDESA TEJA PERCEKA';
 
         [$start, $end] = $this->periodeRange();
@@ -193,7 +198,7 @@ class LabaRugi extends Component
         $tanggalTtd = $end->translatedFormat('F Y');
 
         $penandatangan = Auth::user()->name;
-        $jabatan = match(true) {
+        $jabatan = match (true) {
             Auth::user()->hasRole('direktur_bumdes') => 'Direktur',
             Auth::user()->hasRole('sekretaris') => 'Sekretaris',
             Auth::user()->hasRole('bendahara') => 'Bendahara',
@@ -207,21 +212,21 @@ class LabaRugi extends Component
         $unitSlug = $unit ? str_replace(' ', '_', $unit->nama) : 'Konsolidasi';
         $filename = 'LabaRugi_'.$unitSlug.'_'.str_replace(' ', '_', $periodeLabel).'.pdf';
 
-        return response()->streamDownload(fn () => print($pdf->output()), $filename);
+        return response()->streamDownload(fn () => print ($pdf->output()), $filename);
     }
 
     public function render()
     {
-        $unit      = $this->selectedUnit;
+        $unit = $this->selectedUnit;
         $namaEntitas = $unit ? 'WISATA '.strtoupper($unit->nama) : 'BUMDESA TEJA PERCEKA';
-        
+
         [$start, $end] = $this->periodeRange();
         $tanggalCetak = strtoupper($end->translatedFormat('d F Y'));
         $tanggalTtd = $end->translatedFormat('F Y');
         $periodeLabel = $this->periodeLabel();
 
         $penandatangan = Auth::user()->name;
-        $jabatan = match(true) {
+        $jabatan = match (true) {
             Auth::user()->hasRole('direktur_bumdes') => 'Direktur',
             Auth::user()->hasRole('sekretaris') => 'Sekretaris',
             Auth::user()->hasRole('bendahara') => 'Bendahara',

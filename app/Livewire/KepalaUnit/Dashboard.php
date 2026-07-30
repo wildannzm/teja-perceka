@@ -5,6 +5,7 @@ namespace App\Livewire\KepalaUnit;
 use App\Models\JurnalUmum;
 use App\Models\TransaksiHarian;
 use App\Models\UnitWisata;
+use App\Traits\DashboardChartData;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -16,6 +17,8 @@ use Livewire\Component;
 #[Title('Dashboard Kepala Unit')]
 class Dashboard extends Component
 {
+    use DashboardChartData;
+
     #[Locked]
     public ?int $unitId = null;
 
@@ -100,6 +103,11 @@ class Dashboard extends Component
 
     public function render()
     {
-        return view('livewire.kepala-unit.dashboard');
+        $chartData = $this->getChartData($this->unitId);
+
+        return view('livewire.kepala-unit.dashboard', [
+            'chartPemasukan' => $chartData['pemasukan'],
+            'chartPengeluaran' => $chartData['pengeluaran'],
+        ]);
     }
 }

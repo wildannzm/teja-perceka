@@ -54,7 +54,7 @@ class CatatPengeluaran extends Component
             'kodeAkunId' => 'required|exists:kode_akun,id',
             'nominal' => 'required|numeric|min:1',
         ], [
-            'unitWisataId.required' => 'Pilih unit wisata terlebih dahulu.',
+            'unitWisataId.required' => 'Pilih unit usaha terlebih dahulu.',
             'keterangan.required' => 'Keterangan wajib diisi.',
             'kodeAkunId.required' => 'Pilih jenis pengeluaran (akun biaya) terlebih dahulu.',
             'nominal.min' => 'Nominal harus lebih dari 0.',

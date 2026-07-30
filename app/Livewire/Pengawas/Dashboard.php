@@ -3,6 +3,7 @@
 namespace App\Livewire\Pengawas;
 
 use App\Models\JurnalUmum;
+use App\Traits\DashboardChartData;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -11,6 +12,8 @@ use Livewire\Component;
 #[Title('Dashboard')]
 class Dashboard extends Component
 {
+    use DashboardChartData;
+
     public function render()
     {
         // Akun pendapatan: prefix 4- dan 7- (menggunakan kolom kredit)
@@ -33,11 +36,14 @@ class Dashboard extends Component
         })->sum('kredit');
 
         $saldo = $kasDebet - $kasKredit;
+        $chartData = $this->getChartData();
 
         return view('livewire.pengawas.dashboard', [
             'pemasukan' => $pemasukan,
             'pengeluaran' => $pengeluaran,
             'saldo' => $saldo,
-        ]);
+            'chartPemasukan' => $chartData['pemasukan'],
+            'chartPengeluaran' => $chartData['pengeluaran'],
+        ])->layout('layouts.app', ['title' => 'Dashboard Pengawas']);
     }
 }

@@ -5,3 +5,6 @@ window.flatpickrIndonesian = Indonesian;
 
 import monthSelectPlugin from 'flatpickr/dist/plugins/monthSelect/index.js';
 window.flatpickrMonthSelect = monthSelectPlugin;
+
+import Chart from 'chart.js/auto';
+window.Chart = Chart;
