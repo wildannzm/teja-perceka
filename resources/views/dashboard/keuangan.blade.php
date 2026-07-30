@@ -10,7 +10,7 @@
             </div>
             <p class="text-sm sm:text-base text-zinc-500 leading-relaxed">
                 Selamat datang di sistem pembukuan digital BUMDes Teja Perceka. Halaman ini akan menampilkan rekap
-                keuangan seluruh unit wisata untuk sekretaris dan bendahara.
+                keuangan seluruh unit usaha untuk sekretaris dan bendahara.
             </p>
         </div>
 

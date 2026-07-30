@@ -130,6 +130,14 @@
         </div>
     </div>
 
+    {{-- Grafik Rekapitulasi --}}
+    <div class="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex flex-col w-full">
+        <h2 class="text-lg font-bold text-zinc-900 mb-4">Grafik Rekapitulasi</h2>
+        <div class="w-full relative min-h-[350px]">
+            <canvas id="recapChart"></canvas>
+        </div>
+    </div>
+
     {{-- Transaksi Terakhir --}}
     <div class="bg-white rounded-2xl border border-brand-100 shadow-sm overflow-hidden">
         <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
@@ -180,3 +188,71 @@
     </div>
 
 </div>
+
+@script
+<script>
+    const ctx = document.getElementById('recapChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
+            datasets: [
+                {
+                    label: 'Pemasukan',
+                    data: @json($chartPemasukan),
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Pengeluaran',
+                    data: @json($chartPengeluaran),
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(context.parsed.y);
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    suggestedMax: 1000000,
+                    ticks: {
+                        callback: function(value) {
+                            if (value === 0) return '0';
+                            let valInJuta = value / 1000000;
+                            return 'Rp ' + valInJuta.toLocaleString('id-ID', { maximumFractionDigits: 2 }) + ' Jt';
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+@endscript
