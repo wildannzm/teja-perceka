@@ -68,7 +68,7 @@ class KodeAkunSeeder extends Seeder
             ['kode' => '6-0019', 'nama' => 'Biaya Sewa Kendaraan', 'tipe' => 'beban', 'is_header' => false],
             ['kode' => '6-0020', 'nama' => 'Biaya Donasi / Sumbangan', 'tipe' => 'beban', 'is_header' => false],
             ['kode' => '6-0021', 'nama' => 'Biaya Jasa Paking Sayuran', 'tipe' => 'beban', 'is_header' => false],
-            ['kode' => '6-0022', 'nama' => 'Biaya Jasa Potong Ayam dan Paking Ayam', 'tipe' => 'beban', 'is_header' => false],
+            ['kode' => '6-0022', 'nama' => 'Biaya Pembangunan', 'tipe' => 'beban', 'is_header' => false],
             ['kode' => '6-0023', 'nama' => 'Biaya Operasional Lainnya', 'tipe' => 'beban', 'is_header' => false],
             ['kode' => '7-0000', 'nama' => 'PENDAPATAN & BIAYA LAIN-LAIN', 'tipe' => 'header', 'is_header' => true],
             ['kode' => '7-1000', 'nama' => 'Pendapatan Luar Usaha/Bunga Bank', 'tipe' => 'pendapatan_lain', 'is_header' => false],
