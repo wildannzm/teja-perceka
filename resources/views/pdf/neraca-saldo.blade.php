@@ -31,37 +31,109 @@
         <div class="periode">Per Akhir Bulan: {{ $periodeLabel }}</div>
     </div>
     <div class="status">
-        Status: {{ $totalDebit === $totalKredit ? 'SEIMBANG (BALANCE)' : 'TIDAK SEIMBANG' }}
+        Status: {{ $totalAktiva === $totalPasiva ? 'SEIMBANG (BALANCE)' : 'TIDAK SEIMBANG' }}
     </div>
-    <table class="data-table">
+
+    <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 20px;">
         <thead>
             <tr>
-                <th style="width:15%">KODE AKUN</th>
-                <th style="width:45%">NAMA AKUN</th>
-                <th style="width:20%" class="text-right">DEBIT (Rp)</th>
-                <th style="width:20%" class="text-right">KREDIT (Rp)</th>
+                <th style="width: 50%; border: 1px solid #000; padding: 6px; text-align: center; background-color: #f4f4f5; text-transform: uppercase;">AKTIVA</th>
+                <th style="width: 50%; border: 1px solid #000; padding: 6px; text-align: center; background-color: #f4f4f5; text-transform: uppercase;">PASIVA</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($neracaData as $row)
-                <tr>
-                    <td class="font-mono text-center">{{ $row->kode }}</td>
-                    <td>{{ $row->nama }}</td>
-                    <td class="text-right">{{ $row->debit > 0 ? number_format($row->debit, 0, ',', '.') : '-' }}</td>
-                    <td class="text-right">{{ $row->kredit > 0 ? number_format($row->kredit, 0, ',', '.') : '-' }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="4" class="text-center">Tidak ada data saldo akun hingga periode yang dipilih.</td>
-                </tr>
-            @endforelse
-            @if(count($neracaData) > 0)
-                <tr class="row-subtotal">
-                    <td colspan="2" class="text-right">TOTAL</td>
-                    <td class="text-right">{{ number_format($totalDebit, 0, ',', '.') }}</td>
-                    <td class="text-right">{{ number_format($totalKredit, 0, ',', '.') }}</td>
-                </tr>
-            @endif
+            <tr>
+                <td style="vertical-align: top; border: 1px solid #000; padding: 0;">
+                    <!-- SISI AKTIVA -->
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr><td colspan="3" style="padding: 4px; font-weight: bold;">1-1000 AKTIVA LANCAR</td></tr>
+                        @foreach($aktivaLancar as $item)
+                        <tr>
+                            <td class="font-mono" style="width: 15%; padding: 4px; padding-left: 8px;">{{ $item->kode }}</td>
+                            <td style="width: 55%; padding: 4px;">{{ $item->nama }}</td>
+                            <td class="text-right" style="width: 30%; padding: 4px; padding-right: 8px;">{{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}</td>
+                        </tr>
+                        @endforeach
+                        <tr>
+                            <td colspan="2" style="padding: 6px; font-weight: bold; text-align: center; background-color: #f9fafb;">JUMLAH AKTIVA LANCAR</td>
+                            <td class="text-right" style="padding: 6px; padding-right: 8px; font-weight: bold; background-color: #f9fafb;">{{ number_format($totalAktivaLancar, 0, ',', '.') }}</td>
+                        </tr>
+                        
+                        <tr><td colspan="3" style="padding: 4px; font-weight: bold;">1-2000 AKTIVA TIDAK LANCAR</td></tr>
+                        @foreach($aktivaTetap as $item)
+                        <tr>
+                            <td class="font-mono" style="width: 15%; padding: 4px; padding-left: 8px;">{{ $item->kode }}</td>
+                            <td style="width: 55%; padding: 4px;">{{ $item->nama }}</td>
+                            <td class="text-right" style="width: 30%; padding: 4px; padding-right: 8px;">{{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}</td>
+                        </tr>
+                        @endforeach
+                        <tr>
+                            <td colspan="2" style="padding: 6px; font-weight: bold; text-align: center; background-color: #f9fafb;">JUMLAH AKTIVA TETAP</td>
+                            <td class="text-right" style="padding: 6px; padding-right: 8px; font-weight: bold; background-color: #f9fafb;">{{ number_format($totalAktivaTetap, 0, ',', '.') }}</td>
+                        </tr>
+                    </table>
+                </td>
+                <td style="vertical-align: top; border: 1px solid #000; padding: 0;">
+                    <!-- SISI PASIVA -->
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr><td colspan="3" style="padding: 4px; font-weight: bold;">2-0000 KEWAJIBAN</td></tr>
+                        <tr><td colspan="3" style="padding: 4px; font-weight: bold; padding-left: 8px;">2-1000 KEWAJIBAN JANGKA PENDEK</td></tr>
+                        @foreach($kewajibanPendek as $item)
+                        <tr>
+                            <td class="font-mono" style="width: 15%; padding: 4px; padding-left: 12px;">{{ $item->kode }}</td>
+                            <td style="width: 55%; padding: 4px;">{{ $item->nama }}</td>
+                            <td class="text-right" style="width: 30%; padding: 4px; padding-right: 8px;">{{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}</td>
+                        </tr>
+                        @endforeach
+
+                        <tr><td colspan="3" style="padding: 4px; font-weight: bold; padding-left: 8px;">2-2000 KEWAJIBAN JANGKA PANJANG</td></tr>
+                        @foreach($kewajibanPanjang as $item)
+                        <tr>
+                            <td class="font-mono" style="width: 15%; padding: 4px; padding-left: 12px;">{{ $item->kode }}</td>
+                            <td style="width: 55%; padding: 4px;">{{ $item->nama }}</td>
+                            <td class="text-right" style="width: 30%; padding: 4px; padding-right: 8px;">{{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}</td>
+                        </tr>
+                        @endforeach
+
+                        <tr>
+                            <td colspan="2" style="padding: 6px; font-weight: bold; text-align: center; background-color: #f9fafb;">JUMLAH KEWAJIBAN</td>
+                            <td class="text-right" style="padding: 6px; padding-right: 8px; font-weight: bold; background-color: #f9fafb;">{{ number_format($totalKewajiban, 0, ',', '.') }}</td>
+                        </tr>
+                        
+                        <tr><td colspan="3" style="padding: 4px; font-weight: bold;">3-0000 EKUITAS</td></tr>
+                        @foreach($ekuitas as $item)
+                        <tr>
+                            <td class="font-mono" style="width: 15%; padding: 4px; padding-left: 8px;">{{ $item->kode }}</td>
+                            <td style="width: 55%; padding: 4px; {{ $item->nama === 'LABA BERSIH' ? 'text-transform: uppercase;' : '' }}">{{ $item->nama }}</td>
+                            <td class="text-right" style="width: 30%; padding: 4px; padding-right: 8px;">{{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}</td>
+                        </tr>
+                        @endforeach
+                        
+                        <tr>
+                            <td colspan="2" style="padding: 6px; font-weight: bold; text-align: center; background-color: #f9fafb;">JUMLAH EKUITAS</td>
+                            <td class="text-right" style="padding: 6px; padding-right: 8px; font-weight: bold; background-color: #f9fafb;">{{ number_format($totalEkuitas, 0, ',', '.') }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr style="background-color: #78a2a8;">
+                <td style="border: 1px solid #000; padding: 0;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 70%; padding: 8px; font-weight: bold; text-align: center; text-transform: uppercase;">TOTAL AKTIVA</td>
+                            <td class="text-right" style="width: 30%; padding: 8px; padding-right: 8px; font-weight: bold;">{{ number_format($totalAktiva, 0, ',', '.') }}</td>
+                        </tr>
+                    </table>
+                </td>
+                <td style="border: 1px solid #000; padding: 0;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 70%; padding: 8px; font-weight: bold; text-align: center; text-transform: uppercase;">TOTAL PASIVA</td>
+                            <td class="text-right" style="width: 30%; padding: 8px; padding-right: 8px; font-weight: bold;">{{ number_format($totalPasiva, 0, ',', '.') }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
         </tbody>
     </table>
     <div class="footer-sig">

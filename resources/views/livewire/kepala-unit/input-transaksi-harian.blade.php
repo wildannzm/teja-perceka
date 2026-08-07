@@ -147,7 +147,7 @@
                                             class="absolute inset-y-0 left-0 flex items-center pl-4 text-zinc-500 font-medium pointer-events-none">Rp</span>
                                         <input type="number" inputmode="numeric" placeholder="0"
                                             wire:model.live.debounce.300ms="inputs.{{ $id }}.nominal"
-                                            class="text-base pl-10 w-full font-medium rounded-xl border-2 border-brand-500 px-3.5 py-2.5 text-zinc-900 focus:outline-none focus:border-brand-600 focus:ring-0 transition-colors shadow-sm"
+                                            class="text-base pl-10 w-full font-medium rounded-xl border-2 border-brand-500 px-3.5 py-2.5 text-zinc-900 focus:outline-none focus:border-brand-600 focus:ring-0 transition-colors shadow-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0"
                                             min="0" />
                                     </div>
                                 </div>

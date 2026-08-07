@@ -17,7 +17,7 @@ use Livewire\Component;
 class TabPendapatan extends Component
 {
     #[Reactive]
-    public ?int $unitId = null;
+    public $unitId = null;
 
     #[Reactive]
     public string $mode = 'harian';
