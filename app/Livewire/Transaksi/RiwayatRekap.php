@@ -19,7 +19,7 @@ class RiwayatRekap extends Component
     #[Url]
     public string $tab = 'pendapatan'; // pendapatan, jurnal
 
-    public ?int $unit_id = null;
+    public $unit_id = null;
 
     #[Url(as: 'periode')]
     public string $mode = 'harian';

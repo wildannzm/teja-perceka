@@ -82,9 +82,21 @@ class NeracaSaldo extends Component
     public function reportData(): array
     {
         $akuns = KodeAkun::where('tipe', '!=', 'header')->orderBy('kode')->get();
-        $neracaData = collect();
-        $totalDebit = 0;
-        $totalKredit = 0;
+        
+        $aktivaLancar = collect();
+        $aktivaTetap = collect();
+        $kewajibanPendek = collect();
+        $kewajibanPanjang = collect();
+        $ekuitas = collect();
+        
+        $totalAktivaLancar = 0;
+        $totalAktivaTetap = 0;
+        $totalKewajibanPendek = 0;
+        $totalKewajibanPanjang = 0;
+        $totalEkuitas = 0;
+
+        $totalPendapatan = 0;
+        $totalBeban = 0;
 
         if ($this->periode) {
             [$startDate, $endDate] = $this->periodeRange();
@@ -109,46 +121,81 @@ class NeracaSaldo extends Component
                 $sumDebit = $saldo ? $saldo->total_debit : 0;
                 $sumKredit = $saldo ? $saldo->total_kredit : 0;
 
-                if ($sumDebit == 0 && $sumKredit == 0) {
-                    continue; // Skip accounts with zero balance
-                }
-
                 $normalBalance = $this->getNormalBalanceType($akun->tipe);
                 $saldoAkhir = 0;
-                $posisiDebit = 0;
-                $posisiKredit = 0;
 
                 if ($normalBalance === 'debit') {
                     $saldoAkhir = $sumDebit - $sumKredit;
-                    if ($saldoAkhir > 0) {
-                        $posisiDebit = $saldoAkhir;
-                    } elseif ($saldoAkhir < 0) {
-                        $posisiKredit = abs($saldoAkhir);
-                    }
                 } else {
                     $saldoAkhir = $sumKredit - $sumDebit;
-                    if ($saldoAkhir > 0) {
-                        $posisiKredit = $saldoAkhir;
-                    } elseif ($saldoAkhir < 0) {
-                        $posisiDebit = abs($saldoAkhir);
-                    }
                 }
 
-                if ($posisiDebit > 0 || $posisiKredit > 0) {
-                    $neracaData->push((object)[
-                        'kode' => $akun->kode,
-                        'nama' => $akun->nama,
-                        'debit' => $posisiDebit,
-                        'kredit' => $posisiKredit,
-                    ]);
-                    
-                    $totalDebit += $posisiDebit;
-                    $totalKredit += $posisiKredit;
+                $prefix = substr($akun->kode, 0, 3);
+                $kepala = substr($akun->kode, 0, 1);
+
+                // Calculate Net Income (Laba Bersih) dynamically from nominal accounts
+                if ($kepala === '4' || $kepala === '7') {
+                    $totalPendapatan += $saldoAkhir; // Normal balance is kredit, so saldoAkhir is Kredit-Debit
+                } elseif ($kepala === '5' || $kepala === '6') {
+                    $totalBeban += $saldoAkhir; // Normal balance is debit, so saldoAkhir is Debit-Kredit
                 }
+
+                if ($saldoAkhir == 0 && $kepala !== '3' && $kepala !== '1' && $kepala !== '2') {
+                    continue; // Skip zero balances unless we want to show them? Actually, let's include them if they are in the balance sheet structure but we can filter zero balance out in view or keep them as '-' like in excel.
+                    // The Excel shows some '-' so we keep them, or we just keep all balance sheet accounts (1, 2, 3)
+                }
+
+                $item = (object)[
+                    'kode' => $akun->kode,
+                    'nama' => $akun->nama,
+                    'saldo' => $saldoAkhir,
+                ];
+
+                if ($prefix === '1-1') {
+                    $aktivaLancar->push($item);
+                    $totalAktivaLancar += $saldoAkhir;
+                } elseif ($prefix === '1-2') {
+                    $aktivaTetap->push($item);
+                    $totalAktivaTetap += $saldoAkhir;
+                } elseif ($prefix === '2-1') {
+                    $kewajibanPendek->push($item);
+                    $totalKewajibanPendek += $saldoAkhir;
+                } elseif ($prefix === '2-2') {
+                    $kewajibanPanjang->push($item);
+                    $totalKewajibanPanjang += $saldoAkhir;
+                } elseif ($kepala === '3') {
+                    if ($akun->kode === '3-3000') {
+                        // Skip injecting Laba Bersih here, we'll do it manually after the loop
+                    } else {
+                        $ekuitas->push($item);
+                        $totalEkuitas += $saldoAkhir;
+                    }
+                }
+            }
+
+            // Inject Laba Bersih
+            $labaBersih = $totalPendapatan - $totalBeban;
+            
+            $labaBersihAkun = KodeAkun::where('kode', '3-3000')->first();
+            if ($labaBersihAkun) {
+                $ekuitas->push((object)[
+                    'kode' => $labaBersihAkun->kode,
+                    'nama' => 'LABA BERSIH', // Override name to match excel
+                    'saldo' => $labaBersih,
+                ]);
+                $totalEkuitas += $labaBersih;
             }
         }
 
-        return compact('neracaData', 'totalDebit', 'totalKredit');
+        $totalAktiva = $totalAktivaLancar + $totalAktivaTetap;
+        $totalKewajiban = $totalKewajibanPendek + $totalKewajibanPanjang;
+        $totalPasiva = $totalKewajiban + $totalEkuitas;
+
+        return compact(
+            'aktivaLancar', 'aktivaTetap', 'totalAktivaLancar', 'totalAktivaTetap', 'totalAktiva',
+            'kewajibanPendek', 'kewajibanPanjang', 'totalKewajibanPendek', 'totalKewajibanPanjang', 'totalKewajiban',
+            'ekuitas', 'totalEkuitas', 'totalPasiva', 'labaBersih'
+        );
     }
 
     public function exportPdf()

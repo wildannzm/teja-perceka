@@ -18,8 +18,7 @@ use Livewire\Component;
 #[Title('Laporan Laba Rugi')]
 class LabaRugi extends Component
 {
-    /** null = konsolidasi semua unit */
-    public ?int $unit_id = null;
+    public $unit_id = null;
 
     /** 'bulanan' | 'tahunan' */
     public string $mode = 'bulanan';

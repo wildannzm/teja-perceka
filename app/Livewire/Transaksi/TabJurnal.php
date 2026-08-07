@@ -15,7 +15,7 @@ use Livewire\Component;
 class TabJurnal extends Component
 {
     #[Reactive]
-    public ?int $unitId = null;
+    public $unitId = null;
 
     #[Reactive]
     public string $mode = 'harian';
