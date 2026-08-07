@@ -16,10 +16,6 @@ use Livewire\Component;
 #[Title('Catat Pengeluaran')]
 class CatatPengeluaran extends Component
 {
-    public string $jenisPengeluaran = 'per_unit'; // 'per_unit' | 'umum_bumdes'
-
-    public ?int $unitWisataId = null;
-
     public string $tanggal = '';
 
     public string $keterangan = '';
@@ -38,23 +34,16 @@ class CatatPengeluaran extends Component
         $this->tanggal = Carbon::today()->format('Y-m-d');
     }
 
-    public function updatedJenisPengeluaran(): void
-    {
-        // Reset unit saat jenis berubah
-        $this->unitWisataId = null;
-    }
+
 
     public function submit(): void
     {
         $this->validate([
-            'jenisPengeluaran' => 'required|in:per_unit,umum_bumdes',
-            'unitWisataId' => $this->jenisPengeluaran === 'per_unit' ? 'required|exists:unit_wisata,id' : 'nullable',
             'tanggal' => 'required|date',
             'keterangan' => 'required|string|max:500',
             'kodeAkunId' => 'required|exists:kode_akun,id',
             'nominal' => 'required|numeric|min:1',
         ], [
-            'unitWisataId.required' => 'Pilih unit usaha terlebih dahulu.',
             'keterangan.required' => 'Keterangan wajib diisi.',
             'kodeAkunId.required' => 'Pilih jenis pengeluaran (akun biaya) terlebih dahulu.',
             'nominal.min' => 'Nominal harus lebih dari 0.',
@@ -62,20 +51,13 @@ class CatatPengeluaran extends Component
 
         $nominalValue = (float) $this->nominal;
         $date = Carbon::parse($this->tanggal);
-        $unitId = $this->jenisPengeluaran === 'per_unit' ? $this->unitWisataId : null;
+        $unitId = null; // Selalu null karena pengeluaran umum BUMDes
 
         DB::transaction(function () use ($nominalValue, $date, $unitId) {
             $akunKas = KodeAkun::where('kode', '1-1100')->firstOrFail();
 
-            // Tentukan prefix berdasarkan jenis pengeluaran:
-            // - "Per Unit Wisata" → K + kode unit (misal KSB, KSC, KBC)
-            // - "Umum BUMDes"    → KBM (kode tetap untuk pengeluaran level BUMDes)
-            $kodeUnit = 'BM'; // default untuk Umum BUMDes
-            if ($unitId !== null) {
-                $unitWisata = UnitWisata::find($unitId);
-                $kodeUnit = strtoupper($unitWisata->kode ?? 'BM');
-            }
-            $prefix = 'K'.$kodeUnit;
+            // "Umum BUMDes" -> KBM (kode tetap untuk pengeluaran level BUMDes)
+            $prefix = 'KBM';
 
             // Urutan dipisah per kombinasi prefix (K+kode) dan bulan+tahun berjalan
             // lockForUpdate() mencegah nomor bentrok saat input bersamaan
@@ -122,18 +104,15 @@ class CatatPengeluaran extends Component
         \Flux::toast(variant: 'success', text: 'Pengeluaran berhasil dicatat dengan nomor bukti.');
 
         // Reset form
-        $this->reset(['keterangan', 'kodeAkunId', 'nominal', 'unitWisataId']);
+        $this->reset(['keterangan', 'kodeAkunId', 'nominal']);
         $this->tanggal = Carbon::today()->format('Y-m-d');
-        $this->jenisPengeluaran = 'per_unit';
     }
 
     public function render()
     {
-        $units = UnitWisata::orderBy('nama')->get();
         $akunBiaya = KodeAkun::where('tipe', 'beban')->orderBy('kode')->get();
 
         return view('livewire.pengeluaran.catat-pengeluaran', [
-            'units' => $units,
             'akunBiaya' => $akunBiaya,
         ]);
     }

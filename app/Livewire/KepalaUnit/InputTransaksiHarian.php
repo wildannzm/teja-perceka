@@ -292,7 +292,7 @@ class InputTransaksiHarian extends Component
                 ]);
             }
 
-            // --- AKHIR JURNAL UMUM ---
+            // --- AKHIR JURNAL UMUM PEMASUKAN ---
 
             DB::commit();
 

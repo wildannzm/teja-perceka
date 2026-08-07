@@ -147,15 +147,19 @@ class TabPendapatan extends Component
             ];
         }
 
-        $transaksiIds = $this->buildTransaksiHarianQuery($unit, $range)->pluck('id');
+        $transaksiQuery = $this->buildTransaksiHarianQuery($unit, $range);
+        $totalPengeluaranUnit = (float) (clone $transaksiQuery)->sum('total_pengeluaran');
+        $transaksiIds = $transaksiQuery->pluck('id');
 
         if ($transaksiIds->isEmpty()) {
             return [
-                'unit'            => $namaUnit,
-                'kategoriRows'    => collect([]),
-                'totalPendapatan' => 0,
-                'kosong'          => true,
-                'pesanKosong'     => 'Tidak ada data pemasukan pada periode ini.',
+                'unit'                 => $namaUnit,
+                'kategoriRows'         => collect([]),
+                'totalPendapatan'      => 0,
+                'totalPengeluaranUnit' => 0,
+                'pendapatanBersih'     => 0,
+                'kosong'               => true,
+                'pesanKosong'          => 'Tidak ada data pemasukan pada periode ini.',
             ];
         }
 
@@ -186,11 +190,13 @@ class TabPendapatan extends Component
         $totalPendapatan = $kategoriRows->sum('subtotal');
 
         return [
-            'unit'            => $namaUnit,
-            'kategoriRows'    => $kategoriRows,
-            'totalPendapatan' => $totalPendapatan,
-            'kosong'          => $kategoriRows->isEmpty(),
-            'pesanKosong'     => 'Tidak ada data pemasukan pada periode ini.',
+            'unit'                 => $namaUnit,
+            'kategoriRows'         => $kategoriRows,
+            'totalPendapatan'      => $totalPendapatan,
+            'totalPengeluaranUnit' => $totalPengeluaranUnit,
+            'pendapatanBersih'     => $totalPendapatan - $totalPengeluaranUnit,
+            'kosong'               => $kategoriRows->isEmpty(),
+            'pesanKosong'          => 'Tidak ada data pemasukan pada periode ini.',
         ];
     }
 

@@ -136,6 +136,9 @@ class TabJurnal extends Component
         }
 
         DB::transaction(function () use ($jurnal) {
+            if ($jurnal->transaksi_harian_id) {
+                \App\Models\TransaksiHarian::where('id', $jurnal->transaksi_harian_id)->delete();
+            }
             JurnalUmum::where('nomor_bukti', $jurnal->nomor_bukti)->delete();
         });
 

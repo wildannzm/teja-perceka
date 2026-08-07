@@ -13,63 +13,7 @@
 
     <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6 flex flex-col gap-5">
 
-        {{-- 1. Jenis Pengeluaran --}}
-        <div>
-            <label class="block text-sm font-semibold text-zinc-700 mb-2">Jenis Pengeluaran</label>
-            <div class="grid grid-cols-2 gap-3">
-                <label
-                    class="flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all
- {{ $jenisPengeluaran === 'per_unit' ? 'border-brand-500 bg-brand-50 ' : 'border-zinc-200 hover:border-2 border-brand-500' }}">
-                    <input type="radio" wire:model.live="jenisPengeluaran" value="per_unit" class="sr-only">
-                    <div
-                        class="size-4 rounded-full border-2 flex items-center justify-center shrink-0
- {{ $jenisPengeluaran === 'per_unit' ? 'border-brand-500' : 'border-zinc-400' }}">
-                        @if ($jenisPengeluaran === 'per_unit')
-                            <div class="size-2 rounded-full bg-brand-500"></div>
-                        @endif
-                    </div>
-                    <div>
-                        <div class="text-sm font-semibold text-zinc-900">Per Unit Usaha</div>
-                        <div class="text-xs text-zinc-500">Terikat ke satu unit</div>
-                    </div>
-                </label>
-
-                <label
-                    class="flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all
- {{ $jenisPengeluaran === 'umum_bumdes' ? 'border-brand-500 bg-brand-50 ' : 'border-zinc-200 hover:border-2 border-brand-500' }}">
-                    <input type="radio" wire:model.live="jenisPengeluaran" value="umum_bumdes" class="sr-only">
-                    <div
-                        class="size-4 rounded-full border-2 flex items-center justify-center shrink-0
- {{ $jenisPengeluaran === 'umum_bumdes' ? 'border-brand-500' : 'border-zinc-400' }}">
-                        @if ($jenisPengeluaran === 'umum_bumdes')
-                            <div class="size-2 rounded-full bg-brand-500"></div>
-                        @endif
-                    </div>
-                    <div>
-                        <div class="text-sm font-semibold text-zinc-900">Umum BUMDes</div>
-                        <div class="text-xs text-zinc-500">Gaji, BPJS, donasi, dll.</div>
-                    </div>
-                </label>
-            </div>
-        </div>
-
-        {{-- 2. Pilih Unit (kondisional) --}}
-        @if ($jenisPengeluaran === 'per_unit')
-            <div>
-                <label for="unitWisataId" class="block text-sm font-semibold text-zinc-700 mb-1.5">Unit Usaha <span
-                        class="text-red-500">*</span></label>
-                <select id="unitWisataId" wire:model="unitWisataId"
-                    class="w-full rounded-xl border-2 border-brand-500 text-zinc-900 px-3.5 py-2.5 text-base shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none @error('unitWisataId') border-red-400 @enderror">
-                    <option value="">— Pilih Unit Usaha —</option>
-                    @foreach ($units as $unit)
-                        <option value="{{ $unit->id }}">{{ $unit->nama }} ({{ $unit->kode }})</option>
-                    @endforeach
-                </select>
-                @error('unitWisataId')
-                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                @enderror
-            </div>
-        @endif
+  
 
         {{-- 3. Tanggal --}}
         <div>
