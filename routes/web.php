@@ -11,7 +11,7 @@ use App\Livewire\KepalaDesa\Dashboard as KepalaDesaDashboard;
 use App\Livewire\KepalaDesa\Report as KepalaDesaReport;
 use App\Livewire\KepalaDesa\UserManager as KepalaDesaUserManager;
 use App\Livewire\KepalaUnit\Dashboard as KepalaUnitDashboard;
-use App\Livewire\KepalaUnit\KelolaHarga;
+use App\Livewire\KepalaUnit\KelolaPendapatan;
 use App\Livewire\KepalaUnit\RiwayatTransaksi;
 use App\Livewire\KepalaUnit\CatatPengeluaran as KepalaUnitCatatPengeluaran;
 use App\Livewire\Pengawas\Dashboard as PengawasDashboard;
@@ -21,6 +21,7 @@ use App\Livewire\Pengeluaran\CatatPengeluaran;
 use App\Livewire\Sekretaris\Dashboard as SekretarisDashboard;
 use App\Livewire\Sekretaris\Report as SekretarisReport;
 use App\Livewire\Sekretaris\TransactionList as SekretarisTransactionList;
+use App\Livewire\LaporanLabaRugi\AlokasiLaba;
 use App\Livewire\LaporanLabaRugi\LabaRugi;
 use App\Livewire\LaporanPendapatan\Pendapatan;
 use App\Livewire\Transaksi\RiwayatRekap;
@@ -73,7 +74,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('unit/riwayat-transaksi', fn() => redirect()->route('riwayat-rekap'))
             ->name('unit.riwayat-transaksi');
 
-        Route::get('unit/kelola-harga', KelolaHarga::class)
+        Route::get('unit/kelola-harga', KelolaPendapatan::class)
             ->name('unit.kelola-harga');
 
         Route::get('unit/catat-pengeluaran', KepalaUnitCatatPengeluaran::class)
@@ -131,6 +132,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('laporan/laba-rugi', LabaRugi::class)->name('laporan.laba-rugi');
         Route::get('laporan/buku-besar', BukuBesar::class)->name('laporan.buku-besar');
         Route::get('laporan/neraca-saldo', NeracaSaldo::class)->name('laporan.neraca-saldo');
+    });
+
+    // ===== Alokasi Laba (Tanpa Kepala Unit) =====
+    Route::middleware(['role:sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])->group(function () {
+        Route::get('laporan/alokasi-laba', AlokasiLaba::class)->name('laporan.alokasi-laba');
     });
 
     // ===== Aset (Direktur, Sekretaris, Bendahara bisa CRUD; lainnya read-only via policy) =====

@@ -30,6 +30,12 @@ class TabJurnal extends Component
     public string $bulan = '';
 
     #[Reactive]
+    public string $semester = '1';
+
+    #[Reactive]
+    public string $semesterTahun = '';
+
+    #[Reactive]
     public string $tahun = '';
 
     #[Computed]
@@ -47,6 +53,20 @@ class TabJurnal extends Component
             case 'bulanan':
                 $date = Carbon::parse(($this->bulan ?: Carbon::now()->format('Y-m')) . '-01');
                 return [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()];
+
+            case 'semester':
+                $year = (int)($this->semesterTahun ?: Carbon::now()->format('Y'));
+                if ($this->semester === '1') {
+                    return [
+                        Carbon::create($year, 1, 1)->startOfDay(),
+                        Carbon::create($year, 6, 30)->endOfDay(),
+                    ];
+                } else {
+                    return [
+                        Carbon::create($year, 7, 1)->startOfDay(),
+                        Carbon::create($year, 12, 31)->endOfDay(),
+                    ];
+                }
 
             case 'tahunan':
                 $year = (int)($this->tahun ?: Carbon::now()->format('Y'));
@@ -68,6 +88,7 @@ class TabJurnal extends Component
                 ? $start->format('d') . ' - ' . $end->translatedFormat('d F Y')
                 : $start->translatedFormat('d M') . ' - ' . $end->translatedFormat('d M Y'),
             'bulanan'  => $start->translatedFormat('F Y'),
+            'semester' => 'Semester ' . $this->semester . ' Tahun ' . ($this->semesterTahun ?: Carbon::now()->format('Y')),
             'tahunan'  => $start->format('Y'),
             default    => '-',
         };
@@ -106,7 +127,7 @@ class TabJurnal extends Component
     #[Computed]
     public function canExportPdf(): bool
     {
-        return in_array($this->mode, ['bulanan', 'tahunan']);
+        return in_array($this->mode, ['bulanan', 'semester', 'tahunan']);
     }
 
     /**
@@ -148,7 +169,7 @@ class TabJurnal extends Component
     public function exportPdf()
     {
         if (!$this->canExportPdf) {
-            \Flux::toast(variant: 'warning', text: 'Cetak PDF hanya tersedia untuk mode Bulanan dan Tahunan.');
+            \Flux::toast(variant: 'warning', text: 'Cetak PDF hanya tersedia untuk mode Bulanan, Semester, dan Tahunan.');
             return;
         }
 
