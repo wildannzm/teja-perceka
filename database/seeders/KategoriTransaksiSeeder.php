@@ -23,13 +23,13 @@ class KategoriTransaksiSeeder extends Seeder
         $categoriesByUnit = [
             'SB' => [
                 [
-                    'nama' => 'Tiket Dewasa',
+                    'nama' => 'Tiket dewasa',
                     'tipe' => TipeKategori::HargaXQty,
                     'jenis' => JenisTransaksi::Pemasukan,
                     'harga' => 10000,
                 ],
                 [
-                    'nama' => 'Tiket Anak',
+                    'nama' => 'Tiket anak',
                     'tipe' => TipeKategori::HargaXQty,
                     'jenis' => JenisTransaksi::Pemasukan,
                     'harga' => 5000,
@@ -47,28 +47,34 @@ class KategoriTransaksiSeeder extends Seeder
                     'harga' => 2000,
                 ],
                 [
-                    'nama' => 'Sewa Ban',
+                    'nama' => 'Sewa pelampung',
                     'tipe' => TipeKategori::HargaXQty,
                     'jenis' => JenisTransaksi::Pemasukan,
                     'harga' => 10000,
                 ],
                 [
-                    'nama' => 'Sewa Pelampung',
-                    'tipe' => TipeKategori::HargaXQty,
-                    'jenis' => JenisTransaksi::Pemasukan,
-                    'harga' => 10000,
-                ],
-                [
-                    'nama' => 'Kios',
+                    'nama' => 'Sewa kios',
                     'tipe' => TipeKategori::HargaXQty,
                     'jenis' => JenisTransaksi::Pemasukan,
                     'harga' => 150000,
                 ],
                 [
-                    'nama' => 'Kaki Lima',
+                    'nama' => 'Sewa ruko',
                     'tipe' => TipeKategori::HargaXQty,
                     'jenis' => JenisTransaksi::Pemasukan,
-                    'harga' => 20000,
+                    'harga' => 500000,
+                ],
+                [
+                    'nama' => 'Warung BUMDes',
+                    'tipe' => TipeKategori::Bebas,
+                    'jenis' => JenisTransaksi::Pemasukan,
+                    'harga' => 0,
+                ],
+                [
+                    'nama' => 'Budidaya Ikan',
+                    'tipe' => TipeKategori::Bebas,
+                    'jenis' => JenisTransaksi::Pemasukan,
+                    'harga' => 0,
                 ],
             ],
             'SC' => [

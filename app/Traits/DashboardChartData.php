@@ -16,8 +16,11 @@ trait DashboardChartData
     {
         $currentYear = date('Y');
 
+        $driver = DB::connection()->getDriverName();
+        $monthSelect = $driver === 'sqlite' ? "CAST(strftime('%m', tanggal) AS INTEGER)" : "MONTH(tanggal)";
+
         $pemasukanQuery = JurnalUmum::select(
-                DB::raw('MONTH(tanggal) as month'),
+                DB::raw("$monthSelect as month"),
                 DB::raw('SUM(kredit) as total')
             )
             ->whereYear('tanggal', $currentYear)
@@ -32,7 +35,7 @@ trait DashboardChartData
         $pemasukanPerBulan = $pemasukanQuery->groupBy('month')->pluck('total', 'month')->toArray();
 
         $pengeluaranQuery = JurnalUmum::select(
-                DB::raw('MONTH(tanggal) as month'),
+                DB::raw("$monthSelect as month"),
                 DB::raw('SUM(debet) as total')
             )
             ->whereYear('tanggal', $currentYear)
