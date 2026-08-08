@@ -13,6 +13,7 @@ use App\Livewire\KepalaDesa\UserManager as KepalaDesaUserManager;
 use App\Livewire\KepalaUnit\Dashboard as KepalaUnitDashboard;
 use App\Livewire\KepalaUnit\KelolaHarga;
 use App\Livewire\KepalaUnit\RiwayatTransaksi;
+use App\Livewire\KepalaUnit\CatatPengeluaran as KepalaUnitCatatPengeluaran;
 use App\Livewire\Pengawas\Dashboard as PengawasDashboard;
 use App\Livewire\Pengawas\LihatJurnal as PengawasLihatJurnal;
 use App\Livewire\Pengawas\Report as PengawasReport;
@@ -25,6 +26,7 @@ use App\Livewire\LaporanPendapatan\Pendapatan;
 use App\Livewire\Transaksi\RiwayatRekap;
 use App\Livewire\Laporan\BukuBesar;
 use App\Livewire\Laporan\NeracaSaldo;
+use App\Livewire\Asset\KelolaAsset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -73,6 +75,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('unit/kelola-harga', KelolaHarga::class)
             ->name('unit.kelola-harga');
+
+        Route::get('unit/catat-pengeluaran', KepalaUnitCatatPengeluaran::class)
+            ->name('unit.catat-pengeluaran');
     });
 
     // ===== Sekretaris =====
@@ -127,6 +132,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('laporan/buku-besar', BukuBesar::class)->name('laporan.buku-besar');
         Route::get('laporan/neraca-saldo', NeracaSaldo::class)->name('laporan.neraca-saldo');
     });
+
+    // ===== Aset (Direktur, Sekretaris, Bendahara bisa CRUD; lainnya read-only via policy) =====
+    Route::middleware(['role:direktur_bumdes|sekretaris|bendahara|kepala_desa|pengawas|kepala_unit'])
+        ->get('asset', KelolaAsset::class)
+        ->name('asset.kelola');
 
     // ===== Pendapatan (Semua role) — redirect ke Riwayat & Rekap =====
     Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])

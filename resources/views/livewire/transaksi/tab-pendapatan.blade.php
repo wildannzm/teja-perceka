@@ -10,8 +10,26 @@
     <div class="bg-brand-500 text-white rounded-2xl p-6 sm:p-8 shadow-lg shadow-brand-500/20 border border-brand-400 flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-w-0">
         <div class="min-w-0 w-full">
             <p class="text-brand-100 font-medium text-sm sm:text-base uppercase tracking-wide mb-1 break-words">{{ $data['unit'] }}</p>
-            <p class="text-3xl sm:text-4xl font-bold tracking-tight break-words">Rp {{ number_format($data['totalPendapatan'], 0, ',', '.') }}</p>
-            <div class="mt-2 flex flex-wrap gap-2">
+            
+            @if($data['totalPengeluaranUnit'] > 0)
+                <p class="text-xs text-brand-200 uppercase font-medium tracking-wide">Pemasukan Bersih (Net)</p>
+                <p class="text-3xl sm:text-4xl font-bold tracking-tight break-words">Rp {{ number_format($data['pendapatanBersih'], 0, ',', '.') }}</p>
+                
+                <div class="mt-4 pt-4 border-t border-brand-400/60 grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs text-brand-200 uppercase font-medium tracking-wide">Pemasukan Kotor</p>
+                        <p class="text-lg sm:text-xl font-bold">Rp {{ number_format($data['totalPendapatan'], 0, ',', '.') }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-brand-200 uppercase font-medium tracking-wide">Pengeluaran Unit</p>
+                        <p class="text-lg sm:text-xl font-bold text-red-200">- Rp {{ number_format($data['totalPengeluaranUnit'], 0, ',', '.') }}</p>
+                    </div>
+                </div>
+            @else
+                <p class="text-3xl sm:text-4xl font-bold tracking-tight break-words">Rp {{ number_format($data['totalPendapatan'], 0, ',', '.') }}</p>
+            @endif
+
+            <div class="mt-4 flex flex-wrap gap-2">
                 <span class="text-brand-50 text-xs sm:text-sm font-medium bg-brand-600/50 px-3 py-1 rounded-full max-w-full truncate">
                     Periode: {{ $this->periodeLabel }}
                 </span>
