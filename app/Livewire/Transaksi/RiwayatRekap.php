@@ -34,6 +34,12 @@ class RiwayatRekap extends Component
     public string $bulan = '';
 
     #[Url]
+    public string $semester = '1';
+
+    #[Url]
+    public string $semesterTahun = '';
+
+    #[Url]
     public string $tahun = '';
 
     public function mount(): void
@@ -48,8 +54,10 @@ class RiwayatRekap extends Component
         $now = Carbon::now();
         $this->tanggal = $now->format('Y-m-d');
         $this->minggu  = $now->startOfWeek()->format('Y-m-d');
-        $this->bulan   = Carbon::now()->format('Y-m');
-        $this->tahun   = Carbon::now()->format('Y');
+        $this->bulan   = $now->format('Y-m');
+        $this->semesterTahun = $now->format('Y');
+        $this->semester = $now->month <= 6 ? '1' : '2';
+        $this->tahun   = $now->format('Y');
 
         if (!in_array($this->tab, ['pendapatan', 'jurnal'])) {
             $this->tab = 'pendapatan';

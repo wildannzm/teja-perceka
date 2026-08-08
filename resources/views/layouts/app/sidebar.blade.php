@@ -91,6 +91,15 @@
                         </svg>
                         Laba Rugi
                     </a>
+                    <a href="{{ route('laporan.alokasi-laba') }}" wire:navigate
+                        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('laporan.alokasi-laba') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-4 shrink-0">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+                        </svg>
+                        Alokasi Laba
+                    </a>
                     <a href="{{ route('laporan.buku-besar') }}" wire:navigate
                         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('laporan.buku-besar') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -175,6 +184,15 @@
                                 d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
                         </svg>
                         Laba Rugi
+                    </a>
+                    <a href="{{ route('laporan.alokasi-laba') }}" wire:navigate
+                        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('laporan.alokasi-laba') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-4 shrink-0">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+                        </svg>
+                        Alokasi Laba
                     </a>
                     <a href="{{ route('laporan.buku-besar') }}" wire:navigate
                         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('laporan.buku-besar') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
@@ -261,6 +279,15 @@
                         </svg>
                         Laba Rugi
                     </a>
+                    <a href="{{ route('laporan.alokasi-laba') }}" wire:navigate
+                        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('laporan.alokasi-laba') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-4 shrink-0">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+                        </svg>
+                        Alokasi Laba
+                    </a>
                     <a href="{{ route('laporan.buku-besar') }}" wire:navigate
                         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('laporan.buku-besar') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -346,6 +373,15 @@
                                 d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
                         </svg>
                         Laba Rugi
+                    </a>
+                    <a href="{{ route('laporan.alokasi-laba') }}" wire:navigate
+                        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('laporan.alokasi-laba') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-4 shrink-0">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+                        </svg>
+                        Alokasi Laba
                     </a>
                     <a href="{{ route('laporan.buku-besar') }}" wire:navigate
                         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('laporan.buku-besar') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
@@ -434,7 +470,7 @@
                             <text x="12" y="15.5" text-anchor="middle" font-weight="700" font-size="10"
                                 fill="currentColor" stroke="none" font-family="sans-serif">Rp</text>
                         </svg>
-                        Kelola Harga
+                        Kelola Pendapatan
                     </a>
                     <a href="{{ route('unit.catat-pengeluaran') }}" wire:navigate
                         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('unit.catat-pengeluaran') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
@@ -520,6 +556,15 @@
                                 d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
                         </svg>
                         Laba Rugi
+                    </a>
+                    <a href="{{ route('laporan.alokasi-laba') }}" wire:navigate
+                        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('laporan.alokasi-laba') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-4 shrink-0">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+                        </svg>
+                        Alokasi Laba
                     </a>
                     <a href="{{ route('laporan.buku-besar') }}" wire:navigate
                         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('laporan.buku-besar') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">

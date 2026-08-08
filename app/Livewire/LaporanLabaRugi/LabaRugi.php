@@ -20,11 +20,14 @@ class LabaRugi extends Component
 {
     public $unit_id = null;
 
-    /** 'bulanan' | 'tahunan' */
+    /** 'bulanan' | 'semester' | 'tahunan' */
     public string $mode = 'bulanan';
 
     /** Format Y-m untuk bulanan, Y untuk tahunan */
     public string $periode = '';
+
+    public string $semester = '1';
+    public string $semesterTahun = '';
 
     public function mount(): void
     {
@@ -36,16 +39,23 @@ class LabaRugi extends Component
         }
 
         // Default periode ke bulan/tahun berjalan
-        $this->periode = $this->mode === 'bulanan'
-            ? Carbon::now()->format('Y-m')
-            : Carbon::now()->format('Y');
+        $now = Carbon::now();
+        $this->periode = $this->mode === 'bulanan' ? $now->format('Y-m') : $now->format('Y');
+        $this->semesterTahun = $now->format('Y');
+        $this->semester = $now->month <= 6 ? '1' : '2';
     }
 
     public function updatedMode(): void
     {
-        $this->periode = $this->mode === 'bulanan'
-            ? Carbon::now()->format('Y-m')
-            : Carbon::now()->format('Y');
+        $now = Carbon::now();
+        if ($this->mode === 'bulanan') {
+            $this->periode = $now->format('Y-m');
+        } elseif ($this->mode === 'tahunan') {
+            $this->periode = $now->format('Y');
+        } elseif ($this->mode === 'semester') {
+            $this->semesterTahun = $now->format('Y');
+            $this->semester = $now->month <= 6 ? '1' : '2';
+        }
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────
@@ -61,6 +71,21 @@ class LabaRugi extends Component
             ];
         }
 
+        if ($this->mode === 'semester') {
+            $year = (int) ($this->semesterTahun ?: Carbon::now()->format('Y'));
+            if ($this->semester === '1') {
+                return [
+                    Carbon::create($year, 1, 1)->startOfDay(),
+                    Carbon::create($year, 6, 30)->endOfDay(),
+                ];
+            } else {
+                return [
+                    Carbon::create($year, 7, 1)->startOfDay(),
+                    Carbon::create($year, 12, 31)->endOfDay(),
+                ];
+            }
+        }
+
         $date = Carbon::parse($this->periode ?: Carbon::now()->format('Y-m'));
 
         return [
@@ -73,6 +98,11 @@ class LabaRugi extends Component
     {
         if ($this->mode === 'tahunan') {
             return 'Tahun '.($this->periode ?: Carbon::now()->format('Y'));
+        }
+
+        if ($this->mode === 'semester') {
+            $year = $this->semesterTahun ?: Carbon::now()->format('Y');
+            return 'Semester ' . $this->semester . ' Tahun ' . $year;
         }
 
         return Carbon::parse($this->periode ?: Carbon::now()->format('Y-m'))->translatedFormat('F Y');

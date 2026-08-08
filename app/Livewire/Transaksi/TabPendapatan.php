@@ -32,6 +32,12 @@ class TabPendapatan extends Component
     public string $bulan = '';
 
     #[Reactive]
+    public string $semester = '1';
+
+    #[Reactive]
+    public string $semesterTahun = '';
+
+    #[Reactive]
     public string $tahun = '';
 
     private function isUnitMingguan(?UnitWisata $unit): bool
@@ -57,6 +63,20 @@ class TabPendapatan extends Component
             case 'bulanan':
                 $date = Carbon::parse(($this->bulan ?: Carbon::now()->format('Y-m')) . '-01');
                 return [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()];
+
+            case 'semester':
+                $year = (int)($this->semesterTahun ?: Carbon::now()->format('Y'));
+                if ($this->semester === '1') {
+                    return [
+                        Carbon::create($year, 1, 1)->startOfDay(),
+                        Carbon::create($year, 6, 30)->endOfDay(),
+                    ];
+                } else {
+                    return [
+                        Carbon::create($year, 7, 1)->startOfDay(),
+                        Carbon::create($year, 12, 31)->endOfDay(),
+                    ];
+                }
 
             case 'tahunan':
                 $year = (int)($this->tahun ?: Carbon::now()->format('Y'));
@@ -121,6 +141,10 @@ class TabPendapatan extends Component
             case 'bulanan':
                 $date = Carbon::parse(($this->bulan ?: Carbon::now()->format('Y-m')) . '-01');
                 return $date->translatedFormat('F Y');
+
+            case 'semester':
+                $year = $this->semesterTahun ?: Carbon::now()->format('Y');
+                return 'Semester ' . $this->semester . ' Tahun ' . $year;
 
             case 'tahunan':
                 return 'Tahun ' . ($this->tahun ?: Carbon::now()->format('Y'));

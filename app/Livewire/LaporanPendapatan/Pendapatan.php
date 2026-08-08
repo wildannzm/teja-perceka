@@ -33,6 +33,10 @@ class Pendapatan extends Component
     /** Mode bulanan: format Y-m */
     public string $bulan = '';
 
+    /** Mode semester */
+    public string $semester = '1';
+    public string $semesterTahun = '';
+
     /** Mode tahunan: format Y */
     public string $tahun = '';
 
@@ -49,8 +53,10 @@ class Pendapatan extends Component
         $now = Carbon::now();
         $this->tanggal = $now->format('Y-m-d');
         $this->minggu  = $now->startOfWeek()->format('Y-m-d');
-        $this->bulan   = Carbon::now()->format('Y-m');
-        $this->tahun   = Carbon::now()->format('Y');
+        $this->bulan   = $now->format('Y-m');
+        $this->semesterTahun = $now->format('Y');
+        $this->semester = $now->month <= 6 ? '1' : '2';
+        $this->tahun   = $now->format('Y');
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────
@@ -90,6 +96,20 @@ class Pendapatan extends Component
             case 'bulanan':
                 $date = Carbon::parse(($this->bulan ?: Carbon::now()->format('Y-m')) . '-01');
                 return [$date->startOfMonth(), $date->copy()->endOfMonth()];
+
+            case 'semester':
+                $year = (int)($this->semesterTahun ?: Carbon::now()->format('Y'));
+                if ($this->semester === '1') {
+                    return [
+                        Carbon::create($year, 1, 1)->startOfDay(),
+                        Carbon::create($year, 6, 30)->endOfDay(),
+                    ];
+                } else {
+                    return [
+                        Carbon::create($year, 7, 1)->startOfDay(),
+                        Carbon::create($year, 12, 31)->endOfDay(),
+                    ];
+                }
 
             case 'tahunan':
                 $year = (int)($this->tahun ?: Carbon::now()->format('Y'));
@@ -201,6 +221,10 @@ class Pendapatan extends Component
             case 'bulanan':
                 $date = Carbon::parse(($this->bulan ?: Carbon::now()->format('Y-m')) . '-01');
                 return $date->translatedFormat('F Y');
+
+            case 'semester':
+                $year = $this->semesterTahun ?: Carbon::now()->format('Y');
+                return 'Semester ' . $this->semester . ' Tahun ' . $year;
 
             case 'tahunan':
                 return 'Tahun ' . ($this->tahun ?: Carbon::now()->format('Y'));

@@ -26,13 +26,14 @@
             {{-- Segmented Control --}}
             <div class="flex flex-col gap-1.5 w-full md:w-auto">
                 <label class="text-sm font-medium text-zinc-700 hidden md:block">Periode</label>
-                <div class="{{ $this->isHarianDisabled ? 'grid grid-cols-3' : 'grid grid-cols-2' }} gap-1.5 p-1 bg-zinc-100 rounded-xl w-full md:flex md:space-x-1 md:gap-0 md:w-80 border border-zinc-200/60">
+                <div class="flex flex-wrap sm:flex-nowrap gap-1.5 p-1 bg-zinc-100 rounded-xl w-full border border-zinc-200/60">
                     @if(!$this->isHarianDisabled)
-                        <button wire:click="$set('mode', 'harian')" class="{{ $mode === 'harian' ? 'bg-white shadow-sm text-zinc-900 font-semibold' : 'text-zinc-500 hover:text-zinc-700' }} w-full rounded-lg py-2 text-xs sm:text-sm font-medium transition-all">Harian</button>
+                        <button wire:click="$set('mode', 'harian')" class="{{ $mode === 'harian' ? 'bg-white shadow-sm text-zinc-900 font-semibold' : 'text-zinc-500 hover:text-zinc-700' }} flex-1 rounded-lg py-2 px-2 text-xs sm:text-sm font-medium transition-all">Harian</button>
                     @endif
-                    <button wire:click="$set('mode', 'mingguan')" class="{{ $mode === 'mingguan' ? 'bg-white shadow-sm text-zinc-900 font-semibold' : 'text-zinc-500 hover:text-zinc-700' }} w-full rounded-lg py-2 text-xs sm:text-sm font-medium transition-all">Mingguan</button>
-                    <button wire:click="$set('mode', 'bulanan')" class="{{ $mode === 'bulanan' ? 'bg-white shadow-sm text-zinc-900 font-semibold' : 'text-zinc-500 hover:text-zinc-700' }} w-full rounded-lg py-2 text-xs sm:text-sm font-medium transition-all">Bulanan</button>
-                    <button wire:click="$set('mode', 'tahunan')" class="{{ $mode === 'tahunan' ? 'bg-white shadow-sm text-zinc-900 font-semibold' : 'text-zinc-500 hover:text-zinc-700' }} w-full rounded-lg py-2 text-xs sm:text-sm font-medium transition-all">Tahunan</button>
+                    <button wire:click="$set('mode', 'mingguan')" class="{{ $mode === 'mingguan' ? 'bg-white shadow-sm text-zinc-900 font-semibold' : 'text-zinc-500 hover:text-zinc-700' }} flex-1 rounded-lg py-2 px-2 text-xs sm:text-sm font-medium transition-all">Mingguan</button>
+                    <button wire:click="$set('mode', 'bulanan')" class="{{ $mode === 'bulanan' ? 'bg-white shadow-sm text-zinc-900 font-semibold' : 'text-zinc-500 hover:text-zinc-700' }} flex-1 rounded-lg py-2 px-2 text-xs sm:text-sm font-medium transition-all">Bulanan</button>
+                    <button wire:click="$set('mode', 'semester')" class="{{ $mode === 'semester' ? 'bg-white shadow-sm text-zinc-900 font-semibold' : 'text-zinc-500 hover:text-zinc-700' }} flex-1 rounded-lg py-2 px-2 text-xs sm:text-sm font-medium transition-all">Semester</button>
+                    <button wire:click="$set('mode', 'tahunan')" class="{{ $mode === 'tahunan' ? 'bg-white shadow-sm text-zinc-900 font-semibold' : 'text-zinc-500 hover:text-zinc-700' }} flex-1 rounded-lg py-2 px-2 text-xs sm:text-sm font-medium transition-all">Tahunan</button>
                 </div>
             </div>
 
@@ -64,6 +65,17 @@
                     <input type="month" wire:model.live="bulan"
                         class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                 
+                @elseif($mode === 'semester')
+                    <div class="flex gap-2">
+                        <select wire:model.live="semester"
+                            class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
+                            <option value="1">Sem 1 (Jan-Jun)</option>
+                            <option value="2">Sem 2 (Jul-Des)</option>
+                        </select>
+                        <input type="number" wire:model.live="semesterTahun" min="2020" max="2099" placeholder="{{ date('Y') }}"
+                            class="w-24 shrink-0 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
+                    </div>
+
                 @elseif($mode === 'tahunan')
                     <input type="number" wire:model.live="tahun" min="2020" placeholder="{{ date('Y') }}"
                         class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
