@@ -40,15 +40,15 @@
 
         <div class="bg-white rounded-xl border border-brand-100 shadow-sm overflow-hidden mb-6 pb-6">
             <div class="px-4 sm:px-6 py-4 border-b border-zinc-100 text-center">
-                <p class="text-sm font-bold text-zinc-900 uppercase">NERACA SALDO</p>
+                <p class="text-sm font-bold text-zinc-900 uppercase">NERACA</p>
                 <p class="text-sm text-zinc-600">Per Akhir Bulan: {{ \Carbon\Carbon::parse($this->periode ?: now()->format('Y-m'))->translatedFormat('F Y') }}</p>
             </div>
             
-            <div class="flex justify-end px-4 sm:px-6 py-3 {{ $data['totalDebit'] === $data['totalKredit'] ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100' }} border-b">
+            <div class="flex justify-end px-4 sm:px-6 py-3 {{ $data['totalAktiva'] === $data['totalPasiva'] ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100' }} border-b">
                 <div class="flex items-center gap-2">
-                    <p class="text-xs font-semibold uppercase tracking-wider {{ $data['totalDebit'] === $data['totalKredit'] ? 'text-emerald-600' : 'text-red-600' }}">Status:</p>
-                    <p class="text-sm font-bold flex items-center gap-1.5 {{ $data['totalDebit'] === $data['totalKredit'] ? 'text-emerald-700' : 'text-red-700' }}">
-                        @if($data['totalDebit'] === $data['totalKredit'])
+                    <p class="text-xs font-semibold uppercase tracking-wider {{ $data['totalAktiva'] === $data['totalPasiva'] ? 'text-emerald-600' : 'text-red-600' }}">Status:</p>
+                    <p class="text-sm font-bold flex items-center gap-1.5 {{ $data['totalAktiva'] === $data['totalPasiva'] ? 'text-emerald-700' : 'text-red-700' }}">
+                        @if($data['totalAktiva'] === $data['totalPasiva'])
                             <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
                             SEIMBANG
                         @else
@@ -59,57 +59,124 @@
                 </div>
             </div>
 
-            <div class="overflow-hidden md:overflow-x-auto">
-                <table class="w-full text-sm text-left text-zinc-600">
-                    <thead class="text-xs text-zinc-700 uppercase bg-zinc-50 border-b border-zinc-200">
-                        <tr>
-                            <th scope="col" class="px-5 py-4 whitespace-nowrap">Kode Akun</th>
-                            <th scope="col" class="px-5 py-4 whitespace-nowrap">Nama Akun</th>
-                            <th scope="col" class="px-5 py-4 text-right whitespace-nowrap w-1/4">Debit (Rp)</th>
-                            <th scope="col" class="px-5 py-4 text-right whitespace-nowrap w-1/4">Kredit (Rp)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-zinc-100">
-                        @forelse($data['neracaData'] as $row)
-                            <tr class="bg-white hover:bg-zinc-50 transition-colors">
-                                <td class="px-5 py-4 whitespace-nowrap font-mono text-xs text-brand-600 font-semibold">
-                                    {{ $row->kode }}
-                                </td>
-                                <td class="px-5 py-4 min-w-[200px] font-medium text-zinc-900">
-                                    {{ $row->nama }}
-                                </td>
-                                <td class="px-5 py-4 text-right font-medium whitespace-nowrap {{ $row->debit > 0 ? 'text-zinc-900' : 'text-zinc-400' }}">
-                                    {{ $row->debit > 0 ? number_format($row->debit, 0, ',', '.') : '-' }}
-                                </td>
-                                <td class="px-5 py-4 text-right font-medium whitespace-nowrap {{ $row->kredit > 0 ? 'text-zinc-900' : 'text-zinc-400' }}">
-                                    {{ $row->kredit > 0 ? number_format($row->kredit, 0, ',', '.') : '-' }}
-                                </td>
-                            </tr>
-                        @empty
+            <div class="flex flex-col md:flex-row w-full text-sm text-zinc-700">
+                {{-- SISI AKTIVA --}}
+                <div class="w-full md:w-1/2 md:border-r border-zinc-300 flex flex-col">
+                    <div class="bg-zinc-200/60 py-2 text-center font-bold border-b border-zinc-300 uppercase tracking-widest text-zinc-900">Aktiva</div>
+                    <div class="flex-1 overflow-x-auto">
+                        <table class="w-full min-w-[300px]">
+                            <tbody>
+                                <!-- Aktiva Lancar -->
+                                <tr class="bg-zinc-50 border-b border-zinc-200">
+                                    <td class="px-3 py-2 font-bold text-xs" colspan="3">1-1000 AKTIVA LANCAR</td>
+                                </tr>
+                                @foreach($data['aktivaLancar'] as $item)
+                                <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
+                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500">{{ $item->kode }}</td>
+                                    <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->nama }}</td>
+                                    <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->saldo == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">{{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}</td>
+                                </tr>
+                                @endforeach
+                                <tr class="bg-zinc-100/50 border-y border-zinc-300">
+                                    <td class="px-3 py-2 font-bold text-center text-xs sm:text-sm" colspan="2">JUMLAH AKTIVA LANCAR</td>
+                                    <td class="px-3 py-2 text-right font-bold whitespace-nowrap">{{ number_format($data['totalAktivaLancar'], 0, ',', '.') }}</td>
+                                </tr>
+                                
+                                <!-- Aktiva Tidak Lancar -->
+                                <tr class="bg-zinc-50 border-b border-zinc-200">
+                                    <td class="px-3 py-2 font-bold text-xs" colspan="3">1-2000 AKTIVA TIDAK LANCAR</td>
+                                </tr>
+                                @foreach($data['aktivaTetap'] as $item)
+                                <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
+                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500">{{ $item->kode }}</td>
+                                    <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->nama }}</td>
+                                    <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->saldo == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">{{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}</td>
+                                </tr>
+                                @endforeach
+                                <tr class="bg-zinc-100/50 border-y border-zinc-300">
+                                    <td class="px-3 py-2 font-bold text-center text-xs sm:text-sm" colspan="2">JUMLAH AKTIVA TETAP</td>
+                                    <td class="px-3 py-2 text-right font-bold whitespace-nowrap">{{ number_format($data['totalAktivaTetap'], 0, ',', '.') }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {{-- TOTAL AKTIVA ditaruh di bawah dengan margin-top auto agar selalu sejajar di bagian bawah --}}
+                    <div class="mt-auto border-t-2 border-zinc-400 bg-[#78a2a8] text-zinc-900">
+                        <table class="w-full min-w-[300px]">
                             <tr>
-                                <td colspan="4" class="px-5 py-12 text-center text-zinc-500">
-                                    <svg class="size-10 text-zinc-400 mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                      <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                                    </svg>
-                                    Tidak ada data saldo akun hingga periode yang dipilih.
-                                </td>
+                                <td class="px-3 py-4 font-extrabold text-center uppercase text-sm" style="width: 70%;">TOTAL AKTIVA</td>
+                                <td class="px-3 py-4 text-right font-extrabold text-sm whitespace-nowrap" style="width: 30%;">{{ number_format($data['totalAktiva'], 0, ',', '.') }}</td>
                             </tr>
-                        @endforelse
-                    </tbody>
-                    @if(count($data['neracaData']) > 0)
-                    <tfoot class="bg-zinc-50 border-t-2 border-zinc-200">
-                        <tr>
-                            <td colspan="2" class="px-5 py-4 text-right font-bold text-zinc-900">TOTAL</td>
-                            <td class="px-5 py-4 text-right font-bold {{ $data['totalDebit'] === $data['totalKredit'] ? 'text-emerald-600' : 'text-zinc-900' }}">
-                                Rp {{ number_format($data['totalDebit'], 0, ',', '.') }}
-                            </td>
-                            <td class="px-5 py-4 text-right font-bold {{ $data['totalDebit'] === $data['totalKredit'] ? 'text-emerald-600' : 'text-zinc-900' }}">
-                                Rp {{ number_format($data['totalKredit'], 0, ',', '.') }}
-                            </td>
-                        </tr>
-                    </tfoot>
-                    @endif
-                </table>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- SISI PASIVA --}}
+                <div class="w-full md:w-1/2 flex flex-col border-t-4 md:border-t-0 border-zinc-300 md:border-transparent mt-6 md:mt-0">
+                    <div class="bg-zinc-200/60 py-2 text-center font-bold border-b border-zinc-300 uppercase tracking-widest text-zinc-900">Pasiva</div>
+                    <div class="flex-1 overflow-x-auto">
+                        <table class="w-full min-w-[300px]">
+                            <tbody>
+                                <!-- Kewajiban -->
+                                <tr class="bg-zinc-50 border-b border-zinc-200">
+                                    <td class="px-3 py-2 font-bold text-xs" colspan="3">2-0000 KEWAJIBAN</td>
+                                </tr>
+                                <tr class="bg-zinc-50/50">
+                                    <td class="px-3 py-1.5 font-bold text-xs pl-6" colspan="3">2-1000 KEWAJIBAN JANGKA PENDEK</td>
+                                </tr>
+                                @foreach($data['kewajibanPendek'] as $item)
+                                <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
+                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 pl-6">{{ $item->kode }}</td>
+                                    <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->nama }}</td>
+                                    <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->saldo == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">{{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}</td>
+                                </tr>
+                                @endforeach
+                                
+                                <tr class="bg-zinc-50/50">
+                                    <td class="px-3 py-1.5 font-bold text-xs pl-6" colspan="3">2-2000 KEWAJIBAN JANGKA PANJANG</td>
+                                </tr>
+                                @foreach($data['kewajibanPanjang'] as $item)
+                                <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
+                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 pl-6">{{ $item->kode }}</td>
+                                    <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->nama }}</td>
+                                    <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->saldo == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">{{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}</td>
+                                </tr>
+                                @endforeach
+
+                                <tr class="bg-zinc-100/50 border-y border-zinc-300">
+                                    <td class="px-3 py-2 font-bold text-center text-xs sm:text-sm" colspan="2">JUMLAH KEWAJIBAN</td>
+                                    <td class="px-3 py-2 text-right font-bold whitespace-nowrap">{{ number_format($data['totalKewajiban'], 0, ',', '.') }}</td>
+                                </tr>
+                                
+                                <!-- Ekuitas -->
+                                <tr class="bg-zinc-50 border-b border-zinc-200">
+                                    <td class="px-3 py-2 font-bold text-xs" colspan="3">3-0000 EKUITAS</td>
+                                </tr>
+                                @foreach($data['ekuitas'] as $item)
+                                <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
+                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 pl-6">{{ $item->kode }}</td>
+                                    <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800 {{ $item->nama === 'LABA BERSIH' ? 'uppercase' : '' }}">{{ $item->nama }}</td>
+                                    <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->saldo == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">{{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}</td>
+                                </tr>
+                                @endforeach
+                                
+                                <tr class="bg-zinc-100/50 border-y border-zinc-300">
+                                    <td class="px-3 py-2 font-bold text-center text-xs sm:text-sm" colspan="2">JUMLAH EKUITAS</td>
+                                    <td class="px-3 py-2 text-right font-bold whitespace-nowrap">{{ number_format($data['totalEkuitas'], 0, ',', '.') }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {{-- TOTAL PASIVA ditaruh di bawah dengan margin-top auto --}}
+                    <div class="mt-auto border-t-2 border-zinc-400 bg-[#78a2a8] text-zinc-900">
+                        <table class="w-full min-w-[300px]">
+                            <tr>
+                                <td class="px-3 py-4 font-extrabold text-center uppercase text-sm" style="width: 70%;">TOTAL PASIVA</td>
+                                <td class="px-3 py-4 text-right font-extrabold text-sm whitespace-nowrap" style="width: 30%;">{{ number_format($data['totalPasiva'], 0, ',', '.') }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
