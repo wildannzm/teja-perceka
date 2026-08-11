@@ -29,7 +29,7 @@ class KategoriTransaksiSeeder extends Seeder
                     'harga' => 10000,
                 ],
                 [
-                    'nama' => 'Tiket anak',
+                    'nama' => 'Tiket Anak',
                     'tipe' => TipeKategori::HargaXQty,
                     'jenis' => JenisTransaksi::Pemasukan,
                     'harga' => 5000,
@@ -47,19 +47,19 @@ class KategoriTransaksiSeeder extends Seeder
                     'harga' => 2000,
                 ],
                 [
-                    'nama' => 'Sewa pelampung',
+                    'nama' => 'Sewa Fasilitas',
                     'tipe' => TipeKategori::HargaXQty,
                     'jenis' => JenisTransaksi::Pemasukan,
                     'harga' => 10000,
                 ],
                 [
-                    'nama' => 'Sewa kios',
+                    'nama' => 'Sewa Kios',
                     'tipe' => TipeKategori::HargaXQty,
                     'jenis' => JenisTransaksi::Pemasukan,
                     'harga' => 150000,
                 ],
                 [
-                    'nama' => 'Sewa ruko',
+                    'nama' => 'Sewa Ruko',
                     'tipe' => TipeKategori::HargaXQty,
                     'jenis' => JenisTransaksi::Pemasukan,
                     'harga' => 500000,
