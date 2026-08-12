@@ -100,6 +100,7 @@
                                     altFormat: 'F Y'
                                 })
                             ],
+                            defaultDate: formatted,
                             altInput: true,
                             disableMobile: true
                         })"
@@ -217,7 +218,7 @@
                 <tbody class="divide-y divide-zinc-100 text-zinc-700">
                     @forelse ($this->transactions as $trx)
                         <tr class="hover:bg-zinc-50 :bg-zinc-800/50 transition-colors">
-                            <td class="py-3 px-4">{{ $trx->tanggal->format('d/m/Y') }}</td>
+                            <td class="py-3 px-4">{{ $trx->tanggal->translatedFormat('d F Y') }}</td>
                             <td class="py-3 px-4 font-mono text-xs text-zinc-500">{{ $trx->nomor_bukti }}</td>
                             <td class="py-3 px-4 text-wrap leading-relaxed">{{ $trx->keterangan }}</td>
                             <td class="py-3 px-4 font-mono text-xs">{{ $trx->kodeAkun->kode ?? '-' }}</td>

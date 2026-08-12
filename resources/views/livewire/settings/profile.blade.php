@@ -12,7 +12,7 @@
 
             <div class="flex flex-col gap-2 p-5 bg-white border border-zinc-200 rounded-xl shadow-sm">
                 <div class="text-sm font-medium text-zinc-500">Alamat Email</div>
-                <div class="text-lg font-semibold text-brand-900">{{ auth()->user()->email }}</div>
+                <div class="text-lg font-semibold text-brand-900 break-all">{{ auth()->user()->email }}</div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

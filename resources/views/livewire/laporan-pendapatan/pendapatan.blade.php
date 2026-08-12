@@ -42,8 +42,18 @@
                 <label class="text-sm font-medium text-zinc-700">Pilih {{ ucfirst($mode) }}</label>
                 
                 @if($mode === 'harian')
-                    <input type="date" wire:model.live="tanggal"
-                        class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
+                    <div wire:ignore x-data="{ val: $wire.entangle('tanggal').live }">
+    <input type="text" x-model="val"
+        x-init="window.flatpickr($el, {
+            locale: window.flatpickrIndonesian,
+            dateFormat: 'Y-m-d',
+            defaultDate: val,
+            altInput: true,
+            altFormat: 'd F Y',
+            disableMobile: true
+        })"
+        class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer" />
+</div>
                 
                 @elseif($mode === 'mingguan')
                     @php $isTps = $this->selectedUnit && $this->selectedUnit->frekuensi_input === 'mingguan'; @endphp
@@ -56,14 +66,40 @@
                             @endforelse
                         </select>
                     @else
-                        <input type="date" wire:model.live="minggu" title="Pilih tanggal dalam minggu yang dituju"
-                            class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
+                        <div wire:ignore x-data="{ val: $wire.entangle('minggu').live }">
+    <input type="text" x-model="val"
+        x-init="window.flatpickr($el, {
+            locale: window.flatpickrIndonesian,
+            dateFormat: 'Y-m-d',
+            defaultDate: val,
+            altInput: true,
+            altFormat: 'd F Y',
+            disableMobile: true
+        })"
+        title="Pilih tanggal dalam minggu yang dituju" class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer" />
+</div>
                         <p class="text-[11px] text-zinc-400 mt-0.5 ml-1">Pilih hari apa saja dalam 1 minggu</p>
                     @endif
                 
                 @elseif($mode === 'bulanan')
-                    <input type="month" wire:model.live="bulan"
-                        class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
+                    <div wire:ignore x-data="{ val: $wire.entangle('bulan').live }">
+    <input type="text" x-model="val"
+        x-init="window.flatpickr($el, {
+            locale: window.flatpickrIndonesian,
+            plugins: [
+                new window.flatpickrMonthSelect({
+                    shorthand: false,
+                    dateFormat: 'Y-m',
+                    altFormat: 'F Y',
+                    theme: 'light'
+                })
+            ],
+            defaultDate: val,
+            altInput: true,
+            disableMobile: true
+        })"
+        class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer" />
+</div>
                 
                 @elseif($mode === 'semester')
                     <div class="flex gap-2">

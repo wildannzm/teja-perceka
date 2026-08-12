@@ -96,7 +96,7 @@
                             @foreach($group as $jurnal)
                                 <tr class="hover:bg-zinc-50 transition-colors">
                                     @if($loop->first)
-                                        <td rowspan="{{ $group->count() }}" class="py-3 px-4 align-top border-r border-zinc-100">{{ $jurnal->tanggal->format('d/m/Y') }}</td>
+                                        <td rowspan="{{ $group->count() }}" class="py-3 px-4 align-top border-r border-zinc-100">{{ $jurnal->tanggal->translatedFormat('d F Y') }}</td>
                                         <td rowspan="{{ $group->count() }}" class="py-3 px-4 font-mono text-xs text-zinc-500 align-top border-r border-zinc-100">{{ $jurnal->nomor_bukti }}</td>
                                         @if(is_null($unitId))
                                             <td rowspan="{{ $group->count() }}" class="py-3 px-4 align-top border-r border-zinc-100">{{ $jurnal->unitWisata?->nama ?? '-' }}</td>
@@ -132,7 +132,7 @@
                     <div class="bg-brand-50/60 border-b border-brand-100 px-4 py-3 flex items-start justify-between gap-2">
                         <div>
                             <p class="text-xs font-mono text-zinc-500">{{ $firstJurnal->nomor_bukti }}</p>
-                            <p class="text-sm font-semibold text-zinc-800 mt-0.5">{{ $firstJurnal->tanggal->format('d/m/Y') }}</p>
+                            <p class="text-sm font-semibold text-zinc-800 mt-0.5">{{ $firstJurnal->tanggal->translatedFormat('d F Y') }}</p>
                             @if(is_null($unitId))
                                 <p class="text-xs text-zinc-500 mt-0.5">{{ $firstJurnal->unitWisata?->nama ?? '-' }}</p>
                             @endif

@@ -51,10 +51,11 @@
     </p>
 
     {{-- 4 Stat Cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    {{-- 4 Stat Cards --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
         {{-- Hari Ini --}}
-        <div class="bg-white rounded-2xl border border-brand-100 p-5 shadow-sm flex flex-col gap-2">
+        <div class="bg-white rounded-2xl border border-brand-100 p-5 shadow-sm flex flex-col gap-2 transition-shadow hover:shadow-md">
             <div class="flex items-center gap-2">
                 <div class="size-8 rounded-lg bg-brand-100 flex items-center justify-center shrink-0">
                     <svg class="size-4 text-brand-700" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -73,7 +74,7 @@
         </div>
 
         {{-- Minggu Ini --}}
-        <div class="bg-white rounded-2xl border border-brand-100 p-5 shadow-sm flex flex-col gap-2">
+        <div class="bg-white rounded-2xl border border-brand-100 p-5 shadow-sm flex flex-col gap-2 transition-shadow hover:shadow-md">
             <div class="flex items-center gap-2">
                 <div class="size-8 rounded-lg bg-brand-100 flex items-center justify-center shrink-0">
                     <svg class="size-4 text-brand-700" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -94,7 +95,7 @@
         </div>
 
         {{-- Bulan Ini --}}
-        <div class="bg-brand-300 rounded-2xl border border-brand-400 p-5 shadow-sm flex flex-col gap-2">
+        <div class="bg-brand-300 rounded-2xl border border-brand-400 p-5 shadow-sm flex flex-col gap-2 transition-shadow hover:shadow-md">
             <div class="flex items-center gap-2">
                 <div class="size-8 rounded-lg bg-white/40 flex items-center justify-center shrink-0">
                     <svg class="size-4 text-brand-800" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -112,7 +113,7 @@
         </div>
 
         {{-- Tahun Ini --}}
-        <div class="bg-white rounded-2xl border border-brand-100 p-5 shadow-sm flex flex-col gap-2">
+        <div class="bg-white rounded-2xl border border-brand-100 p-5 shadow-sm flex flex-col gap-2 transition-shadow hover:shadow-md">
             <div class="flex items-center gap-2">
                 <div class="size-8 rounded-lg bg-brand-100 flex items-center justify-center shrink-0">
                     <svg class="size-4 text-brand-700" xmlns="http://www.w3.org/2000/svg" fill="none"

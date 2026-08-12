@@ -123,7 +123,7 @@
             @if ($transactions->isNotEmpty())
                 @foreach ($transactions as $trx)
                     <tr>
-                        <td class="text-center">{{ $trx->tanggal->format('d-m-y') }}</td>
+                        <td class="text-center">{{ $trx->tanggal->translatedFormat('d F Y') }}</td>
                         <td class="text-center">{{ $trx->nomor_bukti }}</td>
                         <td>{{ $trx->keterangan }}</td>
                         <td class="text-center">{{ $trx->kodeAkun->kode ?? '-' }}</td>

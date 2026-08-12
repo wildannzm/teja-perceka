@@ -19,8 +19,18 @@
         <div>
             <label for="tanggal" class="block text-sm font-semibold text-zinc-700 mb-1.5">Tanggal <span
                     class="text-red-500">*</span></label>
-            <input type="date" id="tanggal" wire:model="tanggal"
-                class="w-full rounded-xl border-2 border-brand-500 text-zinc-900 px-3.5 py-2.5 text-base shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none @error('tanggal') border-red-400 @enderror">
+            <div wire:ignore x-data="{ val: $wire.entangle('tanggal') }">
+    <input type="text" x-model="val"
+        x-init="window.flatpickr($el, {
+            locale: window.flatpickrIndonesian,
+            dateFormat: 'Y-m-d',
+            defaultDate: val,
+            altInput: true,
+            altFormat: 'd F Y',
+            disableMobile: true
+        })"
+        id="tanggal" class="w-full rounded-xl border-2 border-brand-500 text-zinc-900 px-3.5 py-2.5 text-base shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none @error('tanggal') border-red-400 @enderror cursor-pointer" />
+</div>
             @error('tanggal')
                 <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
             @enderror

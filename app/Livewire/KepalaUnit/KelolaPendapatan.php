@@ -37,6 +37,17 @@ class KelolaPendapatan extends Component
 
     public bool $showTambahForm = false;
 
+    // ─── Form edit kategori ────────────────────────────────────────────────
+    public bool $showEditModal = false;
+    public ?int $editId = null;
+    public string $editNamaKategori = '';
+    public string $editTipeKategori = 'harga_x_qty';
+    public ?int $editKodeAkunKategoriId = null;
+    // ─── Form hapus kategori ───────────────────────────────────────────────
+    public bool $showDeleteModal = false;
+    public ?int $deleteId = null;
+    public string $deleteNamaKategori = '';
+
     // ─────────────────────────────────────────────────────────────────────
 
     public function mount(): void
@@ -187,6 +198,110 @@ class KelolaPendapatan extends Component
         $this->reset(['namaKategori', 'hargaKategori', 'kodeAkunKategoriId']);
         $this->tipeKategori  = 'harga_x_qty';
         $this->showTambahForm = false;
+    }
+
+    // ─── Edit Kategori ───────────────────────────────────────────────────
+
+    public function editKategori(int $id): void
+    {
+        $category = KategoriTransaksi::where('id', $id)
+            ->where('unit_wisata_id', $this->unitId)
+            ->firstOrFail();
+
+        $this->editId = $category->id;
+        $this->editNamaKategori = $category->nama;
+        $this->editTipeKategori = $category->tipe->value;
+        $this->editKodeAkunKategoriId = $category->kode_akun_id;
+
+        $this->showEditModal = true;
+    }
+
+    public function simpanEditKategori(): void
+    {
+        $this->validate([
+            'editNamaKategori'       => 'required|string|max:100',
+            'editTipeKategori'       => 'required|in:harga_x_qty,tahunan,bebas',
+            'editKodeAkunKategoriId' => 'required|exists:kode_akun,id',
+        ], [
+            'editNamaKategori.required'       => 'Nama kategori wajib diisi.',
+            'editTipeKategori.required'       => 'Tipe kategori wajib dipilih.',
+            'editKodeAkunKategoriId.required' => 'Pilih akun pendapatan.',
+        ]);
+
+        $duplikat = KategoriTransaksi::where('unit_wisata_id', $this->unitId)
+            ->where('nama', $this->editNamaKategori)
+            ->where('id', '!=', $this->editId)
+            ->exists();
+
+        if ($duplikat) {
+            $this->addError('editNamaKategori', 'Nama kategori sudah ada di unit ini.');
+            return;
+        }
+
+        $category = KategoriTransaksi::findOrFail($this->editId);
+        
+        $oldName = $category->nama;
+        
+        $category->update([
+            'nama'         => $this->editNamaKategori,
+            'tipe'         => TipeKategori::from($this->editTipeKategori),
+            'kode_akun_id' => $this->editKodeAkunKategoriId,
+        ]);
+
+        // Kirim notifikasi perubahan jika nama berubah
+        if ($oldName !== $this->editNamaKategori) {
+            $message = "Kepala Unit {$this->unitNama} mengubah kategori \"{$oldName}\" menjadi \"{$this->editNamaKategori}\".";
+            $recipients = User::role(['bendahara', 'direktur_bumdes'])->get();
+            foreach ($recipients as $recipient) {
+                $recipient->notify(new HargaKategoriDiubah($message));
+            }
+        }
+
+        \Flux::toast(variant: 'success', text: "Kategori berhasil diperbarui!");
+
+        $this->showEditModal = false;
+        $this->reset(['editId', 'editNamaKategori', 'editTipeKategori', 'editKodeAkunKategoriId']);
+        $this->loadPrices();
+    }
+
+    public function confirmDelete(int $id): void
+    {
+        $category = KategoriTransaksi::where('id', $id)
+            ->where('unit_wisata_id', $this->unitId)
+            ->firstOrFail();
+
+        $this->deleteId = $category->id;
+        $this->deleteNamaKategori = $category->nama;
+        $this->showDeleteModal = true;
+    }
+
+    public function hapusKategori(): void
+    {
+        if (! $this->deleteId) return;
+
+        $category = KategoriTransaksi::where('id', $this->deleteId)
+            ->where('unit_wisata_id', $this->unitId)
+            ->firstOrFail();
+
+        // Cek apakah dipakai di transaksi detail (tidak bisa dihapus jika ada untuk mencegah data hilang)
+        $terpakai = \App\Models\TransaksiDetail::where('kategori_transaksi_id', $this->deleteId)->exists();
+        
+        if ($terpakai) {
+            \Flux::toast(variant: 'danger', text: "Kategori tidak bisa dihapus karena sudah dipakai dalam riwayat transaksi!");
+            $this->showDeleteModal = false;
+            return;
+        }
+
+        $id = $this->deleteId;
+        $category->delete();
+        \Flux::toast(variant: 'success', text: "Kategori berhasil dihapus!");
+        
+        unset($this->prices[$id]);
+        $this->loadPrices();
+
+        $this->showDeleteModal = false;
+        $this->deleteId = null;
+        $this->deleteNamaKategori = '';
     }
 
     // ─── Render ──────────────────────────────────────────────────────────

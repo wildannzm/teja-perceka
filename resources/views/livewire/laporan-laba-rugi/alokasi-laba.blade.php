@@ -51,8 +51,24 @@
                 @else Tahun @endif
             </label>
             @if ($mode === 'bulanan')
-                <input type="month" wire:model.live="periode"
-                    class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-colors cursor-pointer">
+                <div wire:ignore x-data="{ val: $wire.entangle('periode').live }">
+    <input type="text" x-model="val"
+        x-init="window.flatpickr($el, {
+            locale: window.flatpickrIndonesian,
+            plugins: [
+                new window.flatpickrMonthSelect({
+                    shorthand: false,
+                    dateFormat: 'Y-m',
+                    altFormat: 'F Y',
+                    theme: 'light'
+                })
+            ],
+            defaultDate: val,
+            altInput: true,
+            disableMobile: true
+        })"
+        class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-colors cursor-pointer" />
+</div>
             @elseif ($mode === 'semester')
                 <div class="flex gap-2">
                     <select wire:model.live="semester"

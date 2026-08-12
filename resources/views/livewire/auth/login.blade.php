@@ -12,7 +12,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-4">
+        <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-4" x-data="{ submitting: false }" @submit="submitting = true">
             @csrf
 
             <!-- Email -->
@@ -65,9 +65,10 @@
             </div>
 
             <!-- Submit -->
-            <button type="submit" data-test="login-button"
-                class="w-full py-3 px-4 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white font-semibold text-base rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2">
-                Masuk
+            <button type="submit" data-test="login-button" :disabled="submitting"
+                class="w-full flex items-center justify-center py-3 px-4 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white font-semibold text-base rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 disabled:opacity-75 disabled:cursor-not-allowed">
+                <span x-show="!submitting">Masuk</span>
+                <span x-show="submitting" x-cloak>Masuk...</span>
             </button>
         </form>
     </div>

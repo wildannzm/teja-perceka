@@ -22,7 +22,24 @@
                 </div>
                 <div class="flex flex-col gap-1.5">
                     <label class="text-sm font-semibold text-zinc-700">Bulan Laporan</label>
-                    <input wire:model.live="month" type="month" class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 focus:border-brand-500 focus:ring-0 transition-colors shadow-sm text-sm py-2.5 px-3.5 bg-white" />
+                    <div wire:ignore x-data="{ val: $wire.entangle('month').live }">
+    <input type="text" x-model="val"
+        x-init="window.flatpickr($el, {
+            locale: window.flatpickrIndonesian,
+            plugins: [
+                new window.flatpickrMonthSelect({
+                    shorthand: false,
+                    dateFormat: 'Y-m',
+                    altFormat: 'F Y',
+                    theme: 'light'
+                })
+            ],
+            defaultDate: val,
+            altInput: true,
+            disableMobile: true
+        })"
+        class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 focus:border-brand-500 focus:ring-0 transition-colors shadow-sm text-sm py-2.5 px-3.5 bg-white cursor-pointer" />
+</div>
                 </div>
             </div>
         </div>
@@ -51,7 +68,7 @@
                                 <tr class="bg-white hover:bg-zinc-50 transition-colors">
                                     @if ($loop->first)
                                         <td rowspan="{{ $group->count() }}" class="px-5 py-4 align-top whitespace-nowrap font-medium text-zinc-900 border-r border-zinc-100">
-                                            {{ $jurnal->tanggal->format('d/m/Y') }}</td>
+                                            {{ $jurnal->tanggal->translatedFormat('d F Y') }}</td>
                                         <td rowspan="{{ $group->count() }}" class="px-5 py-4 align-top border-r border-zinc-100 font-mono whitespace-nowrap">
                                             {{ $jurnal->nomor_bukti }}</td>
                                         <td rowspan="{{ $group->count() }}" class="px-5 py-4 align-top border-r border-zinc-100 min-w-[120px]">

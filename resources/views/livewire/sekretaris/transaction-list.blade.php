@@ -26,7 +26,7 @@
                                     @if ($loop->first)
                                         <td rowspan="{{ $group->count() }}"
                                             class="px-4 py-4 border-r align-top whitespace-nowrap">
-                                            {{ $jurnal->tanggal->format('d/m/Y') }}</td>
+                                            {{ $jurnal->tanggal->translatedFormat('d F Y') }}</td>
                                         <td rowspan="{{ $group->count() }}"
                                             class="px-4 py-4 border-r align-top whitespace-nowrap font-mono">
                                             {{ $jurnal->nomor_bukti }}</td>

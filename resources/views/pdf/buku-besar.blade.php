@@ -55,7 +55,7 @@
                     }
                 @endphp
                 <tr>
-                    <td class="text-center">{{ $jurnal->tanggal->format('d/m/Y') }}</td>
+                    <td class="text-center">{{ $jurnal->tanggal->translatedFormat('d F Y') }}</td>
                     <td class="font-mono text-center">{{ $jurnal->nomor_bukti }}</td>
                     <td>
                         {{ $jurnal->keterangan }}
