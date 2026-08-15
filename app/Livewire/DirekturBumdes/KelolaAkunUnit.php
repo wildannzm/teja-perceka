@@ -61,13 +61,13 @@ class KelolaAkunUnit extends Component
         ]);
 
         $user = User::role('kepala_unit')->findOrFail($this->editingUserId);
-        
+
         $data = [
             'name' => $this->editName,
             'unit_wisata_id' => $this->editUnitWisataId,
         ];
 
-        if (!empty($this->editPassword)) {
+        if (! empty($this->editPassword)) {
             $data['password'] = $this->editPassword;
         }
 

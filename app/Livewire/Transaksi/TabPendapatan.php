@@ -2,12 +2,10 @@
 
 namespace App\Livewire\Transaksi;
 
-use App\Models\KategoriTransaksi;
 use App\Models\TransaksiDetail;
 use App\Models\TransaksiHarian;
 use App\Models\UnitWisata;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
@@ -51,21 +49,26 @@ class TabPendapatan extends Component
 
         switch ($this->mode) {
             case 'harian':
-                if ($isTps) return null;
+                if ($isTps) {
+                    return null;
+                }
                 $date = Carbon::parse($this->tanggal ?: Carbon::today()->format('Y-m-d'));
+
                 return [$date->copy()->startOfDay(), $date->copy()->endOfDay()];
 
             case 'mingguan':
                 $weekStart = Carbon::parse($this->minggu ?: Carbon::now()->startOfWeek()->format('Y-m-d'));
-                $weekEnd   = $weekStart->copy()->endOfWeek();
+                $weekEnd = $weekStart->copy()->endOfWeek();
+
                 return [$weekStart, $weekEnd];
 
             case 'bulanan':
-                $date = Carbon::parse(($this->bulan ?: Carbon::now()->format('Y-m')) . '-01');
+                $date = Carbon::parse(($this->bulan ?: Carbon::now()->format('Y-m')).'-01');
+
                 return [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()];
 
             case 'semester':
-                $year = (int)($this->semesterTahun ?: Carbon::now()->format('Y'));
+                $year = (int) ($this->semesterTahun ?: Carbon::now()->format('Y'));
                 if ($this->semester === '1') {
                     return [
                         Carbon::create($year, 1, 1)->startOfDay(),
@@ -79,7 +82,8 @@ class TabPendapatan extends Component
                 }
 
             case 'tahunan':
-                $year = (int)($this->tahun ?: Carbon::now()->format('Y'));
+                $year = (int) ($this->tahun ?: Carbon::now()->format('Y'));
+
                 return [
                     Carbon::create($year, 1, 1)->startOfDay(),
                     Carbon::create($year, 12, 31)->endOfDay(),
@@ -105,7 +109,7 @@ class TabPendapatan extends Component
 
         if ($this->mode === 'mingguan' && $this->isUnitMingguan($unit) && $this->unitId) {
             $q->where('tanggal', $start->format('Y-m-d'))
-              ->where('tanggal_akhir', $end->format('Y-m-d'));
+                ->where('tanggal_akhir', $end->format('Y-m-d'));
         } else {
             $q->whereBetween('tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')]);
         }
@@ -131,23 +135,27 @@ class TabPendapatan extends Component
         switch ($this->mode) {
             case 'harian':
                 $date = Carbon::parse($this->tanggal ?: Carbon::today()->format('Y-m-d'));
+
                 return $date->translatedFormat('d F Y');
 
             case 'mingguan':
                 $weekStart = Carbon::parse($this->minggu ?: Carbon::now()->startOfWeek()->format('Y-m-d'));
-                $weekEnd   = $weekStart->copy()->endOfWeek();
-                return $weekStart->translatedFormat('d F Y') . ' – ' . $weekEnd->translatedFormat('d F Y');
+                $weekEnd = $weekStart->copy()->endOfWeek();
+
+                return $weekStart->translatedFormat('d F Y').' – '.$weekEnd->translatedFormat('d F Y');
 
             case 'bulanan':
-                $date = Carbon::parse(($this->bulan ?: Carbon::now()->format('Y-m')) . '-01');
+                $date = Carbon::parse(($this->bulan ?: Carbon::now()->format('Y-m')).'-01');
+
                 return $date->translatedFormat('F Y');
 
             case 'semester':
                 $year = $this->semesterTahun ?: Carbon::now()->format('Y');
-                return 'Semester ' . $this->semester . ' Tahun ' . $year;
+
+                return 'Semester '.$this->semester.' Tahun '.$year;
 
             case 'tahunan':
-                return 'Tahun ' . ($this->tahun ?: Carbon::now()->format('Y'));
+                return 'Tahun '.($this->tahun ?: Carbon::now()->format('Y'));
 
             default:
                 return '-';
@@ -157,17 +165,17 @@ class TabPendapatan extends Component
     #[Computed]
     public function reportData(): array
     {
-        $unit      = $this->unitId ? UnitWisata::find($this->unitId) : null;
-        $range     = $this->periodeRange($unit);
-        $namaUnit  = $unit ? $unit->nama : 'Semua Unit (Konsolidasi)';
+        $unit = $this->unitId ? UnitWisata::find($this->unitId) : null;
+        $range = $this->periodeRange($unit);
+        $namaUnit = $unit ? $unit->nama : 'Semua Unit (Konsolidasi)';
 
         if ($range === null) {
             return [
-                'unit'            => $namaUnit,
-                'kategoriRows'    => collect([]),
+                'unit' => $namaUnit,
+                'kategoriRows' => collect([]),
                 'totalPendapatan' => 0,
-                'kosong'          => true,
-                'pesanKosong'     => 'Mode Harian tidak tersedia untuk unit TPS karena data diinput per minggu. Silakan pilih mode Mingguan atau Bulanan.',
+                'kosong' => true,
+                'pesanKosong' => 'Mode Harian tidak tersedia untuk unit TPS karena data diinput per minggu. Silakan pilih mode Mingguan atau Bulanan.',
             ];
         }
 
@@ -177,13 +185,13 @@ class TabPendapatan extends Component
 
         if ($transaksiIds->isEmpty()) {
             return [
-                'unit'                 => $namaUnit,
-                'kategoriRows'         => collect([]),
-                'totalPendapatan'      => 0,
+                'unit' => $namaUnit,
+                'kategoriRows' => collect([]),
+                'totalPendapatan' => 0,
                 'totalPengeluaranUnit' => 0,
-                'pendapatanBersih'     => 0,
-                'kosong'               => true,
-                'pesanKosong'          => 'Tidak ada data pemasukan pada periode ini.',
+                'pendapatanBersih' => 0,
+                'kosong' => true,
+                'pesanKosong' => 'Tidak ada data pemasukan pada periode ini.',
             ];
         }
 
@@ -200,27 +208,28 @@ class TabPendapatan extends Component
 
         $kategoriRows = $aggrRows->map(function ($row) {
             $kat = $row->kategoriTransaksi;
+
             return [
-                'kategori_id'  => $kat->id,
-                'kategori'     => $kat->nama,
-                'unit_nama'    => $kat->unitWisata?->nama ?? '-',
-                'tipe'         => $kat->tipe->value,
+                'kategori_id' => $kat->id,
+                'kategori' => $kat->nama,
+                'unit_nama' => $kat->unitWisata?->nama ?? '-',
+                'tipe' => $kat->tipe->value,
                 'harga_satuan' => $kat->tipe->value === 'harga_x_qty' ? (float) $row->harga_satuan : null,
-                'jumlah_qty'   => $kat->tipe->value === 'harga_x_qty' ? (int) $row->total_qty : null,
-                'subtotal'     => (float) $row->total_subtotal,
+                'jumlah_qty' => $kat->tipe->value === 'harga_x_qty' ? (int) $row->total_qty : null,
+                'subtotal' => (float) $row->total_subtotal,
             ];
         })->sortBy('kategori')->values();
 
         $totalPendapatan = $kategoriRows->sum('subtotal');
 
         return [
-            'unit'                 => $namaUnit,
-            'kategoriRows'         => $kategoriRows,
-            'totalPendapatan'      => $totalPendapatan,
+            'unit' => $namaUnit,
+            'kategoriRows' => $kategoriRows,
+            'totalPendapatan' => $totalPendapatan,
             'totalPengeluaranUnit' => $totalPengeluaranUnit,
-            'pendapatanBersih'     => $totalPendapatan - $totalPengeluaranUnit,
-            'kosong'               => $kategoriRows->isEmpty(),
-            'pesanKosong'          => 'Tidak ada data pemasukan pada periode ini.',
+            'pendapatanBersih' => $totalPendapatan - $totalPengeluaranUnit,
+            'kosong' => $kategoriRows->isEmpty(),
+            'pesanKosong' => 'Tidak ada data pemasukan pada periode ini.',
         ];
     }
 

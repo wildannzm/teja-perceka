@@ -1,61 +1,14 @@
 {{-- Tab Jurnal Umum --}}
-<div class="flex flex-col gap-5 min-w-0 pb-36 sm:pb-10">
+<div class="flex flex-col gap-5 min-w-0 pb-10">
 
     @if ($errors->has('pdf'))
         <div class="p-4 text-sm text-red-800 bg-red-100 rounded-xl border border-red-200 flex items-start gap-3 shadow-sm" role="alert">
-            <svg class="size-5 shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <svg class="w-5 h-5 shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
             </svg>
             <span class="font-medium leading-relaxed">{{ $errors->first('pdf') }}</span>
         </div>
     @endif
-
-    {{-- Info Panel: Penjelasan Debit/Kredit (Collapsible) --}}
-    <div x-data="{ open: false }" class="rounded-2xl border border-brand-100 bg-brand-50/60 shadow-sm overflow-hidden">
-        <button @click="open = !open"
-            class="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-brand-100/50 transition-colors focus:outline-none"
-            :aria-expanded="open">
-            <div class="flex items-center gap-2.5">
-                <div class="size-7 rounded-full bg-brand-200 flex items-center justify-center shrink-0">
-                    <svg class="size-4 text-brand-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-                    </svg>
-                </div>
-                <span class="text-sm font-semibold text-brand-800">Apa itu Debit & Kredit?</span>
-                <span class="hidden sm:inline text-xs text-brand-600 font-normal">(klik untuk penjelasan)</span>
-            </div>
-            <svg class="size-4 text-brand-600 transition-transform duration-200 shrink-0"
-                :class="open ? 'rotate-180' : ''"
-                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-            </svg>
-        </button>
-        <div x-show="open" x-collapse class="border-t border-brand-100">
-            <div class="px-4 py-4 sm:px-5 sm:py-5 flex flex-col gap-3">
-                <p class="text-sm text-zinc-700 leading-relaxed">Setiap transaksi dicatat <strong class="font-semibold text-zinc-900">2 baris</strong> sesuai prinsip akuntansi (double-entry):</p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="flex items-start gap-3 bg-white rounded-xl p-3.5 border border-brand-100">
-                        <div class="size-8 rounded-lg bg-brand-100 flex items-center justify-center shrink-0 mt-0.5">
-                            <span class="text-xs font-bold text-brand-700">D</span>
-                        </div>
-                        <div>
-                            <div class="text-sm font-semibold text-zinc-800">Debit = Uang Masuk ke Kas</div>
-                            <div class="text-xs text-zinc-500 mt-0.5 leading-relaxed">Mencatat bahwa uang sudah masuk ke rekening/kas unit usaha.</div>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-3 bg-white rounded-xl p-3.5 border border-brand-100">
-                        <div class="size-8 rounded-lg bg-red-50 flex items-center justify-center shrink-0 mt-0.5">
-                            <span class="text-xs font-bold text-red-600">K</span>
-                        </div>
-                        <div>
-                            <div class="text-sm font-semibold text-zinc-800">Kredit = Sumber Pendapatan</div>
-                            <div class="text-xs text-zinc-500 mt-0.5 leading-relaxed">Mencatat dari mana uang itu berasal (misalnya: Pendapatan Tiket).</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     {{-- Jurnal List --}}
     @php $journals = $this->transactions; @endphp
@@ -63,7 +16,7 @@
     @if($journals->isEmpty())
         <div class="bg-white rounded-2xl border-2 border-dashed border-zinc-200 p-8 sm:p-12 text-center flex flex-col items-center justify-center min-h-[300px]">
             <div class="bg-zinc-100 text-zinc-400 p-4 rounded-full mb-4 inline-block">
-                <svg class="size-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                 </svg>
             </div>
@@ -109,8 +62,7 @@
                                     @if($this->canDelete)
                                         @if($loop->first)
                                             <td rowspan="{{ $group->count() }}" class="py-3 px-4 align-middle text-center border-l border-zinc-100">
-                                                <flux:button wire:click="delete({{ $jurnal->id }})"
-                                                    wire:confirm="Yakin ingin menghapus transaksi ini? Data yang terhapus akan mempengaruhi saldo."
+                                                <flux:button wire:click="confirmDelete({{ $jurnal->id }})"
                                                     variant="danger" size="sm" icon="trash">Hapus</flux:button>
                                             </td>
                                         @endif
@@ -138,8 +90,7 @@
                             @endif
                         </div>
                         @if($this->canDelete)
-                            <flux:button wire:click="delete({{ $firstJurnal->id }})"
-                                wire:confirm="Yakin ingin menghapus transaksi ini?"
+                            <flux:button wire:click="confirmDelete({{ $firstJurnal->id }})"
                                 variant="danger" size="xs" icon="trash" class="shrink-0 mt-0.5" />
                         @endif
                     </div>
@@ -175,37 +126,39 @@
         </div>
     @endif
 
+    {{-- Spacer for mobile footer to prevent overlap --}}
+    <div style="height: 350px; flex-shrink: 0;" class="w-full block sm:hidden"></div>
+
     {{-- Footer: Grand Total + Cetak PDF --}}
-    <div class="fixed bottom-0 left-0 right-0 z-20 sm:relative sm:bottom-auto sm:left-auto sm:right-auto sm:z-auto">
-        <div class="bg-brand-300 sm:rounded-2xl px-5 pt-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-5 shadow-[0_-8px_32px_-8px_rgba(0,0,0,0.4)] sm:shadow-xl border-t sm:border border-brand-400">
-            <div class="flex justify-between items-end mb-4">
-                <div>
-                    <div class="text-brand-900 text-xs font-medium uppercase tracking-wider mb-0.5">Total Jurnal Umum</div>
-                    <div class="text-brand-800 text-sm">{{ $this->periodeLabel }}</div>
+    <div class="fixed bottom-0 left-0 right-0 z-20 sm:relative sm:bottom-auto sm:left-auto sm:right-auto sm:z-auto sm:mt-2">
+        <div class="bg-white sm:rounded-2xl p-5 sm:p-6 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-6 shadow-[0_-8px_32px_-8px_rgba(0,0,0,0.1)] sm:shadow-md border-t sm:border border-brand-100 flex flex-col gap-4">
+            
+            <div class="flex flex-col gap-2 px-1 sm:px-2 mb-1">
+                <div class="border-b border-brand-100 pb-2 mb-1 flex justify-between items-center">
+                    <span class="text-zinc-500 font-semibold text-xs uppercase tracking-wider">Total Jurnal Umum</span>
+                    <span class="text-zinc-600 text-xs font-medium">{{ $this->periodeLabel }}</span>
                 </div>
-                <div class="flex gap-6 text-right">
-                    <div>
-                        <div class="text-brand-900 text-[10px] font-medium uppercase tracking-wider mb-0.5">Total Debit</div>
-                        <div class="text-xl font-bold text-brand-950 tracking-tight">Rp {{ number_format($this->totalDebet, 0, ',', '.') }}</div>
-                    </div>
-                    <div>
-                        <div class="text-brand-900 text-[10px] font-medium uppercase tracking-wider mb-0.5">Total Kredit</div>
-                        <div class="text-xl font-bold text-red-700 tracking-tight">Rp {{ number_format($this->totalKredit, 0, ',', '.') }}</div>
-                    </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-zinc-600 font-semibold text-sm sm:text-base">Total Debit</span>
+                    <span class="text-xl sm:text-2xl font-extrabold text-brand-600 tracking-tight whitespace-nowrap">Rp {{ number_format($this->totalDebet, 0, ',', '.') }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-zinc-600 font-semibold text-sm sm:text-base">Total Kredit</span>
+                    <span class="text-xl sm:text-2xl font-extrabold text-red-600 tracking-tight whitespace-nowrap">Rp {{ number_format($this->totalKredit, 0, ',', '.') }}</span>
                 </div>
             </div>
 
             @if($this->canExportPdf)
                 <button wire:click="exportPdf" wire:loading.attr="disabled" wire:target="exportPdf"
-                    class="w-full min-h-[52px] rounded-xl text-base font-semibold bg-white text-brand-950 hover:bg-brand-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-70 disabled:cursor-wait disabled:active:scale-100 shadow-lg">
+                    class="w-full min-h-[56px] rounded-2xl text-base font-semibold shadow-md border border-transparent bg-brand-600 text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-wait">
                     <span wire:loading.remove wire:target="exportPdf" class="flex items-center gap-2.5">
-                        <svg class="size-5 text-brand-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                         </svg>
                         Cetak / Unduh PDF
                     </span>
                     <span wire:loading wire:target="exportPdf" class="flex items-center gap-2.5">
-                        <svg class="animate-spin size-5 text-brand-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg class="animate-spin size-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -213,7 +166,7 @@
                     </span>
                 </button>
             @else
-                <div class="w-full min-h-[52px] rounded-xl text-base font-semibold bg-white/40 text-brand-800/60 border border-white/50 flex items-center justify-center gap-2.5 cursor-not-allowed select-none">
+                <div class="w-full min-h-[56px] rounded-2xl text-base font-semibold shadow-md border border-brand-200 bg-brand-50 text-brand-600/60 flex items-center justify-center gap-2.5 cursor-not-allowed select-none">
                     <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                     </svg>
@@ -222,5 +175,31 @@
             @endif
         </div>
     </div>
+
+    {{-- Modal Konfirmasi Hapus --}}
+    @if ($showDeleteModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div wire:click="$set('showDeleteModal', false)" class="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm transition-opacity"></div>
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col gap-0 overflow-hidden z-10">
+                <div class="px-6 py-5 flex flex-col gap-4">
+                    <div>
+                        <h2 class="text-lg font-semibold text-zinc-900">Konfirmasi Hapus</h2>
+                        <div class="mt-2 text-sm text-zinc-600">
+                            <p>Yakin ingin menghapus data ini?</p>
+                            <p>Data yang dihapus tidak dapat dikembalikan dan mungkin mempengaruhi kalkulasi laporan.</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button type="button" wire:click="$set('showDeleteModal', false)" class="px-4 py-2 rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
+                            Batal
+                        </button>
+                        <button type="button" wire:click="executeDelete" class="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors">
+                            Ya, Hapus
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
 </div>

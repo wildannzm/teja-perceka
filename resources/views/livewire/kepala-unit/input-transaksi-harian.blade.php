@@ -157,27 +157,6 @@
                 </div>
             </div>
 
-            {{-- Info Pengeluaran Terpisah --}}
-            <div class="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3.5 flex items-start gap-3">
-                <svg class="size-5 text-amber-600 shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-                </svg>
-                <div class="flex-1">
-                    <p class="text-xs font-semibold text-amber-800 mb-1">Pengeluaran dicatat terpisah</p>
-                    <p class="text-xs text-amber-700 leading-relaxed">
-                        Setelah menyimpan pemasukan ini, catat pengeluaran unit Anda melalui menu
-                        <strong>Catat Pengeluaran</strong>. Keduanya akan terhubung otomatis di Jurnal Umum.
-                    </p>
-                    <a href="{{ route('unit.catat-pengeluaran') }}" wire:navigate
-                        class="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-3 py-1.5 rounded-lg transition-all">
-                        <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
-                        Ke Halaman Catat Pengeluaran
-                    </a>
-                </div>
-            </div>
-
             {{-- Error Summary --}}
             @if ($errors->has('submit') || $errors->has('totalPemasukan'))
                 <div class="p-4 text-sm text-red-800 bg-red-100 rounded-xl border border-red-200 flex items-start gap-3 shadow-sm"
@@ -194,29 +173,26 @@
             @endif
 
             {{-- Spacer untuk scroll di atas sticky footer (mobile friendly) --}}
-            <div class="h-32 sm:h-24"></div>
+            <div class="h-32 min-h-[8rem] shrink-0 w-full sm:hidden"></div>
 
-            {{-- Footer Sticky / Total --}}
-            <div
-                class="sticky bottom-4 z-10 bg-white rounded-2xl p-5 sm:p-6 shadow-md border border-brand-100 flex flex-col gap-4 mt-2">
-                <div class="flex justify-between items-center px-1">
-                    <div>
-                        <span class="text-zinc-500 font-medium text-sm">Total Pemasukan</span>
-                        <span class="block text-xl sm:text-2xl font-extrabold text-brand-600">Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</span>
+            <div class="fixed bottom-0 left-0 right-0 z-20 sm:relative sm:bottom-auto sm:left-auto sm:right-auto sm:z-auto sm:mt-2">
+                <div class="bg-white sm:rounded-2xl p-5 sm:p-6 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-6 shadow-[0_-8px_32px_-8px_rgba(0,0,0,0.1)] sm:shadow-md border-t sm:border border-brand-100 flex flex-col gap-4">
+                    <div class="flex justify-between items-center px-1 sm:px-2 mb-1">
+                        <span class="text-zinc-600 font-semibold text-sm sm:text-base">Total Pemasukan</span>
+                        <span class="text-xl sm:text-2xl font-extrabold text-brand-600 tracking-tight whitespace-nowrap">Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</span>
                     </div>
-                    <span class="text-2xl sm:text-3xl font-extrabold text-brand-600 tracking-tight">Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</span>
-                </div>
 
-                {{-- Tombol submit tinggi minimum 52px agar touch friendly --}}
-                <button type="submit"
-                    class="w-full min-h-[56px] rounded-2xl text-base font-semibold shadow-md border border-transparent bg-brand-600 text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer">
-                    <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke-width="2" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" />
-                    </svg>
-                    Simpan Transaksi
-                </button>
+                    {{-- Tombol submit tinggi minimum 52px agar touch friendly --}}
+                    <button type="submit"
+                        class="w-full min-h-[56px] rounded-2xl text-base font-semibold shadow-md border border-transparent bg-brand-600 text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" />
+                        </svg>
+                        Simpan Transaksi
+                    </button>
+                </div>
             </div>
 
         </form>

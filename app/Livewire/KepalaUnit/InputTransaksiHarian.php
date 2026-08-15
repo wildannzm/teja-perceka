@@ -13,8 +13,8 @@ use App\Models\UnitWisata;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Livewire\Attributes\Locked;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class InputTransaksiHarian extends Component
@@ -144,8 +144,10 @@ class InputTransaksiHarian extends Component
 
         foreach ($this->inputs as $id => $input) {
             $kategori = $this->kategoriList->get($id);
-            if (!$kategori) continue;
-            
+            if (! $kategori) {
+                continue;
+            }
+
             $subtotal = 0;
 
             if ($input['tipe'] === TipeKategori::HargaXQty->value || $input['tipe'] === TipeKategori::Tahunan->value) {

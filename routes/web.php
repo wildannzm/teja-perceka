@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Asset\KelolaAsset;
 use App\Livewire\Bendahara\Dashboard as BendaharaDashboard;
 use App\Livewire\Bendahara\Report as BendaharaReport;
 use App\Livewire\Bendahara\TransactionList as BendaharaTransactionList;
@@ -10,10 +11,14 @@ use App\Livewire\DirekturBumdes\TransactionList as DirekturBumdesTransactionList
 use App\Livewire\KepalaDesa\Dashboard as KepalaDesaDashboard;
 use App\Livewire\KepalaDesa\Report as KepalaDesaReport;
 use App\Livewire\KepalaDesa\UserManager as KepalaDesaUserManager;
+use App\Livewire\KepalaUnit\CatatPengeluaran as KepalaUnitCatatPengeluaran;
 use App\Livewire\KepalaUnit\Dashboard as KepalaUnitDashboard;
 use App\Livewire\KepalaUnit\KelolaPendapatan;
-use App\Livewire\KepalaUnit\RiwayatTransaksi;
-use App\Livewire\KepalaUnit\CatatPengeluaran as KepalaUnitCatatPengeluaran;
+use App\Livewire\Laporan\BukuBesar;
+use App\Livewire\Laporan\NeracaSaldo;
+use App\Livewire\LaporanLabaRugi\AlokasiLaba;
+use App\Livewire\LaporanLabaRugi\LabaRugi;
+use App\Livewire\LaporanPendapatan\Pendapatan;
 use App\Livewire\Pengawas\Dashboard as PengawasDashboard;
 use App\Livewire\Pengawas\LihatJurnal as PengawasLihatJurnal;
 use App\Livewire\Pengawas\Report as PengawasReport;
@@ -21,13 +26,7 @@ use App\Livewire\Pengeluaran\CatatPengeluaran;
 use App\Livewire\Sekretaris\Dashboard as SekretarisDashboard;
 use App\Livewire\Sekretaris\Report as SekretarisReport;
 use App\Livewire\Sekretaris\TransactionList as SekretarisTransactionList;
-use App\Livewire\LaporanLabaRugi\AlokasiLaba;
-use App\Livewire\LaporanLabaRugi\LabaRugi;
-use App\Livewire\LaporanPendapatan\Pendapatan;
 use App\Livewire\Transaksi\RiwayatRekap;
-use App\Livewire\Laporan\BukuBesar;
-use App\Livewire\Laporan\NeracaSaldo;
-use App\Livewire\Asset\KelolaAsset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -71,7 +70,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             return view('dashboard.unit-input');
         })->name('unit.input-transaksi');
 
-        Route::get('unit/riwayat-transaksi', fn() => redirect()->route('riwayat-rekap'))
+        Route::get('unit/riwayat-transaksi', fn () => redirect()->route('riwayat-rekap'))
             ->name('unit.riwayat-transaksi');
 
         Route::get('unit/kelola-harga', KelolaPendapatan::class)
@@ -146,7 +145,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // ===== Pendapatan (Semua role) — redirect ke Riwayat & Rekap =====
     Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])
-        ->get('pendapatan', fn() => redirect()->route('riwayat-rekap', ['tab' => 'pendapatan']))
+        ->get('pendapatan', fn () => redirect()->route('riwayat-rekap', ['tab' => 'pendapatan']))
         ->name('pendapatan');
 
     // ===== Riwayat & Rekap (Gabungan Pendapatan + Jurnal Umum) =====
@@ -156,7 +155,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Redirect lama: unit/riwayat-transaksi → riwayat-rekap
     Route::middleware(['role:kepala_unit'])
-        ->get('unit/riwayat-transaksi-lama', fn() => redirect()->route('riwayat-rekap'))
+        ->get('unit/riwayat-transaksi-lama', fn () => redirect()->route('riwayat-rekap'))
         ->name('unit.riwayat-transaksi.redirect');
 
 });

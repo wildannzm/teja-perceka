@@ -4,6 +4,7 @@ namespace App\Livewire\Pengawas;
 
 use App\Models\JurnalUmum;
 use App\Models\UnitWisata;
+use App\Traits\ExportsJurnalPdf;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -12,7 +13,7 @@ use Livewire\Component;
 #[Title('Cetak Laporan Pengawas')]
 class Report extends Component
 {
-    use \App\Traits\ExportsJurnalPdf;
+    use ExportsJurnalPdf;
 
     public $unit_id = '';
 
@@ -48,4 +49,3 @@ class Report extends Component
         ]);
     }
 }
-

@@ -48,8 +48,7 @@
                                     @if ($loop->first)
                                         <td rowspan="{{ $group->count() }}"
                                             class="px-4 py-4 border-l align-middle text-center">
-                                            <flux:button wire:click="delete({{ $jurnal->id }})"
-                                                wire:confirm="Yakin ingin menghapus transaksi ini? Data yang terhapus akan mempengaruhi saldo."
+                                            <flux:button wire:click="confirmDelete({{ $jurnal->id }})"
                                                 variant="danger" size="sm" icon="trash">Hapus</flux:button>
                                         </td>
                                     @endif
@@ -67,4 +66,21 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal Konfirmasi Hapus --}}
+    <flux:modal wire:model="showDeleteModal" class="min-w-[400px]">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Konfirmasi Hapus</flux:heading>
+                <flux:subheading>
+                    <p>Yakin ingin menghapus data ini?</p>
+                    <p>Data yang dihapus tidak dapat dikembalikan dan mungkin mempengaruhi kalkulasi laporan.</p>
+                </flux:subheading>
+            </div>
+            <div class="flex justify-end gap-2">
+                <flux:button wire:click="$set('showDeleteModal', false)">Batal</flux:button>
+                <flux:button variant="danger" wire:click="executeDelete">Ya, Hapus</flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </div>

@@ -42,7 +42,7 @@
                     </span>
                 </a>
                 <!-- Tombol tutup sidebar (mobile) -->
-                <button @click="sidebarOpen = false" class="lg:hidden p-1.5 rounded-md text-zinc-500 hover:bg-zinc-100">
+                <button @click="sidebarOpen = false" class="lg:hidden size-9 flex items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -656,7 +656,7 @@
             <!-- Mobile topbar -->
             <header
                 class="lg:hidden flex items-center justify-between h-14 px-4 bg-white border-b border-zinc-200 shrink-0">
-                <button @click="sidebarOpen = true" class="p-2 rounded-md text-zinc-500 hover:bg-zinc-100">
+                <button @click="sidebarOpen = true" class="size-9 flex items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-5">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -664,10 +664,8 @@
                     </svg>
                 </button>
                 <span class="text-sm font-semibold text-zinc-700">BUMDES Teja Perceka</span>
-                <a href="{{ route('profile.edit') }}" wire:navigate
-                    class="size-8 rounded-full bg-brand-200 flex items-center justify-center text-brand-800 font-semibold text-sm uppercase">
-                    {{ substr(auth()->user()->name, 0, 1) }}
-                </a>
+                <!-- Placeholder to keep title centered in justify-between -->
+                <div class="w-8"></div>
             </header>
 
             <!-- Slot konten halaman -->

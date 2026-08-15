@@ -8,6 +8,7 @@ use App\Models\KodeAkun;
 use App\Models\UnitWisata;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -24,14 +25,23 @@ class AlokasiLaba extends Component
     public string $mode = 'bulanan';
 
     public string $periode = '';
+
     public string $semester = '1';
+
     public string $semesterTahun = '';
 
     // Form Tambah Baris
     public bool $showForm = false;
+
     public string $formKeterangan = '';
-    public string $formKelompok  = 'pengurang'; // 'pengurang' | 'ad_art'
+
+    public string $formKelompok = 'pengurang'; // 'pengurang' | 'ad_art'
+
     public string $formPersentase = '';
+
+    public ?string $deleteKeterangan = null;
+
+    public bool $showDeleteModal = false;
 
     public function mount(): void
     {
@@ -68,6 +78,7 @@ class AlokasiLaba extends Component
     {
         if ($this->mode === 'tahunan') {
             $year = (int) ($this->periode ?: Carbon::now()->format('Y'));
+
             return [
                 Carbon::create($year, 1, 1)->startOfDay(),
                 Carbon::create($year, 12, 31)->endOfDay(),
@@ -90,6 +101,7 @@ class AlokasiLaba extends Component
         }
 
         $date = Carbon::parse($this->periode ?: Carbon::now()->format('Y-m'));
+
         return [
             $date->copy()->startOfMonth(),
             $date->copy()->endOfMonth(),
@@ -99,12 +111,13 @@ class AlokasiLaba extends Component
     private function periodeLabel(): string
     {
         if ($this->mode === 'tahunan') {
-            return 'Tahun ' . ($this->periode ?: Carbon::now()->format('Y'));
+            return 'Tahun '.($this->periode ?: Carbon::now()->format('Y'));
         }
 
         if ($this->mode === 'semester') {
             $year = $this->semesterTahun ?: Carbon::now()->format('Y');
-            return 'Semester ' . $this->semester . ' Tahun ' . $year;
+
+            return 'Semester '.$this->semester.' Tahun '.$year;
         }
 
         return Carbon::parse($this->periode ?: Carbon::now()->format('Y-m'))->translatedFormat('F Y');
@@ -151,13 +164,14 @@ class AlokasiLaba extends Component
     {
         $range = $this->periodeRange();
 
-        $pendapatan     = $this->sumAkunSaldo('pendapatan', 'kredit', $range);
-        $hpp            = $this->sumAkunSaldo('hpp', 'debet', $range);
-        $beban          = $this->sumAkunSaldo('beban', 'debet', $range);
+        $pendapatan = $this->sumAkunSaldo('pendapatan', 'kredit', $range);
+        $hpp = $this->sumAkunSaldo('hpp', 'debet', $range);
+        $beban = $this->sumAkunSaldo('beban', 'debet', $range);
         $pendapatanLain = $this->sumAkunSaldo('pendapatan_lain', 'kredit', $range);
-        $bebanLain      = $this->sumAkunSaldo('beban_lain', 'debet', $range);
+        $bebanLain = $this->sumAkunSaldo('beban_lain', 'debet', $range);
 
         $labaKotor = $pendapatan - $hpp;
+
         return $labaKotor - $beban + $pendapatanLain - $bebanLain;
     }
 
@@ -166,7 +180,7 @@ class AlokasiLaba extends Component
      * Mengembalikan collection mentah dengan kolom kelompok.
      */
     #[Computed]
-    public function alokasiRows(): \Illuminate\Support\Collection
+    public function alokasiRows(): Collection
     {
         [$start, $end] = $this->periodeRange();
 
@@ -177,24 +191,26 @@ class AlokasiLaba extends Component
             ->unique('keterangan');
 
         // Hapus yang persentasenya 0 (artinya dihapus)
-        return $latestRecords->filter(fn($r) => (float)$r->persentase > 0)->values();
+        return $latestRecords->filter(fn ($r) => (float) $r->persentase > 0)->values();
     }
 
     /**
      * Baris kelompok "Pengurang" — dihitung dari Laba Bersih asli.
      */
     #[Computed]
-    public function pengurangRows(): \Illuminate\Support\Collection
+    public function pengurangRows(): Collection
     {
         $labaBersih = $this->labaBersih;
+
         return $this->alokasiRows
             ->where('kelompok', 'pengurang')
             ->map(function ($row) use ($labaBersih) {
-                $nominal = (float)$row->persentase / 100 * $labaBersih;
+                $nominal = (float) $row->persentase / 100 * $labaBersih;
+
                 return [
                     'keterangan' => $row->keterangan,
-                    'persentase' => (float)$row->persentase,
-                    'nominal'    => $nominal,
+                    'persentase' => (float) $row->persentase,
+                    'nominal' => $nominal,
                 ];
             })->values();
     }
@@ -221,17 +237,19 @@ class AlokasiLaba extends Component
      * Baris kelompok "AD/ART" — dihitung dari Laba Bersih setelah Pengurang.
      */
     #[Computed]
-    public function adArtRows(): \Illuminate\Support\Collection
+    public function adArtRows(): Collection
     {
         $base = $this->labaSetelahPengurang;
+
         return $this->alokasiRows
             ->where('kelompok', 'ad_art')
             ->map(function ($row) use ($base) {
-                $nominal = (float)$row->persentase / 100 * $base;
+                $nominal = (float) $row->persentase / 100 * $base;
+
                 return [
                     'keterangan' => $row->keterangan,
-                    'persentase' => (float)$row->persentase,
-                    'nominal'    => $nominal,
+                    'persentase' => (float) $row->persentase,
+                    'nominal' => $nominal,
                 ];
             })->values();
     }
@@ -265,45 +283,58 @@ class AlokasiLaba extends Component
 
     public function simpanBaris(): void
     {
-        if (!$this->canEdit) abort(403);
+        if (! $this->canEdit) {
+            abort(403);
+        }
 
         $this->validate([
             'formKeterangan' => 'required|string|max:100',
-            'formKelompok'   => 'required|in:pengurang,ad_art',
+            'formKelompok' => 'required|in:pengurang,ad_art',
             'formPersentase' => 'required|numeric|min:0.01|max:100',
         ]);
 
         [$start, $end] = $this->periodeRange();
 
         AlokasiLabaRiwayat::create([
-            'keterangan'     => $this->formKeterangan,
-            'persentase'     => (float) $this->formPersentase,
-            'kelompok'       => $this->formKelompok,
-            'berlaku_dari'   => $start->format('Y-m-d'),
+            'keterangan' => $this->formKeterangan,
+            'persentase' => (float) $this->formPersentase,
+            'kelompok' => $this->formKelompok,
+            'berlaku_dari' => $start->format('Y-m-d'),
             'unit_wisata_id' => null, // Global level
         ]);
 
         $this->reset(['formKeterangan', 'formKelompok', 'formPersentase', 'showForm']);
         $this->formKelompok = 'pengurang'; // reset ke default
-        \Flux::toast(variant: 'success', text: "Baris alokasi berhasil ditambahkan.");
+        \Flux::toast(variant: 'success', text: 'Baris alokasi berhasil ditambahkan.');
     }
 
-    public function hapusBaris(string $keterangan): void
+    public function confirmDelete(string $keterangan): void
     {
-        if (!$this->canEdit) abort(403);
+        $this->deleteKeterangan = $keterangan;
+        $this->showDeleteModal = true;
+    }
+
+    public function executeDelete(): void
+    {
+        if (! $this->canEdit || ! $this->deleteKeterangan) {
+            abort(403);
+        }
 
         [$start, $end] = $this->periodeRange();
 
         // Set persentase = 0 untuk menandakan dihapus (immutable history)
         AlokasiLabaRiwayat::create([
-            'keterangan'     => $keterangan,
-            'persentase'     => 0,
-            'kelompok'       => 'pengurang', // kelompok tidak relevan saat hapus
-            'berlaku_dari'   => $start->format('Y-m-d'),
+            'keterangan' => $this->deleteKeterangan,
+            'persentase' => 0,
+            'kelompok' => 'pengurang', // kelompok tidak relevan saat hapus
+            'berlaku_dari' => $start->format('Y-m-d'),
             'unit_wisata_id' => null,
         ]);
 
-        \Flux::toast(variant: 'success', text: "Baris alokasi berhasil dihapus untuk periode ini.");
+        \Flux::toast(variant: 'success', text: 'Baris alokasi berhasil dihapus untuk periode ini.');
+
+        $this->showDeleteModal = false;
+        $this->deleteKeterangan = null;
     }
 
     // ─── Export PDF ──────────────────────────────────────────────────────
@@ -311,7 +342,7 @@ class AlokasiLaba extends Component
     public function exportPdf()
     {
         $unit = $this->selectedUnit;
-        $namaEntitas = $unit ? 'WISATA ' . strtoupper($unit->nama) : 'BUMDESA TEJA PERCEKA';
+        $namaEntitas = $unit ? 'WISATA '.strtoupper($unit->nama) : 'BUMDESA TEJA PERCEKA';
 
         [$start, $end] = $this->periodeRange();
         $tanggalCetak = strtoupper($end->translatedFormat('d F Y'));
@@ -321,18 +352,18 @@ class AlokasiLaba extends Component
         $penandatangan = Auth::user()->name;
         $jabatan = match (true) {
             Auth::user()->hasRole('direktur_bumdes') => 'Direktur',
-            Auth::user()->hasRole('sekretaris')      => 'Sekretaris',
-            Auth::user()->hasRole('bendahara')       => 'Bendahara',
-            default                                   => '',
+            Auth::user()->hasRole('sekretaris') => 'Sekretaris',
+            Auth::user()->hasRole('bendahara') => 'Bendahara',
+            default => '',
         };
 
-        $labaBersih          = $this->labaBersih;
-        $pengurangRows       = $this->pengurangRows;
-        $totalPengurang      = $this->totalPengurang;
+        $labaBersih = $this->labaBersih;
+        $pengurangRows = $this->pengurangRows;
+        $totalPengurang = $this->totalPengurang;
         $labaSetelahPengurang = $this->labaSetelahPengurang;
-        $adArtRows           = $this->adArtRows;
-        $totalAdArtPersen    = $this->totalAdArtPersen;
-        $totalAdArt          = $this->totalAdArt;
+        $adArtRows = $this->adArtRows;
+        $totalAdArtPersen = $this->totalAdArtPersen;
+        $totalAdArt = $this->totalAdArt;
 
         $pdf = Pdf::loadView('pdf.alokasi-laba', compact(
             'namaEntitas', 'tanggalCetak', 'tanggalTtd', 'periodeLabel', 'penandatangan', 'jabatan',
@@ -341,9 +372,9 @@ class AlokasiLaba extends Component
         ))->setPaper('a4', 'portrait');
 
         $unitSlug = $unit ? str_replace(' ', '_', $unit->nama) : 'Konsolidasi';
-        $filename = 'AlokasiLaba_' . $unitSlug . '_' . str_replace(' ', '_', $periodeLabel) . '.pdf';
+        $filename = 'AlokasiLaba_'.$unitSlug.'_'.str_replace(' ', '_', $periodeLabel).'.pdf';
 
-        return response()->streamDownload(fn () => print($pdf->output()), $filename);
+        return response()->streamDownload(fn () => print ($pdf->output()), $filename);
     }
 
     public function render()

@@ -4,11 +4,12 @@ namespace App\Livewire\Bendahara;
 
 use App\Models\JurnalUmum;
 use App\Models\UnitWisata;
+use App\Traits\ExportsJurnalPdf;
 use Livewire\Component;
 
 class Report extends Component
 {
-    use \App\Traits\ExportsJurnalPdf;
+    use ExportsJurnalPdf;
 
     public $unit_id = '';
 
@@ -44,4 +45,3 @@ class Report extends Component
         ])->layout('layouts.app', ['title' => 'Cetak Laporan Bendahara']);
     }
 }
-

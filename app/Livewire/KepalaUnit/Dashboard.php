@@ -2,7 +2,6 @@
 
 namespace App\Livewire\KepalaUnit;
 
-use App\Models\JurnalUmum;
 use App\Models\TransaksiHarian;
 use App\Models\UnitWisata;
 use App\Traits\DashboardChartData;
@@ -39,7 +38,7 @@ class Dashboard extends Component
 
         $today = Carbon::today();
         $isMingguan = $this->unit->frekuensi_input === 'mingguan';
-        
+
         if ($isMingguan) {
             $this->isPeriodeBerjalanSudahDiisi = TransaksiHarian::where('unit_wisata_id', $this->unitId)
                 ->where('tanggal', $today->copy()->startOfWeek()->format('Y-m-d'))

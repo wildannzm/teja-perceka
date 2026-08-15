@@ -4,6 +4,7 @@ namespace App\Livewire\Pengawas;
 
 use App\Models\JurnalUmum;
 use App\Models\UnitWisata;
+use App\Traits\ExportsJurnalPdf;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -13,7 +14,7 @@ use Livewire\Component;
 #[Title('Lihat Jurnal Transaksi')]
 class LihatJurnal extends Component
 {
-    use \App\Traits\ExportsJurnalPdf;
+    use ExportsJurnalPdf;
 
     public $unit_id = '';
 
@@ -50,4 +51,3 @@ class LihatJurnal extends Component
         ]);
     }
 }
-

@@ -213,8 +213,7 @@
                             </td>
                             @if($this->canEdit)
                                 <td class="px-4 sm:px-5 py-3 text-right">
-                                    <button type="button" wire:click="hapusBaris('{{ $row['keterangan'] }}')"
-                                        wire:confirm="Yakin ingin menghapus pos alokasi ini dari periode ini ke depan?"
+                                    <button type="button" wire:click="confirmDelete('{{ $row['keterangan'] }}')"
                                         class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-md transition-colors inline-flex items-center gap-1 text-xs font-semibold whitespace-nowrap">
                                         <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
@@ -262,8 +261,7 @@
                             </td>
                             @if($this->canEdit)
                                 <td class="px-4 sm:px-5 py-3 text-right">
-                                    <button type="button" wire:click="hapusBaris('{{ $row['keterangan'] }}')"
-                                        wire:confirm="Yakin ingin menghapus pos alokasi ini dari periode ini ke depan?"
+                                    <button type="button" wire:click="confirmDelete('{{ $row['keterangan'] }}')"
                                         class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-md transition-colors inline-flex items-center gap-1 text-xs font-semibold whitespace-nowrap">
                                         <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
@@ -310,5 +308,31 @@
             </table>
         </div>
     </div>
+
+    {{-- Modal Konfirmasi Hapus --}}
+    @if ($showDeleteModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div wire:click="$set('showDeleteModal', false)" class="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm transition-opacity"></div>
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col gap-0 overflow-hidden z-10">
+                <div class="px-6 py-5 flex flex-col gap-4">
+                    <div>
+                        <h2 class="text-lg font-semibold text-zinc-900">Konfirmasi Hapus</h2>
+                        <div class="mt-2 text-sm text-zinc-600">
+                            <p>Yakin ingin menghapus data ini?</p>
+                            <p>Data yang dihapus tidak dapat dikembalikan dan mungkin mempengaruhi kalkulasi laporan.</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button type="button" wire:click="$set('showDeleteModal', false)" class="px-4 py-2 rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
+                            Batal
+                        </button>
+                        <button type="button" wire:click="executeDelete" class="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors">
+                            Ya, Hapus
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
 </div>

@@ -28,7 +28,7 @@
     <div class="doc-header">
         <div class="entity">{{ $namaEntitas }}</div>
         <div class="title">NERACA SALDO</div>
-        <div class="periode">Per Akhir Bulan: {{ $periodeLabel }}</div>
+        <div class="periode">Periode: {{ $periodeLabel }}</div>
     </div>
     <div class="status">
         Status: {{ $totalAktiva === $totalPasiva ? 'SEIMBANG (BALANCE)' : 'TIDAK SEIMBANG' }}

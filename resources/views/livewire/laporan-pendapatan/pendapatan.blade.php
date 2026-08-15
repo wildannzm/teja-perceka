@@ -23,18 +23,19 @@
         @endunless
 
         <div class="flex flex-col md:flex-row gap-5 md:items-end">
-            {{-- Segmented Control --}}
+            {{-- Mode Selector --}}
             <div class="flex flex-col gap-1.5 w-full md:w-auto">
-                <label class="text-sm font-medium text-zinc-700 hidden md:block">Periode</label>
-                <div class="flex flex-wrap sm:flex-nowrap gap-1.5 p-1 bg-zinc-100 rounded-xl w-full border border-zinc-200/60">
+                <label class="text-sm font-medium text-zinc-700">Periode</label>
+                <select wire:model.live="mode"
+                    class="w-full sm:min-w-40 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                     @if(!$this->isHarianDisabled)
-                        <button wire:click="$set('mode', 'harian')" class="{{ $mode === 'harian' ? 'bg-white shadow-sm text-zinc-900 font-semibold' : 'text-zinc-500 hover:text-zinc-700' }} flex-1 rounded-lg py-2 px-2 text-xs sm:text-sm font-medium transition-all">Harian</button>
+                        <option value="harian">Harian</option>
                     @endif
-                    <button wire:click="$set('mode', 'mingguan')" class="{{ $mode === 'mingguan' ? 'bg-white shadow-sm text-zinc-900 font-semibold' : 'text-zinc-500 hover:text-zinc-700' }} flex-1 rounded-lg py-2 px-2 text-xs sm:text-sm font-medium transition-all">Mingguan</button>
-                    <button wire:click="$set('mode', 'bulanan')" class="{{ $mode === 'bulanan' ? 'bg-white shadow-sm text-zinc-900 font-semibold' : 'text-zinc-500 hover:text-zinc-700' }} flex-1 rounded-lg py-2 px-2 text-xs sm:text-sm font-medium transition-all">Bulanan</button>
-                    <button wire:click="$set('mode', 'semester')" class="{{ $mode === 'semester' ? 'bg-white shadow-sm text-zinc-900 font-semibold' : 'text-zinc-500 hover:text-zinc-700' }} flex-1 rounded-lg py-2 px-2 text-xs sm:text-sm font-medium transition-all">Semester</button>
-                    <button wire:click="$set('mode', 'tahunan')" class="{{ $mode === 'tahunan' ? 'bg-white shadow-sm text-zinc-900 font-semibold' : 'text-zinc-500 hover:text-zinc-700' }} flex-1 rounded-lg py-2 px-2 text-xs sm:text-sm font-medium transition-all">Tahunan</button>
-                </div>
+                    <option value="mingguan">Mingguan</option>
+                    <option value="bulanan">Bulanan</option>
+                    <option value="semester">Semester</option>
+                    <option value="tahunan">Tahunan</option>
+                </select>
             </div>
 
             {{-- Date/Period Picker --}}
@@ -78,7 +79,6 @@
         })"
         title="Pilih tanggal dalam minggu yang dituju" class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer" />
 </div>
-                        <p class="text-[11px] text-zinc-400 mt-0.5 ml-1">Pilih hari apa saja dalam 1 minggu</p>
                     @endif
                 
                 @elseif($mode === 'bulanan')

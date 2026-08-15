@@ -4,7 +4,6 @@ namespace App\Livewire\Pengeluaran;
 
 use App\Models\JurnalUmum;
 use App\Models\KodeAkun;
-use App\Models\UnitWisata;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -33,8 +32,6 @@ class CatatPengeluaran extends Component
 
         $this->tanggal = Carbon::today()->format('Y-m-d');
     }
-
-
 
     public function submit(): void
     {

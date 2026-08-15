@@ -6,6 +6,7 @@ use App\Models\JurnalUmum;
 use App\Models\KodeAkun;
 use App\Models\UnitWisata;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -35,7 +36,7 @@ class BukuBesar extends Component
         }
 
         $this->periode = Carbon::now()->format('Y-m');
-        
+
         $firstAkun = KodeAkun::where('tipe', '!=', 'header')->orderBy('kode')->first();
         if ($firstAkun) {
             $this->kode_akun_id = $firstAkun->id;
@@ -48,12 +49,14 @@ class BukuBesar extends Component
         if (in_array($tipe, ['aktiva', 'aset', 'beban', 'beban_lain', 'hpp'])) {
             return 'debit';
         }
+
         return 'kredit';
     }
 
     private function periodeRange(): array
     {
         $date = Carbon::parse($this->periode ?: Carbon::now()->format('Y-m'));
+
         return [
             $date->copy()->startOfMonth(),
             $date->copy()->endOfMonth(),
@@ -61,13 +64,13 @@ class BukuBesar extends Component
     }
 
     #[Computed]
-    public function units(): \Illuminate\Database\Eloquent\Collection
+    public function units(): Collection
     {
         return UnitWisata::orderBy('nama')->get();
     }
 
     #[Computed]
-    public function akuns(): \Illuminate\Database\Eloquent\Collection
+    public function akuns(): Collection
     {
         return KodeAkun::where('tipe', '!=', 'header')->orderBy('kode')->get();
     }
@@ -102,15 +105,15 @@ class BukuBesar extends Component
 
         if ($this->kode_akun_id && $this->periode) {
             $selectedAkun = KodeAkun::find($this->kode_akun_id);
-            
+
             if ($selectedAkun) {
                 $normalBalance = $this->getNormalBalanceType($selectedAkun->tipe);
                 [$startDate, $endDate] = $this->periodeRange();
 
                 // Calculate Saldo Awal (before start date)
                 $queryAwal = JurnalUmum::where('kode_akun_id', $this->kode_akun_id)
-                                      ->whereDate('tanggal', '<', $startDate->format('Y-m-d'));
-                
+                    ->whereDate('tanggal', '<', $startDate->format('Y-m-d'));
+
                 if ($this->unit_id) {
                     $queryAwal->where('unit_wisata_id', $this->unit_id);
                 }
@@ -126,11 +129,11 @@ class BukuBesar extends Component
 
                 // Get current transactions
                 $queryCurrent = JurnalUmum::with('unitWisata')
-                                        ->where('kode_akun_id', $this->kode_akun_id)
-                                        ->whereBetween('tanggal', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
-                                        ->orderBy('tanggal', 'asc')
-                                        ->orderBy('id', 'asc');
-                
+                    ->where('kode_akun_id', $this->kode_akun_id)
+                    ->whereBetween('tanggal', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+                    ->orderBy('tanggal', 'asc')
+                    ->orderBy('id', 'asc');
+
                 if ($this->unit_id) {
                     $queryCurrent->where('unit_wisata_id', $this->unit_id);
                 }
@@ -151,7 +154,7 @@ class BukuBesar extends Component
         }
 
         $data = $this->reportData;
-        if (!$data['selectedAkun']) {
+        if (! $data['selectedAkun']) {
             abort(404, 'Kode Akun tidak ditemukan.');
         }
 
@@ -164,7 +167,7 @@ class BukuBesar extends Component
         $periodeLabel = Carbon::parse($this->periode ?: Carbon::now()->format('Y-m'))->translatedFormat('F Y');
 
         $penandatangan = Auth::user()->name;
-        $jabatan = match(true) {
+        $jabatan = match (true) {
             Auth::user()->hasRole('direktur_bumdes') => 'Direktur',
             Auth::user()->hasRole('sekretaris') => 'Sekretaris',
             Auth::user()->hasRole('bendahara') => 'Bendahara',
@@ -178,7 +181,7 @@ class BukuBesar extends Component
         $unitSlug = $unit ? str_replace(' ', '_', $unit->nama) : 'Konsolidasi';
         $filename = 'BukuBesar_'.$unitSlug.'_'.$data['selectedAkun']->kode.'_'.str_replace(' ', '_', $periodeLabel).'.pdf';
 
-        return response()->streamDownload(fn () => print($pdf->output()), $filename);
+        return response()->streamDownload(fn () => print ($pdf->output()), $filename);
     }
 
     public function render()

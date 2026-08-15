@@ -17,17 +17,17 @@ trait DashboardChartData
         $currentYear = date('Y');
 
         $driver = DB::connection()->getDriverName();
-        $monthSelect = $driver === 'sqlite' ? "CAST(strftime('%m', tanggal) AS INTEGER)" : "MONTH(tanggal)";
+        $monthSelect = $driver === 'sqlite' ? "CAST(strftime('%m', tanggal) AS INTEGER)" : 'MONTH(tanggal)';
 
         $pemasukanQuery = JurnalUmum::select(
-                DB::raw("$monthSelect as month"),
-                DB::raw('SUM(kredit) as total')
-            )
+            DB::raw("$monthSelect as month"),
+            DB::raw('SUM(kredit) as total')
+        )
             ->whereYear('tanggal', $currentYear)
             ->whereHas('kodeAkun', function ($q) {
                 $q->where('kode', 'like', '4-%')->orWhere('kode', 'like', '7-%');
             });
-            
+
         if ($unitId) {
             $pemasukanQuery->where('unit_wisata_id', $unitId);
         }
@@ -35,14 +35,14 @@ trait DashboardChartData
         $pemasukanPerBulan = $pemasukanQuery->groupBy('month')->pluck('total', 'month')->toArray();
 
         $pengeluaranQuery = JurnalUmum::select(
-                DB::raw("$monthSelect as month"),
-                DB::raw('SUM(debet) as total')
-            )
+            DB::raw("$monthSelect as month"),
+            DB::raw('SUM(debet) as total')
+        )
             ->whereYear('tanggal', $currentYear)
             ->whereHas('kodeAkun', function ($q) {
                 $q->where('kode', 'like', '5-%')->orWhere('kode', 'like', '6-%');
             });
-            
+
         if ($unitId) {
             $pengeluaranQuery->where('unit_wisata_id', $unitId);
         }

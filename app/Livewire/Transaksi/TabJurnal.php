@@ -3,6 +3,7 @@
 namespace App\Livewire\Transaksi;
 
 use App\Models\JurnalUmum;
+use App\Models\TransaksiHarian;
 use App\Models\UnitWisata;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
@@ -38,24 +39,31 @@ class TabJurnal extends Component
     #[Reactive]
     public string $tahun = '';
 
+    public ?int $deleteId = null;
+
+    public bool $showDeleteModal = false;
+
     #[Computed]
     public function dateRange(): array
     {
         switch ($this->mode) {
             case 'harian':
                 $date = Carbon::parse($this->tanggal ?: Carbon::today()->format('Y-m-d'));
+
                 return [$date->copy()->startOfDay(), $date->copy()->endOfDay()];
 
             case 'mingguan':
                 $start = Carbon::parse($this->minggu ?: Carbon::now()->startOfWeek()->format('Y-m-d'));
+
                 return [$start->copy()->startOfWeek(), $start->copy()->endOfWeek()];
 
             case 'bulanan':
-                $date = Carbon::parse(($this->bulan ?: Carbon::now()->format('Y-m')) . '-01');
+                $date = Carbon::parse(($this->bulan ?: Carbon::now()->format('Y-m')).'-01');
+
                 return [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()];
 
             case 'semester':
-                $year = (int)($this->semesterTahun ?: Carbon::now()->format('Y'));
+                $year = (int) ($this->semesterTahun ?: Carbon::now()->format('Y'));
                 if ($this->semester === '1') {
                     return [
                         Carbon::create($year, 1, 1)->startOfDay(),
@@ -69,11 +77,13 @@ class TabJurnal extends Component
                 }
 
             case 'tahunan':
-                $year = (int)($this->tahun ?: Carbon::now()->format('Y'));
+                $year = (int) ($this->tahun ?: Carbon::now()->format('Y'));
+
                 return [Carbon::create($year, 1, 1)->startOfDay(), Carbon::create($year, 12, 31)->endOfDay()];
         }
 
         $today = Carbon::today();
+
         return [$today->copy()->startOfDay(), $today->copy()->endOfDay()];
     }
 
@@ -83,14 +93,14 @@ class TabJurnal extends Component
         [$start, $end] = $this->dateRange;
 
         return match ($this->mode) {
-            'harian'   => $start->translatedFormat('d F Y'),
+            'harian' => $start->translatedFormat('d F Y'),
             'mingguan' => $start->month === $end->month
-                ? $start->format('d') . ' - ' . $end->translatedFormat('d F Y')
-                : $start->translatedFormat('d M') . ' - ' . $end->translatedFormat('d M Y'),
-            'bulanan'  => $start->translatedFormat('F Y'),
-            'semester' => 'Semester ' . $this->semester . ' Tahun ' . ($this->semesterTahun ?: Carbon::now()->format('Y')),
-            'tahunan'  => $start->format('Y'),
-            default    => '-',
+                ? $start->format('d').' - '.$end->translatedFormat('d F Y')
+                : $start->translatedFormat('d M').' - '.$end->translatedFormat('d M Y'),
+            'bulanan' => $start->translatedFormat('F Y'),
+            'semester' => 'Semester '.$this->semester.' Tahun '.($this->semesterTahun ?: Carbon::now()->format('Y')),
+            'tahunan' => $start->format('Y'),
+            default => '-',
         };
     }
 
@@ -140,14 +150,22 @@ class TabJurnal extends Component
         return Auth::user()->hasAnyRole(['sekretaris', 'bendahara', 'direktur_bumdes', 'kepala_unit']);
     }
 
-    public function delete(int $firstIdInGroup): void
+    public function confirmDelete(int $id): void
     {
-        if (!$this->canDelete) {
+        $this->deleteId = $id;
+        $this->showDeleteModal = true;
+    }
+
+    public function executeDelete(): void
+    {
+        if (! $this->canDelete || ! $this->deleteId) {
             abort(403);
         }
 
-        $jurnal = JurnalUmum::find($firstIdInGroup);
-        if (!$jurnal) return;
+        $jurnal = JurnalUmum::find($this->deleteId);
+        if (! $jurnal) {
+            return;
+        }
 
         // Kepala Unit: only delete own unit's journals
         if (Auth::user()->hasRole('kepala_unit')) {
@@ -158,23 +176,28 @@ class TabJurnal extends Component
 
         DB::transaction(function () use ($jurnal) {
             if ($jurnal->transaksi_harian_id) {
-                \App\Models\TransaksiHarian::where('id', $jurnal->transaksi_harian_id)->delete();
+                TransaksiHarian::where('id', $jurnal->transaksi_harian_id)->delete();
             }
             JurnalUmum::where('nomor_bukti', $jurnal->nomor_bukti)->delete();
         });
 
         \Flux::toast(variant: 'success', text: 'Satu set jurnal (debet & kredit) berhasil dihapus.');
+
+        $this->showDeleteModal = false;
+        $this->deleteId = null;
     }
 
     public function exportPdf()
     {
-        if (!$this->canExportPdf) {
+        if (! $this->canExportPdf) {
             \Flux::toast(variant: 'warning', text: 'Cetak PDF hanya tersedia untuk mode Bulanan, Semester, dan Tahunan.');
+
             return;
         }
 
-        if (!class_exists(Pdf::class)) {
+        if (! class_exists(Pdf::class)) {
             \Flux::toast(variant: 'danger', text: 'Package PDF belum terinstall.');
+
             return;
         }
 
@@ -191,10 +214,10 @@ class TabJurnal extends Component
         }
 
         $transactions = $query->get();
-        $totalDebet   = $transactions->sum('debet');
-        $totalKredit  = $transactions->sum('kredit');
-        $unit         = $this->unitId ? UnitWisata::find($this->unitId) : null;
-        $periode      = $this->periodeLabel;
+        $totalDebet = $transactions->sum('debet');
+        $totalKredit = $transactions->sum('kredit');
+        $unit = $this->unitId ? UnitWisata::find($this->unitId) : null;
+        $periode = $this->periodeLabel;
 
         $pdf = Pdf::loadView('pdf.riwayat-transaksi', compact(
             'transactions',
@@ -205,7 +228,7 @@ class TabJurnal extends Component
         ))->setPaper('a4', 'landscape');
 
         $unitName = $unit ? str_replace(' ', '_', $unit->nama) : 'Semua_Unit';
-        $filename = 'JurnalUmum_' . $unitName . '_' . str_replace([' ', '-', '/'], '_', $periode) . '.pdf';
+        $filename = 'JurnalUmum_'.$unitName.'_'.str_replace([' ', '-', '/'], '_', $periode).'.pdf';
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();

@@ -12,6 +12,7 @@ trait ExportsJurnalPdf
     {
         if (! class_exists(Pdf::class)) {
             $this->addError('pdf', 'Package PDF belum terinstall.');
+
             return;
         }
 
@@ -34,19 +35,19 @@ trait ExportsJurnalPdf
 
         if (property_exists($this, 'month') && $this->month) {
             $query->whereMonth('tanggal', substr($this->month, 5, 2))
-                  ->whereYear('tanggal', substr($this->month, 0, 4));
+                ->whereYear('tanggal', substr($this->month, 0, 4));
         }
 
         $transactions = $query->get();
         $totalDebet = $transactions->sum('debet');
         $totalKredit = $transactions->sum('kredit');
         $unit = (property_exists($this, 'unit_id') && $this->unit_id) ? UnitWisata::find($this->unit_id) : null;
-        
+
         $periode = 'Laporan Jurnal Umum';
         if (property_exists($this, 'start_date') && $this->start_date && property_exists($this, 'end_date') && $this->end_date) {
-            $periode = $this->start_date . ' s/d ' . $this->end_date;
+            $periode = $this->start_date.' s/d '.$this->end_date;
         } elseif (property_exists($this, 'month') && $this->month) {
-            $periode = 'Bulan: ' . $this->month;
+            $periode = 'Bulan: '.$this->month;
         }
 
         $pdf = Pdf::loadView('pdf.riwayat-transaksi', compact(
@@ -58,7 +59,7 @@ trait ExportsJurnalPdf
         ))->setPaper('a4', 'landscape');
 
         $unitName = $unit ? str_replace(' ', '_', $unit->nama) : 'Semua_Unit';
-        $filename = 'JurnalUmum_' . $unitName . '_' . date('Ymd_His') . '.pdf';
+        $filename = 'JurnalUmum_'.$unitName.'_'.date('Ymd_His').'.pdf';
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();

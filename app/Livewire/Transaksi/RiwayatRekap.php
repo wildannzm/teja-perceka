@@ -53,13 +53,13 @@ class RiwayatRekap extends Component
         // Default all modes to current period
         $now = Carbon::now();
         $this->tanggal = $now->format('Y-m-d');
-        $this->minggu  = $now->startOfWeek()->format('Y-m-d');
-        $this->bulan   = $now->format('Y-m');
+        $this->minggu = $now->startOfWeek()->format('Y-m-d');
+        $this->bulan = $now->format('Y-m');
         $this->semesterTahun = $now->format('Y');
         $this->semester = $now->month <= 6 ? '1' : '2';
-        $this->tahun   = $now->format('Y');
+        $this->tahun = $now->format('Y');
 
-        if (!in_array($this->tab, ['pendapatan', 'jurnal'])) {
+        if (! in_array($this->tab, ['pendapatan', 'jurnal'])) {
             $this->tab = 'pendapatan';
         }
     }
@@ -95,6 +95,14 @@ class RiwayatRekap extends Component
         }
     }
 
+    public function updatingUnitId($value): void
+    {
+        $user = Auth::user();
+        if ($user && $user->hasRole('kepala_unit') && $value !== $user->unit_wisata_id) {
+            abort(403, 'Unauthorized');
+        }
+    }
+
     public function updatedUnitId(): void
     {
         $unit = UnitWisata::find($this->unit_id);
@@ -105,13 +113,19 @@ class RiwayatRekap extends Component
 
     public function updatedTab(): void
     {
-        if (!in_array($this->tab, ['pendapatan', 'jurnal'])) {
+        if (! in_array($this->tab, ['pendapatan', 'jurnal'])) {
             $this->tab = 'pendapatan';
         }
     }
 
     public function render()
     {
+        // Security Fallback: Ensure kepala_unit cannot manipulate unit_id state via browser
+        $user = Auth::user();
+        if ($user && $user->hasRole('kepala_unit') && $this->unit_id !== $user->unit_wisata_id) {
+            $this->unit_id = $user->unit_wisata_id;
+        }
+
         return view('livewire.transaksi.riwayat-rekap');
     }
 }

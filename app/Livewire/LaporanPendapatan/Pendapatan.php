@@ -2,7 +2,6 @@
 
 namespace App\Livewire\LaporanPendapatan;
 
-use App\Models\KategoriTransaksi;
 use App\Models\TransaksiDetail;
 use App\Models\TransaksiHarian;
 use App\Models\UnitWisata;
@@ -35,6 +34,7 @@ class Pendapatan extends Component
 
     /** Mode semester */
     public string $semester = '1';
+
     public string $semesterTahun = '';
 
     /** Mode tahunan: format Y */
@@ -52,11 +52,11 @@ class Pendapatan extends Component
         // Default semua mode ke periode berjalan
         $now = Carbon::now();
         $this->tanggal = $now->format('Y-m-d');
-        $this->minggu  = $now->startOfWeek()->format('Y-m-d');
-        $this->bulan   = $now->format('Y-m');
+        $this->minggu = $now->startOfWeek()->format('Y-m-d');
+        $this->bulan = $now->format('Y-m');
         $this->semesterTahun = $now->format('Y');
         $this->semester = $now->month <= 6 ? '1' : '2';
-        $this->tahun   = $now->format('Y');
+        $this->tahun = $now->format('Y');
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────
@@ -84,21 +84,24 @@ class Pendapatan extends Component
                     return null;
                 }
                 $date = Carbon::parse($this->tanggal ?: Carbon::today()->format('Y-m-d'));
+
                 return [$date->startOfDay(), $date->copy()->endOfDay()];
 
             case 'mingguan':
                 // Untuk TPS: ambil tepat 1 record dengan tanggal = startOfWeek (ISO)
                 // Untuk unit harian: WHERE tanggal BETWEEN startOfWeek AND endOfWeek
                 $weekStart = Carbon::parse($this->minggu ?: Carbon::now()->startOfWeek()->format('Y-m-d'));
-                $weekEnd   = $weekStart->copy()->endOfWeek();
+                $weekEnd = $weekStart->copy()->endOfWeek();
+
                 return [$weekStart, $weekEnd];
 
             case 'bulanan':
-                $date = Carbon::parse(($this->bulan ?: Carbon::now()->format('Y-m')) . '-01');
+                $date = Carbon::parse(($this->bulan ?: Carbon::now()->format('Y-m')).'-01');
+
                 return [$date->startOfMonth(), $date->copy()->endOfMonth()];
 
             case 'semester':
-                $year = (int)($this->semesterTahun ?: Carbon::now()->format('Y'));
+                $year = (int) ($this->semesterTahun ?: Carbon::now()->format('Y'));
                 if ($this->semester === '1') {
                     return [
                         Carbon::create($year, 1, 1)->startOfDay(),
@@ -112,7 +115,8 @@ class Pendapatan extends Component
                 }
 
             case 'tahunan':
-                $year = (int)($this->tahun ?: Carbon::now()->format('Y'));
+                $year = (int) ($this->tahun ?: Carbon::now()->format('Y'));
+
                 return [
                     Carbon::create($year, 1, 1)->startOfDay(),
                     Carbon::create($year, 12, 31)->endOfDay(),
@@ -147,7 +151,7 @@ class Pendapatan extends Component
         // Kolom tanggal = awal minggu, tanggal_akhir = akhir minggu
         if ($this->mode === 'mingguan' && $this->isUnitMingguan($unit) && $this->unit_id) {
             $q->where('tanggal', $start->format('Y-m-d'))
-              ->where('tanggal_akhir', $end->format('Y-m-d'));
+                ->where('tanggal_akhir', $end->format('Y-m-d'));
         } else {
             // Unit harian: WHERE tanggal BETWEEN start AND end
             // Untuk konsolidasi, ikutkan semua unit termasuk TPS berdasar tanggal
@@ -186,7 +190,7 @@ class Pendapatan extends Component
     public function availableTpsWeeks(): Collection
     {
         $unit = $this->selectedUnit;
-        if (!$this->isUnitMingguan($unit)) {
+        if (! $this->isUnitMingguan($unit)) {
             return collect();
         }
 
@@ -211,23 +215,27 @@ class Pendapatan extends Component
         switch ($this->mode) {
             case 'harian':
                 $date = Carbon::parse($this->tanggal ?: Carbon::today()->format('Y-m-d'));
+
                 return $date->translatedFormat('d F Y');
 
             case 'mingguan':
                 $weekStart = Carbon::parse($this->minggu ?: Carbon::now()->startOfWeek()->format('Y-m-d'));
-                $weekEnd   = $weekStart->copy()->endOfWeek();
-                return $weekStart->translatedFormat('d F Y') . ' – ' . $weekEnd->translatedFormat('d F Y');
+                $weekEnd = $weekStart->copy()->endOfWeek();
+
+                return $weekStart->translatedFormat('d F Y').' – '.$weekEnd->translatedFormat('d F Y');
 
             case 'bulanan':
-                $date = Carbon::parse(($this->bulan ?: Carbon::now()->format('Y-m')) . '-01');
+                $date = Carbon::parse(($this->bulan ?: Carbon::now()->format('Y-m')).'-01');
+
                 return $date->translatedFormat('F Y');
 
             case 'semester':
                 $year = $this->semesterTahun ?: Carbon::now()->format('Y');
-                return 'Semester ' . $this->semester . ' Tahun ' . $year;
+
+                return 'Semester '.$this->semester.' Tahun '.$year;
 
             case 'tahunan':
-                return 'Tahun ' . ($this->tahun ?: Carbon::now()->format('Y'));
+                return 'Tahun '.($this->tahun ?: Carbon::now()->format('Y'));
 
             default:
                 return '-';
@@ -238,7 +246,7 @@ class Pendapatan extends Component
     public function reportData(): array
     {
         // Fresh lookup – jangan andalkan $this->selectedUnit yang sudah di-cache
-        $unit  = $this->unit_id ? UnitWisata::find($this->unit_id) : null;
+        $unit = $this->unit_id ? UnitWisata::find($this->unit_id) : null;
         $range = $this->periodeRange($unit);
 
         $namaUnit = $unit ? $unit->nama : 'Semua Unit (Konsolidasi)';
@@ -246,11 +254,11 @@ class Pendapatan extends Component
         // Jika mode harian untuk unit mingguan (TPS), return kosong
         if ($range === null) {
             return [
-                'unit'            => $namaUnit,
-                'kategoriRows'    => collect([]),
+                'unit' => $namaUnit,
+                'kategoriRows' => collect([]),
                 'totalPendapatan' => 0,
-                'kosong'          => true,
-                'pesanKosong'     => 'Mode Harian tidak tersedia untuk unit TPS karena data diinput per minggu. Silakan pilih mode Mingguan atau Bulanan.',
+                'kosong' => true,
+                'pesanKosong' => 'Mode Harian tidak tersedia untuk unit TPS karena data diinput per minggu. Silakan pilih mode Mingguan atau Bulanan.',
             ];
         }
 
@@ -259,11 +267,11 @@ class Pendapatan extends Component
 
         if ($transaksiIds->isEmpty()) {
             return [
-                'unit'            => $namaUnit,
-                'kategoriRows'    => collect([]),
+                'unit' => $namaUnit,
+                'kategoriRows' => collect([]),
                 'totalPendapatan' => 0,
-                'kosong'          => true,
-                'pesanKosong'     => 'Tidak ada data pemasukan pada periode ini.',
+                'kosong' => true,
+                'pesanKosong' => 'Tidak ada data pemasukan pada periode ini.',
             ];
         }
 
@@ -284,24 +292,24 @@ class Pendapatan extends Component
             $kat = $row->kategoriTransaksi;
 
             return [
-                'kategori_id'   => $kat->id,
-                'kategori'      => $kat->nama,
-                'unit_nama'     => $kat->unitWisata?->nama ?? '-',
-                'tipe'          => $kat->tipe->value,  // harga_x_qty | flat | bebas | tahunan
-                'harga_satuan'  => $kat->tipe->value === 'harga_x_qty' ? (float) $row->harga_satuan : null,
-                'jumlah_qty'    => $kat->tipe->value === 'harga_x_qty' ? (int) $row->total_qty : null,
-                'subtotal'      => (float) $row->total_subtotal,
+                'kategori_id' => $kat->id,
+                'kategori' => $kat->nama,
+                'unit_nama' => $kat->unitWisata?->nama ?? '-',
+                'tipe' => $kat->tipe->value,  // harga_x_qty | flat | bebas | tahunan
+                'harga_satuan' => $kat->tipe->value === 'harga_x_qty' ? (float) $row->harga_satuan : null,
+                'jumlah_qty' => $kat->tipe->value === 'harga_x_qty' ? (int) $row->total_qty : null,
+                'subtotal' => (float) $row->total_subtotal,
             ];
         })->sortBy('kategori')->values();
 
         $totalPendapatan = $kategoriRows->sum('subtotal');
 
         return [
-            'unit'            => $namaUnit,
-            'kategoriRows'    => $kategoriRows,
+            'unit' => $namaUnit,
+            'kategoriRows' => $kategoriRows,
             'totalPendapatan' => $totalPendapatan,
-            'kosong'          => $kategoriRows->isEmpty(),
-            'pesanKosong'     => 'Tidak ada data pemasukan pada periode ini.',
+            'kosong' => $kategoriRows->isEmpty(),
+            'pesanKosong' => 'Tidak ada data pemasukan pada periode ini.',
         ];
     }
 

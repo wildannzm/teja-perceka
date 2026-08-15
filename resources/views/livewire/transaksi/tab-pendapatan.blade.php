@@ -15,14 +15,14 @@
                 <p class="text-xs text-brand-200 uppercase font-medium tracking-wide">Pemasukan Bersih (Net)</p>
                 <p class="text-3xl sm:text-4xl font-bold tracking-tight break-words">Rp {{ number_format($data['pendapatanBersih'], 0, ',', '.') }}</p>
                 
-                <div class="mt-4 pt-4 border-t border-brand-400/60 grid grid-cols-2 gap-4">
-                    <div>
+                <div class="mt-4 pt-4 border-t border-brand-400/60 flex flex-col sm:grid sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div class="flex justify-between sm:block items-center">
                         <p class="text-xs text-brand-200 uppercase font-medium tracking-wide">Pemasukan Kotor</p>
-                        <p class="text-lg sm:text-xl font-bold">Rp {{ number_format($data['totalPendapatan'], 0, ',', '.') }}</p>
+                        <p class="text-lg sm:text-xl font-bold whitespace-nowrap">Rp {{ number_format($data['totalPendapatan'], 0, ',', '.') }}</p>
                     </div>
-                    <div>
+                    <div class="flex justify-between sm:block items-center">
                         <p class="text-xs text-brand-200 uppercase font-medium tracking-wide">Pengeluaran Unit</p>
-                        <p class="text-lg sm:text-xl font-bold text-red-200">- Rp {{ number_format($data['totalPengeluaranUnit'], 0, ',', '.') }}</p>
+                        <p class="text-lg sm:text-xl font-bold text-red-200 whitespace-nowrap">- Rp {{ number_format($data['totalPengeluaranUnit'], 0, ',', '.') }}</p>
                     </div>
                 </div>
             @else

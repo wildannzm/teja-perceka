@@ -109,8 +109,7 @@
                                                 Edit
                                             </button>
                                             <button
-                                                wire:click="delete({{ $asset->id }})"
-                                                wire:confirm="Yakin ingin menghapus aset '{{ $asset->nama_aset }}'?"
+                                                wire:click="confirmDelete({{ $asset->id }})"
                                                 id="btn-hapus-aset-{{ $asset->id }}"
                                                 class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 p-1.5 rounded-lg transition-all active:scale-95"
                                             >
@@ -156,8 +155,7 @@
                                     </svg>
                                 </button>
                                 <button
-                                    wire:click="delete({{ $asset->id }})"
-                                    wire:confirm="Yakin ingin menghapus aset '{{ $asset->nama_aset }}'?"
+                                    wire:click="confirmDelete({{ $asset->id }})"
                                     class="inline-flex items-center justify-center size-8 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-all active:scale-95"
                                 >
                                     <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -332,6 +330,32 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    @endif
+
+    {{-- Modal Konfirmasi Hapus --}}
+    @if ($showDeleteModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div wire:click="$set('showDeleteModal', false)" class="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm transition-opacity"></div>
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col gap-0 overflow-hidden z-10">
+                <div class="px-6 py-5 flex flex-col gap-4">
+                    <div>
+                        <h2 class="text-lg font-semibold text-zinc-900">Konfirmasi Hapus</h2>
+                        <div class="mt-2 text-sm text-zinc-600">
+                            <p>Yakin ingin menghapus data ini?</p>
+                            <p>Data yang dihapus tidak dapat dikembalikan dan mungkin mempengaruhi kalkulasi laporan.</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button type="button" wire:click="$set('showDeleteModal', false)" class="px-4 py-2 rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
+                            Batal
+                        </button>
+                        <button type="button" wire:click="executeDelete" class="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors">
+                            Ya, Hapus
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     @endif

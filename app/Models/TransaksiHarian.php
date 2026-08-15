@@ -43,9 +43,9 @@ class TransaksiHarian extends Model
     protected function casts(): array
     {
         return [
-            'tanggal'           => 'date',
-            'tanggal_akhir'     => 'date',
-            'total_pemasukan'   => 'float',
+            'tanggal' => 'date',
+            'tanggal_akhir' => 'date',
+            'total_pemasukan' => 'float',
             'total_pengeluaran' => 'float',
         ];
     }

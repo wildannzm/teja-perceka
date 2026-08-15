@@ -20,21 +20,30 @@ class KelolaAsset extends Component
 
     // Form fields
     public string $nama_aset = '';
+
     public int $jumlah = 1;
+
     public string $satuan = 'unit';
+
     public string $harga = '';
+
     public string $keterangan = '';
 
     public bool $showModal = false;
+
     public ?int $editingId = null;
+
+    public ?int $deleteId = null;
+
+    public bool $showDeleteModal = false;
 
     protected function rules(): array
     {
         return [
-            'nama_aset'  => 'required|string|max:255',
-            'jumlah'     => 'required|integer|min:1',
-            'satuan'     => 'required|string|max:50',
-            'harga'      => 'nullable|numeric|min:0',
+            'nama_aset' => 'required|string|max:255',
+            'jumlah' => 'required|integer|min:1',
+            'satuan' => 'required|string|max:50',
+            'harga' => 'nullable|numeric|min:0',
             'keterangan' => 'nullable|string|max:1000',
         ];
     }
@@ -43,11 +52,11 @@ class KelolaAsset extends Component
     {
         return [
             'nama_aset.required' => 'Nama aset wajib diisi.',
-            'jumlah.required'    => 'Jumlah wajib diisi.',
-            'jumlah.min'         => 'Jumlah minimal 1.',
-            'satuan.required'    => 'Satuan wajib diisi.',
-            'harga.numeric'      => 'Harga harus berupa angka.',
-            'harga.min'          => 'Harga tidak boleh negatif.',
+            'jumlah.required' => 'Jumlah wajib diisi.',
+            'jumlah.min' => 'Jumlah minimal 1.',
+            'satuan.required' => 'Satuan wajib diisi.',
+            'harga.numeric' => 'Harga harus berupa angka.',
+            'harga.min' => 'Harga tidak boleh negatif.',
         ];
     }
 
@@ -61,8 +70,8 @@ class KelolaAsset extends Component
     public function assets()
     {
         return Asset::query()
-            ->when($this->search, fn($q) => $q->where('nama_aset', 'like', '%' . $this->search . '%')
-                ->orWhere('keterangan', 'like', '%' . $this->search . '%'))
+            ->when($this->search, fn ($q) => $q->where('nama_aset', 'like', '%'.$this->search.'%')
+                ->orWhere('keterangan', 'like', '%'.$this->search.'%'))
             ->orderBy('nama_aset')
             ->paginate(15);
     }
@@ -81,7 +90,7 @@ class KelolaAsset extends Component
         $this->reset(['nama_aset', 'jumlah', 'keterangan', 'harga', 'editingId']);
         $this->jumlah = 1;
         $this->satuan = 'unit';
-        $this->harga  = '';
+        $this->harga = '';
         $this->showModal = true;
         $this->resetErrorBag();
     }
@@ -93,13 +102,13 @@ class KelolaAsset extends Component
         }
 
         $asset = Asset::findOrFail($id);
-        $this->editingId  = $asset->id;
-        $this->nama_aset  = $asset->nama_aset;
-        $this->jumlah     = $asset->jumlah;
-        $this->satuan     = $asset->satuan;
-        $this->harga      = $asset->harga > 0 ? (string) $asset->harga : '';
+        $this->editingId = $asset->id;
+        $this->nama_aset = $asset->nama_aset;
+        $this->jumlah = $asset->jumlah;
+        $this->satuan = $asset->satuan;
+        $this->harga = $asset->harga > 0 ? (string) $asset->harga : '';
         $this->keterangan = $asset->keterangan ?? '';
-        $this->showModal  = true;
+        $this->showModal = true;
         $this->resetErrorBag();
     }
 
@@ -125,17 +134,26 @@ class KelolaAsset extends Component
         $this->reset(['nama_aset', 'jumlah', 'satuan', 'harga', 'keterangan', 'editingId']);
         $this->jumlah = 1;
         $this->satuan = 'unit';
-        $this->harga  = '';
+        $this->harga = '';
     }
 
-    public function delete(int $id): void
+    public function confirmDelete(int $id): void
     {
-        if (! $this->canManage) {
+        $this->deleteId = $id;
+        $this->showDeleteModal = true;
+    }
+
+    public function executeDelete(): void
+    {
+        if (! $this->canManage || ! $this->deleteId) {
             abort(403);
         }
 
-        Asset::findOrFail($id)->delete();
+        Asset::findOrFail($this->deleteId)->delete();
         session()->flash('toast_success', 'Aset berhasil dihapus.');
+
+        $this->showDeleteModal = false;
+        $this->deleteId = null;
     }
 
     public function closeModal(): void
@@ -144,7 +162,7 @@ class KelolaAsset extends Component
         $this->reset(['nama_aset', 'jumlah', 'satuan', 'harga', 'keterangan', 'editingId']);
         $this->jumlah = 1;
         $this->satuan = 'unit';
-        $this->harga  = '';
+        $this->harga = '';
         $this->resetErrorBag();
     }
 

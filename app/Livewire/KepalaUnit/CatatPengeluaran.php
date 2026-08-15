@@ -40,7 +40,7 @@ class CatatPengeluaran extends Component
         }
 
         $this->unitId = $user->unit_wisata_id;
-        $this->unit   = UnitWisata::findOrFail($this->unitId);
+        $this->unit = UnitWisata::findOrFail($this->unitId);
         $this->tanggal = Carbon::today()->format('Y-m-d');
 
         // Mulai dengan satu baris kosong
@@ -51,8 +51,8 @@ class CatatPengeluaran extends Component
     {
         $this->items[] = [
             'kode_akun_id' => '',
-            'keterangan'   => '',
-            'nominal'      => '',
+            'keterangan' => '',
+            'nominal' => '',
         ];
     }
 
@@ -85,36 +85,37 @@ class CatatPengeluaran extends Component
     public function submit(): void
     {
         $this->validate([
-            'tanggal'                    => 'required|date',
-            'items'                      => 'required|array|min:1',
-            'items.*.kode_akun_id'       => 'required|exists:kode_akun,id',
-            'items.*.keterangan'         => 'required|string|max:500',
-            'items.*.nominal'            => 'required|numeric|min:1',
+            'tanggal' => 'required|date',
+            'items' => 'required|array|min:1',
+            'items.*.kode_akun_id' => 'required|exists:kode_akun,id',
+            'items.*.keterangan' => 'required|string|max:500',
+            'items.*.nominal' => 'required|numeric|min:1',
         ], [
-            'items.required'             => 'Minimal satu item pengeluaran harus diisi.',
+            'items.required' => 'Minimal satu item pengeluaran harus diisi.',
             'items.*.kode_akun_id.required' => 'Pilih jenis biaya untuk setiap item.',
-            'items.*.keterangan.required'   => 'Keterangan wajib diisi untuk setiap item.',
-            'items.*.nominal.required'      => 'Nominal wajib diisi untuk setiap item.',
-            'items.*.nominal.min'           => 'Nominal harus lebih dari 0.',
+            'items.*.keterangan.required' => 'Keterangan wajib diisi untuk setiap item.',
+            'items.*.nominal.required' => 'Nominal wajib diisi untuk setiap item.',
+            'items.*.nominal.min' => 'Nominal harus lebih dari 0.',
         ]);
 
         // Filter item yang valid (nominal > 0)
-        $validItems = array_filter($this->items, fn($item) => (float) ($item['nominal'] ?? 0) > 0 && ! empty($item['kode_akun_id']));
+        $validItems = array_filter($this->items, fn ($item) => (float) ($item['nominal'] ?? 0) > 0 && ! empty($item['kode_akun_id']));
 
         if (empty($validItems)) {
             $this->addError('items', 'Minimal satu item pengeluaran dengan nominal valid harus diisi.');
+
             return;
         }
 
-        $date     = Carbon::parse($this->tanggal);
+        $date = Carbon::parse($this->tanggal);
         $kodeUnit = strtoupper($this->unit->kode ?? 'XX');
-        $prefix   = 'K' . $kodeUnit;
+        $prefix = 'K'.$kodeUnit;
 
         DB::transaction(function () use ($date, $prefix, $validItems) {
             $akunKas = KodeAkun::where('kode', '1-1100')->firstOrFail();
 
             // Generate nomor bukti berurutan per bulan
-            $lastJurnal = JurnalUmum::where('nomor_bukti', 'like', $prefix . '%')
+            $lastJurnal = JurnalUmum::where('nomor_bukti', 'like', $prefix.'%')
                 ->whereMonth('tanggal', $date->month)
                 ->whereYear('tanggal', $date->year)
                 ->lockForUpdate()
@@ -136,31 +137,31 @@ class CatatPengeluaran extends Component
 
             foreach ($validItems as $item) {
                 $nominalItem = (float) $item['nominal'];
-                $nomorBukti  = $prefix . str_pad($nextUrut, 3, '0', STR_PAD_LEFT);
-                $keterangan  = $item['keterangan'];
+                $nomorBukti = $prefix.str_pad($nextUrut, 3, '0', STR_PAD_LEFT);
+                $keterangan = $item['keterangan'];
 
                 // Debet: akun biaya yang dipilih
                 JurnalUmum::create([
-                    'nomor_bukti'         => $nomorBukti,
-                    'tanggal'             => $this->tanggal,
-                    'keterangan'          => $keterangan,
-                    'kode_akun_id'        => (int) $item['kode_akun_id'],
-                    'debet'               => $nominalItem,
-                    'kredit'              => 0,
+                    'nomor_bukti' => $nomorBukti,
+                    'tanggal' => $this->tanggal,
+                    'keterangan' => $keterangan,
+                    'kode_akun_id' => (int) $item['kode_akun_id'],
+                    'debet' => $nominalItem,
+                    'kredit' => 0,
                     'transaksi_harian_id' => $transaksiHarian?->id,
-                    'unit_wisata_id'      => $this->unitId,
+                    'unit_wisata_id' => $this->unitId,
                 ]);
 
                 // Kredit: keluar dari Kas
                 JurnalUmum::create([
-                    'nomor_bukti'         => $nomorBukti,
-                    'tanggal'             => $this->tanggal,
-                    'keterangan'          => $keterangan,
-                    'kode_akun_id'        => $akunKas->id,
-                    'debet'               => 0,
-                    'kredit'              => $nominalItem,
+                    'nomor_bukti' => $nomorBukti,
+                    'tanggal' => $this->tanggal,
+                    'keterangan' => $keterangan,
+                    'kode_akun_id' => $akunKas->id,
+                    'debet' => 0,
+                    'kredit' => $nominalItem,
                     'transaksi_harian_id' => $transaksiHarian?->id,
-                    'unit_wisata_id'      => $this->unitId,
+                    'unit_wisata_id' => $this->unitId,
                 ]);
 
                 $nextUrut++;

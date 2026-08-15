@@ -6,6 +6,7 @@ use App\Models\JurnalUmum;
 use App\Models\KodeAkun;
 use App\Models\UnitWisata;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -42,12 +43,14 @@ class NeracaSaldo extends Component
         if (in_array($tipe, ['aktiva', 'aset', 'beban', 'beban_lain', 'hpp'])) {
             return 'debit';
         }
+
         return 'kredit';
     }
 
     private function periodeRange(): array
     {
         $date = Carbon::parse($this->periode ?: Carbon::now()->format('Y-m'));
+
         return [
             $date->copy()->startOfMonth(),
             $date->copy()->endOfMonth(),
@@ -55,7 +58,7 @@ class NeracaSaldo extends Component
     }
 
     #[Computed]
-    public function units(): \Illuminate\Database\Eloquent\Collection
+    public function units(): Collection
     {
         return UnitWisata::orderBy('nama')->get();
     }
@@ -82,13 +85,13 @@ class NeracaSaldo extends Component
     public function reportData(): array
     {
         $akuns = KodeAkun::where('tipe', '!=', 'header')->orderBy('kode')->get();
-        
+
         $aktivaLancar = collect();
         $aktivaTetap = collect();
         $kewajibanPendek = collect();
         $kewajibanPanjang = collect();
         $ekuitas = collect();
-        
+
         $totalAktivaLancar = 0;
         $totalAktivaTetap = 0;
         $totalKewajibanPendek = 0;
@@ -102,19 +105,19 @@ class NeracaSaldo extends Component
             [$startDate, $endDate] = $this->periodeRange();
 
             $query = JurnalUmum::whereDate('tanggal', '<=', $endDate->format('Y-m-d'));
-            
+
             if ($this->unit_id) {
                 $query->where('unit_wisata_id', $this->unit_id);
             }
 
             $saldoPerAkun = $query->select(
-                'kode_akun_id', 
-                DB::raw('SUM(debet) as total_debit'), 
+                'kode_akun_id',
+                DB::raw('SUM(debet) as total_debit'),
                 DB::raw('SUM(kredit) as total_kredit')
             )
-            ->groupBy('kode_akun_id')
-            ->get()
-            ->keyBy('kode_akun_id');
+                ->groupBy('kode_akun_id')
+                ->get()
+                ->keyBy('kode_akun_id');
 
             foreach ($akuns as $akun) {
                 $saldo = $saldoPerAkun->get($akun->id);
@@ -145,7 +148,7 @@ class NeracaSaldo extends Component
                     // The Excel shows some '-' so we keep them, or we just keep all balance sheet accounts (1, 2, 3)
                 }
 
-                $item = (object)[
+                $item = (object) [
                     'kode' => $akun->kode,
                     'nama' => $akun->nama,
                     'saldo' => $saldoAkhir,
@@ -175,10 +178,10 @@ class NeracaSaldo extends Component
 
             // Inject Laba Bersih
             $labaBersih = $totalPendapatan - $totalBeban;
-            
+
             $labaBersihAkun = KodeAkun::where('kode', '3-3000')->first();
             if ($labaBersihAkun) {
-                $ekuitas->push((object)[
+                $ekuitas->push((object) [
                     'kode' => $labaBersihAkun->kode,
                     'nama' => 'LABA BERSIH', // Override name to match excel
                     'saldo' => $labaBersih,
@@ -214,7 +217,7 @@ class NeracaSaldo extends Component
         $periodeLabel = Carbon::parse($this->periode ?: Carbon::now()->format('Y-m'))->translatedFormat('F Y');
 
         $penandatangan = Auth::user()->name;
-        $jabatan = match(true) {
+        $jabatan = match (true) {
             Auth::user()->hasRole('direktur_bumdes') => 'Direktur',
             Auth::user()->hasRole('sekretaris') => 'Sekretaris',
             Auth::user()->hasRole('bendahara') => 'Bendahara',
@@ -228,7 +231,7 @@ class NeracaSaldo extends Component
         $unitSlug = $unit ? str_replace(' ', '_', $unit->nama) : 'Konsolidasi';
         $filename = 'NeracaSaldo_'.$unitSlug.'_'.str_replace(' ', '_', $periodeLabel).'.pdf';
 
-        return response()->streamDownload(fn () => print($pdf->output()), $filename);
+        return response()->streamDownload(fn () => print ($pdf->output()), $filename);
     }
 
     public function render()

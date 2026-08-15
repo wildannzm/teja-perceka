@@ -2,8 +2,8 @@
 
 namespace App\Livewire\KepalaDesa;
 
-use Livewire\Component;
 use App\Models\User;
+use Livewire\Component;
 use Livewire\WithPagination;
 
 class UserManager extends Component
@@ -11,8 +11,11 @@ class UserManager extends Component
     use WithPagination;
 
     public $search = '';
+
     public $editingUserId = null;
+
     public $name = '';
+
     public $email = '';
 
     public function editUser($userId)
@@ -32,7 +35,7 @@ class UserManager extends Component
     {
         $this->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $this->editingUserId,
+            'email' => 'required|email|max:255|unique:users,email,'.$this->editingUserId,
         ]);
 
         if ($this->editingUserId) {
@@ -41,7 +44,7 @@ class UserManager extends Component
                 'name' => $this->name,
                 'email' => $this->email,
             ]);
-            
+
             // Note: Password and Roles are NOT managed here based on user instruction.
         }
 
@@ -53,11 +56,11 @@ class UserManager extends Component
         $users = User::whereHas('roles', function ($query) {
             $query->whereNotIn('name', ['kepala_desa', 'pengawas']);
         })
-        ->where(function ($q) {
-            $q->where('name', 'like', '%' . $this->search . '%')
-              ->orWhere('email', 'like', '%' . $this->search . '%');
-        })
-        ->paginate(10);
+            ->where(function ($q) {
+                $q->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('email', 'like', '%'.$this->search.'%');
+            })
+            ->paginate(10);
 
         return view('livewire.kepala-desa.user-manager', [
             'users' => $users,

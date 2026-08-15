@@ -27,6 +27,7 @@ class LabaRugi extends Component
     public string $periode = '';
 
     public string $semester = '1';
+
     public string $semesterTahun = '';
 
     public function mount(): void
@@ -102,7 +103,8 @@ class LabaRugi extends Component
 
         if ($this->mode === 'semester') {
             $year = $this->semesterTahun ?: Carbon::now()->format('Y');
-            return 'Semester ' . $this->semester . ' Tahun ' . $year;
+
+            return 'Semester '.$this->semester.' Tahun '.$year;
         }
 
         return Carbon::parse($this->periode ?: Carbon::now()->format('Y-m'))->translatedFormat('F Y');

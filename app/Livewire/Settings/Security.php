@@ -3,7 +3,6 @@
 namespace App\Livewire\Settings;
 
 use App\Concerns\PasswordValidationRules;
-use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
 use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
@@ -22,6 +21,8 @@ class Security extends Component
     use PasswordValidationRules;
 
     public string $password = '';
+
+    public string $password_confirmation = '';
 
     #[Locked]
     public bool $canManageTwoFactor;

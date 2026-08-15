@@ -3,16 +3,31 @@
 namespace App\Livewire\Sekretaris;
 
 use App\Models\JurnalUmum;
+use App\Traits\ExportsJurnalPdf;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class TransactionList extends Component
 {
-    use \App\Traits\ExportsJurnalPdf;
+    use ExportsJurnalPdf;
 
-    public function delete($id)
+    public ?int $deleteId = null;
+
+    public bool $showDeleteModal = false;
+
+    public function confirmDelete(int $id): void
     {
-        $jurnal = JurnalUmum::find($id);
+        $this->deleteId = $id;
+        $this->showDeleteModal = true;
+    }
+
+    public function executeDelete(): void
+    {
+        if (! $this->deleteId) {
+            return;
+        }
+
+        $jurnal = JurnalUmum::find($this->deleteId);
         if ($jurnal) {
             DB::transaction(function () use ($jurnal) {
                 // Menghapus semua baris jurnal yang memiliki nomor_bukti yang sama
@@ -21,6 +36,9 @@ class TransactionList extends Component
             });
             \Flux::toast(variant: 'success', text: 'Satu set jurnal (debet & kredit) berhasil dihapus.');
         }
+
+        $this->showDeleteModal = false;
+        $this->deleteId = null;
     }
 
     public function render()
@@ -37,4 +55,3 @@ class TransactionList extends Component
         ])->layout('layouts.app', ['title' => 'Kelola Jurnal']);
     }
 }
-
