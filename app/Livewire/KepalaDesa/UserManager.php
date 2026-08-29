@@ -53,9 +53,10 @@ class UserManager extends Component
 
     public function render()
     {
-        $users = User::whereHas('roles', function ($query) {
-            $query->whereNotIn('name', ['kepala_desa', 'pengawas']);
-        })
+        $users = User::with(['roles', 'unitWisata'])
+            ->whereHas('roles', function ($query) {
+                $query->whereNotIn('name', ['kepala_desa', 'pengawas', 'super_admin']);
+            })
             ->where(function ($q) {
                 $q->where('name', 'like', '%'.$this->search.'%')
                     ->orWhere('email', 'like', '%'.$this->search.'%');

@@ -16,6 +16,17 @@ class UserSeeder extends Seeder
     {
         $password = Hash::make('password');
 
+        // 0. Super Admin
+        $superAdmin = User::firstOrCreate(
+            ['email' => 'admin@tejaperceka.com'],
+            [
+                'name' => 'Administrator',
+                'password' => $password,
+                'is_active' => true,
+            ]
+        );
+        $superAdmin->assignRole('super_admin');
+
         // 1. Kepala Unit Sawah Bengkok
         $sawahBengkok = UnitWisata::where('kode', 'SB')->first();
         $kepalaUnit = User::firstOrCreate(

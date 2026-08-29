@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ImpersonationController;
 use App\Livewire\Asset\KelolaAsset;
 use App\Livewire\Bendahara\Dashboard as BendaharaDashboard;
 use App\Livewire\Bendahara\Report as BendaharaReport;
@@ -26,6 +27,9 @@ use App\Livewire\Pengeluaran\CatatPengeluaran;
 use App\Livewire\Sekretaris\Dashboard as SekretarisDashboard;
 use App\Livewire\Sekretaris\Report as SekretarisReport;
 use App\Livewire\Sekretaris\TransactionList as SekretarisTransactionList;
+use App\Livewire\SuperAdmin\ActivityLogs as SuperAdminActivityLogs;
+use App\Livewire\SuperAdmin\Dashboard as SuperAdminDashboard;
+use App\Livewire\SuperAdmin\UserManager as SuperAdminUserManager;
 use App\Livewire\Transaksi\RiwayatRekap;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +43,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function (Request $request) {
         $user = $request->user();
 
+        if ($user->hasRole('super_admin')) {
+            return redirect()->route('super-admin.dashboard');
+        }
         if ($user->hasRole('kepala_unit')) {
             return redirect()->route('dashboard.unit');
         }
@@ -157,6 +164,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:kepala_unit'])
         ->get('unit/riwayat-transaksi-lama', fn () => redirect()->route('riwayat-rekap'))
         ->name('unit.riwayat-transaksi.redirect');
+
+    // ===== Super Admin =====
+    Route::middleware(['role:super_admin'])->prefix('super-admin')->group(function () {
+        Route::get('/dashboard', SuperAdminDashboard::class)->name('super-admin.dashboard');
+        Route::get('/users', SuperAdminUserManager::class)->name('super-admin.users');
+        Route::get('/activity-logs', SuperAdminActivityLogs::class)->name('super-admin.activity-logs');
+    });
+
+    // ===== Impersonation Routes =====
+    Route::post('/impersonate/start/{user}', [ImpersonationController::class, 'start'])->name('impersonate.start');
+    Route::post('/impersonate/stop', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
 
 });
 
