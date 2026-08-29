@@ -68,86 +68,117 @@
         </div>
     </div>
 
-    <!-- Recent Activity & Quick Impersonate -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Recent Log Activity -->
-        <div class="lg:col-span-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+    <!-- Activity Monitoring Chart - Full Width -->
+    <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-2">
             <div>
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h2 class="text-lg font-bold text-zinc-900 dark:text-white">Log Aktivitas Terbaru</h2>
-                        <p class="text-xs text-zinc-500">Jejak audit aksi pengguna sistem secara realtime</p>
-                    </div>
-                    <a href="{{ route('super-admin.activity-logs') }}" wire:navigate class="text-xs font-semibold text-emerald-600 hover:text-emerald-700">Lihat Semua →</a>
-                </div>
-
-                <div class="space-y-3">
-                    @forelse($recentActivities as $log)
-                        <div class="flex items-start gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                            <div class="p-2 rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 mt-0.5">
-                                @if(str_contains($log->activity_type, 'impersonate'))
-                                    <flux:icon icon="user-plus" class="size-4" />
-                                @else
-                                    <flux:icon icon="document-text" class="size-4" />
-                                @endif
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold text-zinc-900 dark:text-white truncate">
-                                        {{ $log->user ? $log->user->name : 'Sistem/Tamu' }}
-                                    </span>
-                                    <span class="text-[11px] text-zinc-400">
-                                        {{ $log->created_at->diffForHumans() }}
-                                    </span>
-                                </div>
-                                <p class="text-xs text-zinc-600 dark:text-zinc-300 mt-0.5">{{ $log->description }}</p>
-                                @if($log->ip_address)
-                                    <span class="text-[10px] text-zinc-400 font-mono mt-1 inline-block">IP: {{ $log->ip_address }}</span>
-                                @endif
-                            </div>
-                        </div>
-                    @empty
-                        <div class="text-center py-8 text-zinc-400 text-sm">Belum ada log aktivitas tercatat.</div>
-                    @endforelse
-                </div>
+                <h2 class="text-lg font-bold text-zinc-900 dark:text-white">Grafik Monitoring Penggunaan User</h2>
+                <p class="text-xs text-zinc-500">Trend aktivitas harian & penggunaan fitur penyamaran (7 Hari Terakhir)</p>
             </div>
+            <a href="{{ route('super-admin.activity-logs') }}" wire:navigate class="text-xs font-semibold text-brand-600 hover:text-brand-700">Detail Audit Log →</a>
         </div>
 
-        <!-- Recent Users & Impersonation Shortcut -->
-        <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h2 class="text-lg font-bold text-zinc-900 dark:text-white">Pengguna Terbaru</h2>
-                    <p class="text-xs text-zinc-500">Pintas impersonasi pengguna</p>
-                </div>
-                <a href="{{ route('super-admin.users') }}" wire:navigate class="text-xs font-semibold text-emerald-600 hover:text-emerald-700">Kelola →</a>
-            </div>
-
-            <div class="space-y-3">
-                @foreach($recentUsers as $user)
-                    <div class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                        <div class="min-w-0 pr-2">
-                            <h4 class="text-xs font-bold text-zinc-900 dark:text-white truncate">{{ $user->name }}</h4>
-                            <p class="text-[11px] text-zinc-500 truncate">{{ $user->email }}</p>
-                            <div class="flex items-center gap-1.5 mt-1">
-                                <span class="inline-block px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 rounded">
-                                    {{ $user->getRoleNames()->first() ?? 'User' }}
-                                </span>
-                            </div>
-                        </div>
-
-                        @if(Auth::id() !== $user->id)
-                            <form method="POST" action="{{ route('impersonate.start', $user) }}">
-                                @csrf
-                                <button type="submit" class="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs rounded-lg shadow-sm transition-all flex items-center gap-1 shrink-0">
-                                    <flux:icon icon="user-plus" class="size-3" />
-                                    <span>Penyamaran</span>
-                                </button>
-                            </form>
-                        @endif
-                    </div>
-                @endforeach
-            </div>
+        <div class="w-full relative" style="height: 350px;">
+            <canvas id="activityMonitorChart"></canvas>
         </div>
     </div>
 </div>
+
+@script
+<script>
+    (function () {
+        const chartDates = @json($chartDates);
+        const chartActivityCounts = @json($chartActivityCounts);
+        const chartImpersonateCounts = @json($chartImpersonateCounts);
+
+        function initChart() {
+            const canvas = document.getElementById('activityMonitorChart');
+            if (!canvas) return;
+
+            // Destroy existing chart instance if any (Livewire re-render)
+            if (window._activityChartInstance) {
+                window._activityChartInstance.destroy();
+            }
+
+            const ctx = canvas.getContext('2d');
+            window._activityChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartDates,
+                    datasets: [
+                        {
+                            label: 'Total Aktivitas Pengguna',
+                            data: chartActivityCounts,
+                            borderColor: '#249e24',
+                            backgroundColor: 'rgba(36, 158, 36, 0.08)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: '#249e24',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                        },
+                        {
+                            label: 'Aktivitas Penyamaran',
+                            data: chartImpersonateCounts,
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.08)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: '#f59e0b',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: { family: 'Poppins', size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            padding: 12,
+                            cornerRadius: 10,
+                            titleFont: { family: 'Poppins' },
+                            bodyFont: { family: 'Poppins' },
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(0,0,0,0.04)' },
+                            ticks: { font: { family: 'Poppins', size: 11 } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.04)' },
+                            ticks: {
+                                stepSize: 1,
+                                precision: 0,
+                                font: { family: 'Poppins', size: 11 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        initChart();
+    })();
+</script>
+@endscript

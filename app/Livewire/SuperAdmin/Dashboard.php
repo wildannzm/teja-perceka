@@ -5,6 +5,7 @@ namespace App\Livewire\SuperAdmin;
 use App\Models\ActivityLog;
 use App\Models\UnitWisata;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
 
@@ -17,23 +18,30 @@ class Dashboard extends Component
         $totalRoles = Role::count();
         $todayActivities = ActivityLog::whereDate('created_at', today())->count();
 
-        $recentActivities = ActivityLog::with('user')
-            ->latest()
-            ->take(10)
-            ->get();
+        // Data Grafik Monitoring Aktivitas Pengguna (7 Hari Terakhir)
+        $chartDates = [];
+        $chartActivityCounts = [];
+        $chartImpersonateCounts = [];
 
-        $recentUsers = User::with('roles', 'unitWisata')
-            ->latest()
-            ->take(5)
-            ->get();
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i);
+            $dateString = $date->toDateString();
+
+            $chartDates[] = $date->translatedFormat('d M');
+            $chartActivityCounts[] = ActivityLog::whereDate('created_at', $dateString)->count();
+            $chartImpersonateCounts[] = ActivityLog::whereDate('created_at', $dateString)
+                ->where('activity_type', 'like', 'impersonate%')
+                ->count();
+        }
 
         return view('livewire.super-admin.dashboard', [
             'totalUsers' => $totalUsers,
             'totalUnits' => $totalUnits,
             'totalRoles' => $totalRoles,
             'todayActivities' => $todayActivities,
-            'recentActivities' => $recentActivities,
-            'recentUsers' => $recentUsers,
+            'chartDates' => $chartDates,
+            'chartActivityCounts' => $chartActivityCounts,
+            'chartImpersonateCounts' => $chartImpersonateCounts,
         ])->layout('layouts.app', ['title' => 'Dashboard Super Admin']);
     }
 }
