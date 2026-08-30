@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-5 max-w-5xl mx-auto w-full">
+<div class="flex flex-col gap-5 max-w-full mx-auto w-full">
 
     {{-- Header --}}
     <div class="rounded-xl border border-brand-100 bg-white p-5 sm:p-6 shadow-sm">

@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-5 max-w-5xl mx-auto w-full pb-36">
+<div class="flex flex-col gap-5 max-w-full mx-auto w-full pb-36">
 
     {{-- Error Notification --}}
     @if ($errors->has('pdf'))

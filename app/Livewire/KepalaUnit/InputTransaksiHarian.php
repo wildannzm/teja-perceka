@@ -30,15 +30,23 @@ class InputTransaksiHarian extends Component
 
     public bool $isMingguan = false;
 
+    /** When set, the component is in edit mode for this TransaksiHarian ID. */
+    #[Locked]
+    public ?int $editId = null;
+
+    public bool $isEditing = false;
+
     // Array untuk menyimpan state input setiap kategori
     // Format: [kategori_id => ['qty' => value, 'nominal' => value, 'aktif' => boolean, 'subtotal' => value]]
     public array $inputs = [];
 
     public bool $sudahInput = false;
 
+    public bool $showDuplicateError = false;
+
     public float $totalPemasukan = 0;
 
-    public function mount()
+    public function mount(?int $editId = null)
     {
         $user = Auth::user();
 
@@ -53,16 +61,59 @@ class InputTransaksiHarian extends Component
         $today = Carbon::today();
         $this->isMingguan = $this->unit->frekuensi_input === 'mingguan';
 
-        if ($this->isMingguan) {
-            // Jika mingguan, ambil awal minggu (Senin) dan akhir minggu (Minggu) dari hari ini
-            $this->tanggal = $today->copy()->startOfWeek()->format('Y-m-d');
-            $this->tanggalAkhir = $today->copy()->endOfWeek()->format('Y-m-d');
+        if ($editId) {
+            $this->loadEditMode($editId);
         } else {
-            $this->tanggal = $today->format('Y-m-d');
+            if ($this->isMingguan) {
+                // Jika mingguan, ambil awal minggu (Senin) dan akhir minggu (Minggu) dari hari ini
+                $this->tanggal = $today->copy()->startOfWeek()->format('Y-m-d');
+                $this->tanggalAkhir = $today->copy()->endOfWeek()->format('Y-m-d');
+            } else {
+                $this->tanggal = $today->format('Y-m-d');
+            }
+
+            $this->checkSudahInput();
+            $this->initKategoriInputs();
+        }
+    }
+
+    /**
+     * Load an existing TransaksiHarian into edit mode.
+     */
+    private function loadEditMode(int $editId): void
+    {
+        $transaksi = TransaksiHarian::with('detail.kategoriTransaksi')
+            ->where('unit_wisata_id', $this->unitId)
+            ->findOrFail($editId);
+
+        $this->editId = $editId;
+        $this->isEditing = true;
+        $this->tanggal = $transaksi->tanggal->format('Y-m-d');
+        $this->tanggalAkhir = $transaksi->tanggal_akhir?->format('Y-m-d');
+
+        // Build a lookup of existing detail values keyed by kategori_id
+        $existingDetails = $transaksi->detail->keyBy('kategori_transaksi_id');
+
+        $this->initKategoriInputs();
+
+        // Overlay existing values onto the initialised inputs
+        foreach ($existingDetails as $kategoriId => $detail) {
+            if (! isset($this->inputs[$kategoriId])) {
+                continue;
+            }
+
+            $tipe = $this->inputs[$kategoriId]['tipe'];
+
+            if ($tipe === TipeKategori::HargaXQty->value || $tipe === TipeKategori::Tahunan->value) {
+                $this->inputs[$kategoriId]['qty'] = $detail->qty ?? '';
+            } elseif ($tipe === TipeKategori::Flat->value) {
+                $this->inputs[$kategoriId]['aktif'] = $detail->subtotal > 0;
+            } elseif ($tipe === TipeKategori::Bebas->value) {
+                $this->inputs[$kategoriId]['nominal'] = $detail->subtotal > 0 ? (string) (int) $detail->subtotal : '';
+            }
         }
 
-        $this->checkSudahInput();
-        $this->initKategoriInputs();
+        $this->calculateAllSubtotals();
     }
 
     public function updatedTanggal()
@@ -75,7 +126,9 @@ class InputTransaksiHarian extends Component
             $this->tanggalAkhir = $date->copy()->endOfWeek()->format('Y-m-d');
         }
 
-        $this->checkSudahInput();
+        if (! $this->isEditing) {
+            $this->checkSudahInput();
+        }
 
         // Hitung ulang semua subtotal karena harga mungkin berbeda di tanggal yang baru
         $this->calculateAllSubtotals();
@@ -114,8 +167,9 @@ class InputTransaksiHarian extends Component
         $currentYear = Carbon::parse($this->tanggal)->year;
 
         foreach ($this->kategoriList as $kategori) {
-            // Logic khusus untuk kategori Tahunan
-            if ($kategori->tipe === TipeKategori::Tahunan) {
+            // Logic khusus untuk kategori Tahunan: sembunyikan jika sudah diinput tahun ini,
+            // kecuali saat edit (kita tampilkan semua kategori yang ada di data aslinya).
+            if (! $this->isEditing && $kategori->tipe === TipeKategori::Tahunan) {
                 // Cek apakah sudah pernah diinput di tahun berjalan
                 $sudahAdaTahunan = TransaksiDetail::where('kategori_transaksi_id', $kategori->id)
                     ->whereHas('transaksiHarian', function ($query) use ($currentYear) {
@@ -185,6 +239,23 @@ class InputTransaksiHarian extends Component
             return;
         }
 
+        if (! $this->isEditing) {
+            $this->checkSudahInput();
+            if ($this->sudahInput) {
+                $this->showDuplicateError = true;
+                return;
+            }
+        }
+
+        if ($this->isEditing && $this->editId) {
+            return $this->executeUpdate();
+        } else {
+            return $this->executeCreate();
+        }
+    }
+
+    private function executeCreate()
+    {
         DB::beginTransaction();
 
         try {
@@ -222,79 +293,7 @@ class InputTransaksiHarian extends Component
                 }
             }
 
-            // --- OTOMATISASI JURNAL UMUM ---
-
-            $akunKas = KodeAkun::where('kode', '1-1100')->first();
-            if (! $akunKas) {
-                throw new \Exception('Akun Kas (1-1100) tidak ditemukan di sistem. Harap hubungi administrator.');
-            }
-
-            // Prefix: 'D' (Pemasukan) + Kode Unit Wisata
-            $kodeUnit = strtoupper($this->unit->kode ?? 'XX');
-            $prefixNomor = 'D'.$kodeUnit;
-
-            // Generate nomor bukti aman dari race condition (berdasarkan bulan dan tahun berjalan)
-            $lastJurnal = JurnalUmum::where('nomor_bukti', 'like', $prefixNomor.'%')
-                ->whereMonth('tanggal', $date->month)
-                ->whereYear('tanggal', $date->year)
-                ->lockForUpdate()
-                ->orderBy('nomor_bukti', 'desc')
-                ->first();
-
-            $nextUrut = 1;
-            if ($lastJurnal) {
-                $lastUrut = (int) substr($lastJurnal->nomor_bukti, -3);
-                $nextUrut = $lastUrut + 1;
-            }
-
-            $nomorBukti = $prefixNomor.str_pad($nextUrut, 3, '0', STR_PAD_LEFT);
-            $keteranganJurnal = 'Pemasukan Harian - '.$this->unit->nama;
-
-            // 1. Catat Debet ke Kas
-            JurnalUmum::create([
-                'nomor_bukti' => $nomorBukti,
-                'tanggal' => $this->tanggal,
-                'keterangan' => $keteranganJurnal,
-                'kode_akun_id' => $akunKas->id,
-                'debet' => $this->totalPemasukan,
-                'kredit' => 0,
-                'transaksi_harian_id' => $transaksi->id,
-                'unit_wisata_id' => $this->unitId,
-            ]);
-
-            // 2. Kelompokkan Kredit per kode_akun_id dari input yang ada
-            $kreditGroup = [];
-            foreach ($this->inputs as $id => $input) {
-                $subtotal = $input['subtotal'];
-                if ($subtotal > 0) {
-                    $kategori = $this->kategoriList->get($id);
-                    $akunId = $kategori->kode_akun_id;
-                    if (! $akunId) {
-                        throw new \Exception('Kategori "'.$kategori->nama.'" belum terhubung ke Kode Akun (Chart of Account).');
-                    }
-
-                    if (! isset($kreditGroup[$akunId])) {
-                        $kreditGroup[$akunId] = 0;
-                    }
-                    $kreditGroup[$akunId] += $subtotal;
-                }
-            }
-
-            // 3. Catat Kredit untuk masing-masing akun pendapatan
-            foreach ($kreditGroup as $akunId => $jumlahKredit) {
-                JurnalUmum::create([
-                    'nomor_bukti' => $nomorBukti,
-                    'tanggal' => $this->tanggal,
-                    'keterangan' => $keteranganJurnal,
-                    'kode_akun_id' => $akunId,
-                    'debet' => 0,
-                    'kredit' => $jumlahKredit,
-                    'transaksi_harian_id' => $transaksi->id,
-                    'unit_wisata_id' => $this->unitId,
-                ]);
-            }
-
-            // --- AKHIR JURNAL UMUM PEMASUKAN ---
+            $this->createJurnalUmum($transaksi, $date);
 
             DB::commit();
 
@@ -302,7 +301,6 @@ class InputTransaksiHarian extends Component
             $this->initKategoriInputs();
             $this->totalPemasukan = 0;
 
-            // Jika pakai Flux toast, bisa dispatch event atau panggil flash message
             session()->flash('status', 'Transaksi berhasil disimpan!');
 
             // Redirect ke halaman yang sama untuk merender ulang state yang bersih
@@ -311,6 +309,146 @@ class InputTransaksiHarian extends Component
         } catch (\Exception $e) {
             DB::rollBack();
             $this->addError('submit', 'Terjadi kesalahan saat menyimpan transaksi: '.$e->getMessage());
+        }
+    }
+
+    private function executeUpdate()
+    {
+        DB::beginTransaction();
+
+        try {
+            $transaksi = TransaksiHarian::where('unit_wisata_id', $this->unitId)
+                ->findOrFail($this->editId);
+
+            $date = Carbon::parse($this->tanggal);
+
+            // Update header
+            $transaksi->update([
+                'tanggal' => $this->tanggal,
+                'tanggal_akhir' => $this->tanggalAkhir,
+                'total_pemasukan' => $this->totalPemasukan,
+                'user_id' => Auth::id(),
+            ]);
+
+            // Delete old details and regenerate
+            $transaksi->detail()->delete();
+
+            foreach ($this->inputs as $id => $input) {
+                $subtotal = $input['subtotal'];
+                if ($subtotal > 0) {
+                    $kategori = $this->kategoriList->get($id);
+                    $hargaSatuan = 0;
+                    $qty = null;
+
+                    if ($input['tipe'] === TipeKategori::HargaXQty->value) {
+                        $qty = (int) $input['qty'];
+                        $hargaSatuan = $kategori->hargaSaat($date);
+                    } elseif ($input['tipe'] === TipeKategori::Flat->value) {
+                        $hargaSatuan = $kategori->hargaSaat($date);
+                    }
+
+                    TransaksiDetail::create([
+                        'transaksi_harian_id' => $transaksi->id,
+                        'kategori_transaksi_id' => $id,
+                        'qty' => $qty,
+                        'harga_satuan' => $hargaSatuan,
+                        'subtotal' => $subtotal,
+                    ]);
+                }
+            }
+
+            // Regenerate JurnalUmum: delete old entries and recreate
+            JurnalUmum::where('transaksi_harian_id', $transaksi->id)->delete();
+            $this->createJurnalUmum($transaksi, $date);
+
+            DB::commit();
+
+            session()->flash('status', 'Transaksi berhasil diperbarui!');
+            session()->flash('swal', ['icon' => 'success', 'title' => 'Berhasil', 'text' => 'Transaksi berhasil diperbarui!']);
+
+            return $this->redirect(route('riwayat-rekap'), navigate: true);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $this->addError('submit', 'Terjadi kesalahan saat memperbarui transaksi: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Create JurnalUmum entries for a TransaksiHarian.
+     *
+     * @throws \Exception
+     */
+    private function createJurnalUmum(TransaksiHarian $transaksi, Carbon $date): void
+    {
+        $akunKas = KodeAkun::where('kode', '1-1100')->first();
+        if (! $akunKas) {
+            throw new \Exception('Akun Kas (1-1100) tidak ditemukan di sistem. Harap hubungi administrator.');
+        }
+
+        // Prefix: 'D' (Pemasukan) + Kode Unit Wisata
+        $kodeUnit = strtoupper($this->unit->kode ?? 'XX');
+        $prefixNomor = 'D'.$kodeUnit;
+
+        // Generate nomor bukti aman dari race condition (berdasarkan bulan dan tahun berjalan)
+        $lastJurnal = JurnalUmum::where('nomor_bukti', 'like', $prefixNomor.'%')
+            ->whereMonth('tanggal', $date->month)
+            ->whereYear('tanggal', $date->year)
+            ->lockForUpdate()
+            ->orderBy('nomor_bukti', 'desc')
+            ->first();
+
+        $nextUrut = 1;
+        if ($lastJurnal) {
+            $lastUrut = (int) substr($lastJurnal->nomor_bukti, -3);
+            $nextUrut = $lastUrut + 1;
+        }
+
+        $nomorBukti = $prefixNomor.str_pad($nextUrut, 3, '0', STR_PAD_LEFT);
+        $keteranganJurnal = 'Pemasukan Harian - '.$this->unit->nama;
+
+        // 1. Catat Debet ke Kas
+        JurnalUmum::create([
+            'nomor_bukti' => $nomorBukti,
+            'tanggal' => $this->tanggal,
+            'keterangan' => $keteranganJurnal,
+            'kode_akun_id' => $akunKas->id,
+            'debet' => $this->totalPemasukan,
+            'kredit' => 0,
+            'transaksi_harian_id' => $transaksi->id,
+            'unit_wisata_id' => $this->unitId,
+        ]);
+
+        // 2. Kelompokkan Kredit per kode_akun_id dari input yang ada
+        $kreditGroup = [];
+        foreach ($this->inputs as $id => $input) {
+            $subtotal = $input['subtotal'];
+            if ($subtotal > 0) {
+                $kategori = $this->kategoriList->get($id);
+                $akunId = $kategori->kode_akun_id;
+                if (! $akunId) {
+                    throw new \Exception('Kategori "'.$kategori->nama.'" belum terhubung ke Kode Akun (Chart of Account).');
+                }
+
+                if (! isset($kreditGroup[$akunId])) {
+                    $kreditGroup[$akunId] = 0;
+                }
+                $kreditGroup[$akunId] += $subtotal;
+            }
+        }
+
+        // 3. Catat Kredit untuk masing-masing akun pendapatan
+        foreach ($kreditGroup as $akunId => $jumlahKredit) {
+            JurnalUmum::create([
+                'nomor_bukti' => $nomorBukti,
+                'tanggal' => $this->tanggal,
+                'keterangan' => $keteranganJurnal,
+                'kode_akun_id' => $akunId,
+                'debet' => 0,
+                'kredit' => $jumlahKredit,
+                'transaksi_harian_id' => $transaksi->id,
+                'unit_wisata_id' => $this->unitId,
+            ]);
         }
     }
 

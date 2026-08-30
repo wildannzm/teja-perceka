@@ -174,6 +174,8 @@ class TabPendapatan extends Component
                 'unit' => $namaUnit,
                 'kategoriRows' => collect([]),
                 'totalPendapatan' => 0,
+                'totalPengeluaranUnit' => 0,
+                'pendapatanBersih' => 0,
                 'kosong' => true,
                 'pesanKosong' => 'Mode Harian tidak tersedia untuk unit TPS karena data diinput per minggu. Silakan pilih mode Mingguan atau Bulanan.',
             ];
@@ -200,7 +202,8 @@ class TabPendapatan extends Component
                 'kategori_transaksi_id',
                 DB::raw('SUM(qty) as total_qty'),
                 DB::raw('MAX(harga_satuan) as harga_satuan'),
-                DB::raw('SUM(subtotal) as total_subtotal')
+                DB::raw('SUM(subtotal) as total_subtotal'),
+                DB::raw('MIN(transaksi_harian_id) as transaksi_harian_id')
             )
             ->groupBy('kategori_transaksi_id')
             ->with('kategoriTransaksi.unitWisata')
@@ -217,10 +220,12 @@ class TabPendapatan extends Component
                 'harga_satuan' => $kat->tipe->value === 'harga_x_qty' ? (float) $row->harga_satuan : null,
                 'jumlah_qty' => $kat->tipe->value === 'harga_x_qty' ? (int) $row->total_qty : null,
                 'subtotal' => (float) $row->total_subtotal,
+                'transaksi_harian_id' => (int) $row->transaksi_harian_id,
             ];
         })->sortBy('kategori')->values();
 
         $totalPendapatan = $kategoriRows->sum('subtotal');
+        $transaksiHarianId = $this->mode === 'harian' ? $kategoriRows->first()['transaksi_harian_id'] ?? null : null;
 
         return [
             'unit' => $namaUnit,
@@ -230,6 +235,7 @@ class TabPendapatan extends Component
             'pendapatanBersih' => $totalPendapatan - $totalPengeluaranUnit,
             'kosong' => $kategoriRows->isEmpty(),
             'pesanKosong' => 'Tidak ada data pemasukan pada periode ini.',
+            'transaksiHarianId' => $transaksiHarianId,
         ];
     }
 

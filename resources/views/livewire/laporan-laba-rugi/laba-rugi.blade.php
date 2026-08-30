@@ -1,4 +1,4 @@
-<div class="flex h-full w-full flex-col gap-4 sm:gap-6 max-w-5xl mx-auto pb-10">
+<div class="flex h-full w-full flex-col gap-4 sm:gap-6 max-w-full mx-auto pb-10">
 
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -6,12 +6,31 @@
             <h1 class="text-xl sm:text-2xl font-semibold text-zinc-900">Laporan Laba Rugi</h1>
             <p class="text-sm text-zinc-500">Rekap pendapatan dan biaya operasional per periode.</p>
         </div>
+        <style>
+            .btn-edit-yellow {
+                background-color: #f59e0b !important;
+                color: #ffffff !important;
+                border: 1px solid #f59e0b !important;
+            }
+            .btn-edit-yellow:hover {
+                background-color: #d97706 !important;
+                border-color: #d97706 !important;
+            }
+        </style>
         @if($this->canPrint)
-            <flux:button variant="primary" icon="document-arrow-down"
-                wire:click="exportPdf" wire:loading.attr="disabled"
-                class="w-full sm:w-auto shrink-0">
-                Cetak PDF
-            </flux:button>
+            <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                @if($isEditing)
+                    <flux:button variant="danger" wire:click="cancelEditing" class="w-full sm:w-auto shrink-0">Batal</flux:button>
+                    <flux:button variant="primary" wire:click="saveAdjustments" class="w-full sm:w-auto shrink-0" wire:loading.attr="disabled" wire:target="saveAdjustments">Simpan Perubahan</flux:button>
+                @else
+                    <flux:button variant="primary" icon="pencil" wire:click="startEditing" class="w-full sm:w-auto shrink-0 btn-edit-yellow">Edit</flux:button>
+                    <flux:button variant="primary" icon="document-arrow-down"
+                        wire:click="exportPdf" wire:loading.attr="disabled"
+                        class="w-full sm:w-auto shrink-0">
+                        Cetak PDF
+                    </flux:button>
+                @endif
+            </div>
         @endif
     </div>
 
@@ -137,7 +156,13 @@
                             <td class="block md:table-cell md:px-6 md:py-3 font-mono text-xs text-zinc-500 order-2 md:order-none">{{ $row->kode }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-base md:text-sm font-semibold md:font-normal text-zinc-900 order-1 md:order-none mb-1 md:mb-0">{{ $row->nama }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-left md:text-right font-bold md:font-medium text-brand-700 md:text-zinc-800 order-3 md:order-none mt-2 md:mt-0 text-base md:text-sm">
-                                {{ $row->jumlah != 0 ? 'Rp '.number_format($row->jumlah, 0, ',', '.') : '-' }}
+                                @if($isEditing)
+                                    <div class="flex justify-end">
+                                        <input type="number" wire:model="editValues.{{ $row->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal" />
+                                    </div>
+                                @else
+                                    {{ $row->jumlah != 0 ? 'Rp '.number_format($row->jumlah, 0, ',', '.') : '-' }}
+                                @endif
                             </td>
                             <td class="hidden md:table-cell px-4 sm:px-6 py-3"></td>
                         </tr>
@@ -165,7 +190,13 @@
                             <td class="block md:table-cell md:px-6 md:py-3 font-mono text-xs text-zinc-500 order-2 md:order-none">{{ $row->kode }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-base md:text-sm font-semibold md:font-normal text-zinc-900 order-1 md:order-none mb-1 md:mb-0">{{ $row->nama }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-left md:text-right font-bold md:font-medium text-brand-700 md:text-zinc-800 order-3 md:order-none mt-2 md:mt-0 text-base md:text-sm">
-                                {{ $row->jumlah != 0 ? 'Rp '.number_format($row->jumlah, 0, ',', '.') : '-' }}
+                                @if($isEditing)
+                                    <div class="flex justify-end">
+                                        <input type="number" wire:model="editValues.{{ $row->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal" />
+                                    </div>
+                                @else
+                                    {{ $row->jumlah != 0 ? 'Rp '.number_format($row->jumlah, 0, ',', '.') : '-' }}
+                                @endif
                             </td>
                             <td class="hidden md:table-cell px-4 sm:px-6 py-3"></td>
                         </tr>
@@ -204,7 +235,13 @@
                             <td class="block md:table-cell md:px-6 md:py-3 font-mono text-xs text-zinc-500 order-2 md:order-none">{{ $row->kode }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-base md:text-sm font-semibold md:font-normal text-zinc-900 order-1 md:order-none mb-1 md:mb-0">{{ $row->nama }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-left md:text-right font-bold md:font-medium text-red-700 md:text-zinc-800 order-3 md:order-none mt-2 md:mt-0 text-base md:text-sm">
-                                {{ $row->jumlah != 0 ? 'Rp '.number_format($row->jumlah, 0, ',', '.') : '-' }}
+                                @if($isEditing)
+                                    <div class="flex justify-end">
+                                        <input type="number" wire:model="editValues.{{ $row->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal" />
+                                    </div>
+                                @else
+                                    {{ $row->jumlah != 0 ? 'Rp '.number_format($row->jumlah, 0, ',', '.') : '-' }}
+                                @endif
                             </td>
                             <td class="hidden md:table-cell px-4 sm:px-6 py-3"></td>
                         </tr>
@@ -232,7 +269,13 @@
                             <td class="block md:table-cell md:px-6 md:py-3 font-mono text-xs text-zinc-500 order-2 md:order-none">{{ $row->kode }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-base md:text-sm font-semibold md:font-normal text-zinc-900 order-1 md:order-none mb-1 md:mb-0">{{ $row->nama }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-left md:text-right font-bold md:font-medium text-brand-700 md:text-zinc-800 order-3 md:order-none mt-2 md:mt-0 text-base md:text-sm">
-                                {{ $row->jumlah != 0 ? 'Rp '.number_format($row->jumlah, 0, ',', '.') : '-' }}
+                                @if($isEditing)
+                                    <div class="flex justify-end">
+                                        <input type="number" wire:model="editValues.{{ $row->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal" />
+                                    </div>
+                                @else
+                                    {{ $row->jumlah != 0 ? 'Rp '.number_format($row->jumlah, 0, ',', '.') : '-' }}
+                                @endif
                             </td>
                             <td class="hidden md:table-cell px-4 sm:px-6 py-3"></td>
                         </tr>
@@ -242,7 +285,13 @@
                             <td class="block md:table-cell md:px-6 md:py-3 font-mono text-xs text-zinc-500 order-2 md:order-none">{{ $row->kode }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-base md:text-sm font-semibold md:font-normal text-zinc-900 order-1 md:order-none mb-1 md:mb-0">{{ $row->nama }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-left md:text-right font-bold md:font-medium text-red-700 md:text-zinc-800 order-3 md:order-none mt-2 md:mt-0 text-base md:text-sm">
-                                {{ $row->jumlah != 0 ? 'Rp '.number_format($row->jumlah, 0, ',', '.') : '-' }}
+                                @if($isEditing)
+                                    <div class="flex justify-end">
+                                        <input type="number" wire:model="editValues.{{ $row->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal" />
+                                    </div>
+                                @else
+                                    {{ $row->jumlah != 0 ? 'Rp '.number_format($row->jumlah, 0, ',', '.') : '-' }}
+                                @endif
                             </td>
                             <td class="hidden md:table-cell px-4 sm:px-6 py-3"></td>
                         </tr>

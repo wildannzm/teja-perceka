@@ -31,6 +31,7 @@ use App\Livewire\SuperAdmin\ActivityLogs as SuperAdminActivityLogs;
 use App\Livewire\SuperAdmin\Dashboard as SuperAdminDashboard;
 use App\Livewire\SuperAdmin\UserManager as SuperAdminUserManager;
 use App\Livewire\Transaksi\RiwayatRekap;
+use App\Models\TransaksiHarian;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -85,6 +86,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('unit/catat-pengeluaran', KepalaUnitCatatPengeluaran::class)
             ->name('unit.catat-pengeluaran');
+
+        Route::get('unit/edit-transaksi/{transaksiHarian}', function (TransaksiHarian $transaksiHarian) {
+            return view('dashboard.unit-edit', ['editId' => $transaksiHarian->id]);
+        })->name('unit.edit-transaksi');
     });
 
     // ===== Sekretaris =====

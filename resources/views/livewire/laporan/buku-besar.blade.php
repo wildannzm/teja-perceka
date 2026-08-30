@@ -1,5 +1,5 @@
 <div>
-<div class="flex h-full w-full flex-col gap-4 sm:gap-6 max-w-5xl mx-auto pb-10">
+<div class="flex h-full w-full flex-col gap-4 sm:gap-6 max-w-full mx-auto pb-10">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div class="flex flex-col gap-1">
             <h1 class="text-xl sm:text-2xl font-semibold text-zinc-900">Laporan Buku Besar</h1>

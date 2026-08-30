@@ -15,3 +15,51 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+<script>
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('swal-alert', (events) => {
+            const event = Array.isArray(events) ? events[0] : events;
+            window.Swal.fire({
+                icon: event.icon ?? 'info',
+                title: event.title ?? '',
+                text: event.text ?? '',
+                timer: event.timer ?? (event.icon === 'success' ? 2500 : undefined),
+                timerProgressBar: event.icon === 'success',
+                showConfirmButton: event.icon !== 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#f59e0b',
+                customClass: {
+                    popup: 'rounded-2xl shadow-2xl font-sans',
+                    title: 'text-zinc-900 font-semibold',
+                    htmlContainer: 'text-zinc-600',
+                    timerProgressBar: 'bg-amber-400',
+                },
+            });
+        });
+    });
+</script>
+
+@if(session('swal'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const swal = @json(session('swal'));
+            window.Swal.fire({
+                icon: swal.icon ?? 'info',
+                title: swal.title ?? '',
+                text: swal.text ?? '',
+                timer: swal.icon === 'success' ? 2500 : undefined,
+                timerProgressBar: swal.icon === 'success',
+                showConfirmButton: swal.icon !== 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#f59e0b',
+                customClass: {
+                    popup: 'rounded-2xl shadow-2xl font-sans',
+                    title: 'text-zinc-900 font-semibold',
+                    htmlContainer: 'text-zinc-600',
+                    timerProgressBar: 'bg-amber-400',
+                },
+            });
+        });
+    </script>
+@endif

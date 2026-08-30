@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-6 max-w-2xl mx-auto w-full pb-10">
+<div class="flex flex-col gap-6 max-w-full mx-auto w-full pb-10">
 
     <div class="flex flex-col gap-1">
         <h1 class="text-2xl font-bold text-zinc-900">Catat Pengeluaran</h1>

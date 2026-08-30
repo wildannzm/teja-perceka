@@ -42,7 +42,8 @@
                     </span>
                 </a>
                 <!-- Tombol tutup sidebar (mobile) -->
-                <button @click="sidebarOpen = false" class="lg:hidden size-9 flex items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 transition-colors">
+                <button @click="sidebarOpen = false"
+                    class="lg:hidden size-9 flex items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -126,8 +127,10 @@
                         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('laporan.alokasi-laba') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-4 shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
                         </svg>
                         Alokasi Laba
                     </a>
@@ -220,8 +223,10 @@
                         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('laporan.alokasi-laba') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-4 shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
                         </svg>
                         Alokasi Laba
                     </a>
@@ -314,8 +319,10 @@
                         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('laporan.alokasi-laba') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-4 shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
                         </svg>
                         Alokasi Laba
                     </a>
@@ -409,8 +416,10 @@
                         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('laporan.alokasi-laba') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-4 shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
                         </svg>
                         Alokasi Laba
                     </a>
@@ -592,8 +601,10 @@
                         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('laporan.alokasi-laba') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-4 shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
                         </svg>
                         Alokasi Laba
                     </a>
@@ -687,7 +698,8 @@
             <!-- Mobile topbar -->
             <header
                 class="lg:hidden flex items-center justify-between h-14 px-4 bg-white border-b border-zinc-200 shrink-0">
-                <button @click="sidebarOpen = true" class="size-9 flex items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 transition-colors">
+                <button @click="sidebarOpen = true"
+                    class="size-9 flex items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-5">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -700,36 +712,46 @@
             </header>
 
             <!-- Slot konten halaman -->
-            <main class="flex-1 p-4 sm:p-6 lg:p-8">
+            <main class="flex-1 p-4 sm:p-6">
                 {{ $slot }}
             </main>
         </div>
 
     </div><!-- end flex wrapper -->
 
-    @if(session()->has('impersonator_id'))
-        <div style="position: fixed !important; bottom: 24px !important; right: 24px !important; z-index: 999999 !important; background-color: #ffffff !important; border: 1px solid #e4e4e7 !important; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; border-radius: 9999px !important; padding: 6px 14px 6px 10px !important; display: flex !important; align-items: center !important; gap: 12px !important;">
+    @if (session()->has('impersonator_id'))
+        <div
+            style="position: fixed !important; bottom: 24px !important; right: 24px !important; z-index: 999999 !important; background-color: #ffffff !important; border: 1px solid #e4e4e7 !important; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; border-radius: 9999px !important; padding: 6px 14px 6px 10px !important; display: flex !important; align-items: center !important; gap: 12px !important;">
             <!-- Icon -->
-            <div style="width: 34px !important; height: 34px !important; border-radius: 9999px !important; background-color: #fef3c7 !important; color: #d97706 !important; display: flex !important; align-items: center !important; justify-content: center !important; font-weight: 700 !important; font-size: 14px !important; flex-shrink: 0 !important;">
+            <div
+                style="width: 34px !important; height: 34px !important; border-radius: 9999px !important; background-color: #fef3c7 !important; color: #d97706 !important; display: flex !important; align-items: center !important; justify-content: center !important; font-weight: 700 !important; font-size: 14px !important; flex-shrink: 0 !important;">
                 🔑
             </div>
 
             <!-- User Info -->
-            <div style="display: flex !important; flex-direction: column !important; text-align: left !important; line-height: 1.25 !important;">
-                <span style="font-size: 9px !important; font-weight: 800 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; color: #d97706 !important;">Mode Penyamaran</span>
-                <span style="font-size: 12px !important; font-weight: 700 !important; color: #18181b !important; max-width: 150px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important;" title="{{ auth()->user()->name }} ({{ auth()->user()->email }})">
+            <div
+                style="display: flex !important; flex-direction: column !important; text-align: left !important; line-height: 1.25 !important;">
+                <span
+                    style="font-size: 9px !important; font-weight: 800 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; color: #d97706 !important;">Mode
+                    Penyamaran</span>
+                <span
+                    style="font-size: 12px !important; font-weight: 700 !important; color: #18181b !important; max-width: 150px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important;"
+                    title="{{ auth()->user()->name }} ({{ auth()->user()->email }})">
                     {{ auth()->user()->name }}
                 </span>
             </div>
 
             <!-- Exit Button -->
-            <form method="POST" action="{{ route('impersonate.stop') }}" style="display: inline-flex !important; margin: 0 !important; padding: 0 !important;">
+            <form method="POST" action="{{ route('impersonate.stop') }}"
+                style="display: inline-flex !important; margin: 0 !important; padding: 0 !important;">
                 @csrf
-                <button type="submit" 
+                <button type="submit"
                     style="height: 32px !important; padding: 0 12px !important; border-radius: 9999px !important; background-color: #dc2626 !important; color: #ffffff !important; font-weight: 700 !important; font-size: 11px !important; border: none !important; cursor: pointer !important; display: flex !important; align-items: center !important; gap: 6px !important; flex-shrink: 0 !important; transition: all 0.2s !important; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2) !important;"
                     title="Keluar dari mode impersonasi (Kembali ke Admin)">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width: 14px !important; height: 14px !important;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+                        stroke="currentColor" style="width: 14px !important; height: 14px !important;">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
                     </svg>
                     <span>Keluar</span>
                 </button>

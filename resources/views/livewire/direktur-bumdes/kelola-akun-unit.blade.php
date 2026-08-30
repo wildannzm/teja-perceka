@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-6 max-w-5xl mx-auto w-full pb-10">
+<div class="flex flex-col gap-6 max-w-full mx-auto w-full pb-10">
 
     <div class="flex flex-col gap-1">
         <h1 class="text-2xl font-bold text-zinc-900">Kelola Akun Kepala Unit</h1>

@@ -39,9 +39,30 @@ class TabJurnal extends Component
     #[Reactive]
     public string $tahun = '';
 
+    // ── Delete state ──────────────────────────────────────────────────────────
     public ?int $deleteId = null;
 
     public bool $showDeleteModal = false;
+
+    // ── Edit state ────────────────────────────────────────────────────────────
+    public ?int $editJurnalId = null;
+
+    public string $editNomorBukti = '';
+
+    public bool $showEditModal = false;
+
+    /** Editable header fields */
+    public string $editTanggal = '';
+
+    public string $editKeterangan = '';
+
+    /**
+     * Editable rows per jurnal entry within the nomor_bukti group.
+     * Each row: ['id' => int, 'kode_akun_id' => int, 'kode_akun_label' => string, 'debet' => string, 'kredit' => string]
+     *
+     * @var array<int, array{id: int, kode_akun_id: int, kode_akun_label: string, debet: string, kredit: string}>
+     */
+    public array $editRows = [];
 
     #[Computed]
     public function dateRange(): array
@@ -150,6 +171,17 @@ class TabJurnal extends Component
         return Auth::user()->hasAnyRole(['sekretaris', 'bendahara', 'direktur_bumdes', 'kepala_unit']);
     }
 
+    /**
+     * Same authorization as canDelete.
+     */
+    #[Computed]
+    public function canEdit(): bool
+    {
+        return Auth::user()->hasAnyRole(['sekretaris', 'bendahara', 'direktur_bumdes', 'kepala_unit']);
+    }
+
+    // ── Delete ────────────────────────────────────────────────────────────────
+
     public function confirmDelete(int $id): void
     {
         $this->deleteId = $id;
@@ -181,22 +213,134 @@ class TabJurnal extends Component
             JurnalUmum::where('nomor_bukti', $jurnal->nomor_bukti)->delete();
         });
 
-        \Flux::toast(variant: 'success', text: 'Satu set jurnal (debet & kredit) berhasil dihapus.');
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Satu set jurnal (debet & kredit) berhasil dihapus.');
 
         $this->showDeleteModal = false;
         $this->deleteId = null;
     }
 
+    // ── Edit ──────────────────────────────────────────────────────────────────
+
+    public function openEdit(int $jurnalId): void
+    {
+        if (! $this->canEdit) {
+            abort(403);
+        }
+
+        $jurnal = JurnalUmum::findOrFail($jurnalId);
+
+        // Kepala Unit: only edit own unit's journals
+        if (Auth::user()->hasRole('kepala_unit')) {
+            if ($jurnal->unit_wisata_id !== Auth::user()->unit_wisata_id) {
+                abort(403);
+            }
+        }
+
+        // Load the whole group by nomor_bukti
+        $group = JurnalUmum::with('kodeAkun')
+            ->where('nomor_bukti', $jurnal->nomor_bukti)
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $this->editJurnalId = $jurnalId;
+        $this->editNomorBukti = $jurnal->nomor_bukti;
+        $this->editTanggal = $jurnal->tanggal->format('Y-m-d');
+        $this->editKeterangan = $jurnal->keterangan;
+
+        $this->editRows = $group->map(fn ($row) => [
+            'id' => $row->id,
+            'kode_akun_id' => $row->kode_akun_id,
+            'kode_akun_label' => ($row->kodeAkun?->kode ?? '-').' - '.($row->kodeAkun?->nama ?? '?'),
+            'debet' => $row->debet > 0 ? (string) (int) $row->debet : '',
+            'kredit' => $row->kredit > 0 ? (string) (int) $row->kredit : '',
+        ])->toArray();
+
+        $this->showEditModal = true;
+    }
+
+    public function executeEdit(): void
+    {
+        if (! $this->canEdit || ! $this->editNomorBukti) {
+            abort(403);
+        }
+
+        $this->validate([
+            'editTanggal' => 'required|date',
+            'editKeterangan' => 'required|string|max:500',
+            'editRows' => 'required|array|min:1',
+            'editRows.*.debet' => 'nullable|numeric|min:0',
+            'editRows.*.kredit' => 'nullable|numeric|min:0',
+        ]);
+
+        try {
+            DB::transaction(function () {
+                foreach ($this->editRows as $row) {
+                    $jurnal = JurnalUmum::findOrFail($row['id']);
+
+                    // Authorization check per-row
+                    if (Auth::user()->hasRole('kepala_unit')) {
+                        if ($jurnal->unit_wisata_id !== Auth::user()->unit_wisata_id) {
+                            abort(403);
+                        }
+                    }
+
+                    $debet = (float) ($row['debet'] ?: 0);
+                    $kredit = (float) ($row['kredit'] ?: 0);
+
+                    $jurnal->update([
+                        'tanggal' => $this->editTanggal,
+                        'keterangan' => $this->editKeterangan,
+                        'debet' => $debet,
+                        'kredit' => $kredit,
+                    ]);
+                }
+
+                // Also sync the tanggal on the linked TransaksiHarian if present
+                $firstJurnal = JurnalUmum::where('nomor_bukti', $this->editNomorBukti)->first();
+                if ($firstJurnal && $firstJurnal->transaksi_harian_id) {
+                    $totalDebet = JurnalUmum::where('nomor_bukti', $this->editNomorBukti)->sum('debet');
+                    TransaksiHarian::where('id', $firstJurnal->transaksi_harian_id)->update([
+                        'tanggal' => $this->editTanggal,
+                        'total_pemasukan' => $totalDebet,
+                    ]);
+                }
+            });
+
+            $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Jurnal berhasil diperbarui.');
+
+            $this->showEditModal = false;
+            $this->resetEditState();
+            unset($this->transactions);
+        } catch (\Exception $e) {
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan: '.$e->getMessage());
+        }
+    }
+
+    public function cancelEdit(): void
+    {
+        $this->showEditModal = false;
+        $this->resetEditState();
+    }
+
+    private function resetEditState(): void
+    {
+        $this->editJurnalId = null;
+        $this->editNomorBukti = '';
+        $this->editTanggal = '';
+        $this->editKeterangan = '';
+        $this->editRows = [];
+    }
+
     public function exportPdf()
     {
         if (! $this->canExportPdf) {
-            \Flux::toast(variant: 'warning', text: 'Cetak PDF hanya tersedia untuk mode Bulanan, Semester, dan Tahunan.');
+            $this->dispatch('swal-alert', icon: 'warning', title: 'Perhatian', text: 'Cetak PDF hanya tersedia untuk mode Bulanan, Semester, dan Tahunan.');
 
             return;
         }
 
         if (! class_exists(Pdf::class)) {
-            \Flux::toast(variant: 'danger', text: 'Package PDF belum terinstall.');
+            $this->dispatch('swal-alert', icon: 'error', title: 'Error', text: 'Package PDF belum terinstall.');
 
             return;
         }

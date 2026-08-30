@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-6 max-w-2xl mx-auto w-full pb-20">
+<div class="flex flex-col gap-6 max-w-full mx-auto w-full pb-20">
 
     {{-- Header --}}
     <div class="flex flex-col gap-1">

@@ -17,7 +17,7 @@ return new class extends Migration
         $admin = User::firstOrCreate(
             ['email' => 'admin@tejaperceka.com'],
             [
-                'name' => 'Administrator Utama',
+                'name' => 'Administrator',
                 'password' => Hash::make('password'),
                 'is_active' => true,
             ]

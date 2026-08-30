@@ -2,7 +2,7 @@
     <div class="flex h-full w-full flex-1 flex-col gap-4 p-4 sm:p-6">
 
         {{-- Header --}}
-        <div class="max-w-2xl mx-auto w-full">
+        <div class="mx-auto w-full">
             <div class="rounded-xl border border-brand-100 bg-white p-5 sm:p-6 shadow-sm">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div class="flex items-center gap-3 min-w-0">

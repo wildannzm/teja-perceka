@@ -59,6 +59,100 @@ class LabaRugi extends Component
         }
     }
 
+    // ─── Inline Edit ─────────────────────────────────────────────────────
+
+    public bool $isEditing = false;
+
+    public array $editValues = [];
+
+    public function startEditing(): void
+    {
+        if (! Auth::user()->hasAnyRole(['kepala_unit', 'sekretaris', 'bendahara', 'direktur_bumdes'])) {
+            abort(403);
+        }
+
+        $this->isEditing = true;
+
+        // Populate editValues with current totals
+        $data = $this->reportData;
+        foreach (['pendapatanRows', 'hppRows', 'bebanRows', 'pendapatanLainRows', 'bebanLainRows'] as $group) {
+            foreach ($data[$group] as $row) {
+                $this->editValues[$row->id] = $row->jumlah;
+            }
+        }
+    }
+
+    public function cancelEditing(): void
+    {
+        $this->isEditing = false;
+        $this->editValues = [];
+    }
+
+    public function saveAdjustments(): void
+    {
+        if (! Auth::user()->hasAnyRole(['kepala_unit', 'sekretaris', 'bendahara', 'direktur_bumdes'])) {
+            abort(403);
+        }
+
+        $data = $this->reportData;
+        $allOriginalRows = collect();
+        foreach (['pendapatanRows', 'hppRows', 'bebanRows', 'pendapatanLainRows', 'bebanLainRows'] as $group) {
+            foreach ($data[$group] as $row) {
+                // Attach the group name so we know the arahNormal
+                $row->groupName = $group;
+                $allOriginalRows->push($row);
+            }
+        }
+
+        [$start, $end] = $this->periodeRange();
+        $batchTime = time();
+
+        foreach ($this->editValues as $akunId => $newValue) {
+            $newValue = (float) $newValue;
+            $originalRow = $allOriginalRows->firstWhere('id', $akunId);
+
+            if ($originalRow) {
+                $selisih = $newValue - $originalRow->jumlah;
+
+                if ($selisih != 0) {
+                    // Determine normal balance based on group
+                    $arahNormal = in_array($originalRow->groupName, ['pendapatanRows', 'pendapatanLainRows']) ? 'kredit' : 'debet';
+
+                    $debet = 0;
+                    $kredit = 0;
+
+                    if ($arahNormal === 'kredit') {
+                        if ($selisih > 0) {
+                            $kredit = abs($selisih);
+                        } else {
+                            $debet = abs($selisih);
+                        }
+                    } else { // arah normal debet
+                        if ($selisih > 0) {
+                            $debet = abs($selisih);
+                        } else {
+                            $kredit = abs($selisih);
+                        }
+                    }
+
+                    JurnalUmum::create([
+                        'nomor_bukti' => 'ADJ-'.$batchTime.'-'.$akunId,
+                        'tanggal' => $end->format('Y-m-d'),
+                        'keterangan' => 'Penyesuaian Manual Laba Rugi',
+                        'kode_akun_id' => $akunId,
+                        'debet' => $debet,
+                        'kredit' => $kredit,
+                        'unit_wisata_id' => $this->unit_id,
+                    ]);
+                }
+            }
+        }
+
+        $this->isEditing = false;
+        $this->editValues = [];
+        unset($this->reportData);
+    }
+
     // ─── Helpers ─────────────────────────────────────────────────────────
 
     private function periodeRange(): array

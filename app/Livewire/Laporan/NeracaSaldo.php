@@ -25,6 +25,10 @@ class NeracaSaldo extends Component
     /** Format Y-m */
     public string $periode = '';
 
+    public bool $isEditing = false;
+
+    public array $editValues = [];
+
     public function mount(): void
     {
         $user = Auth::user();
@@ -35,6 +39,88 @@ class NeracaSaldo extends Component
         }
 
         $this->periode = Carbon::now()->format('Y-m');
+    }
+
+    public function startEditing(): void
+    {
+        $this->isEditing = true;
+        $this->editValues = [];
+        $data = $this->reportData;
+        foreach (['aktivaLancar', 'aktivaTetap', 'kewajibanPendek', 'kewajibanPanjang', 'ekuitas'] as $key) {
+            foreach ($data[$key] as $row) {
+                $this->editValues[$row->id] = $row->saldo;
+            }
+        }
+    }
+
+    public function cancelEditing(): void
+    {
+        $this->isEditing = false;
+        $this->editValues = [];
+    }
+
+    public function saveAdjustments(): void
+    {
+        $data = $this->reportData;
+        $allOriginalRows = collect();
+
+        foreach (['aktivaLancar', 'aktivaTetap', 'kewajibanPendek', 'kewajibanPanjang', 'ekuitas'] as $group) {
+            foreach ($data[$group] as $row) {
+                $allOriginalRows->push($row);
+            }
+        }
+
+        [$start, $end] = $this->periodeRange();
+        $batchTime = time();
+
+        foreach ($this->editValues as $akunId => $newValue) {
+            $newValue = (float) $newValue;
+            $originalRow = $allOriginalRows->firstWhere('id', $akunId);
+
+            if ($originalRow) {
+                $selisih = $newValue - $originalRow->saldo;
+
+                if ($selisih != 0) {
+                    $akun = KodeAkun::find($akunId);
+                    if (! $akun) {
+                        continue;
+                    }
+
+                    $arahNormal = $this->getNormalBalanceType($akun->tipe);
+
+                    $debet = 0;
+                    $kredit = 0;
+
+                    if ($arahNormal === 'kredit') {
+                        if ($selisih > 0) {
+                            $kredit = abs($selisih);
+                        } else {
+                            $debet = abs($selisih);
+                        }
+                    } else { // arah normal debet
+                        if ($selisih > 0) {
+                            $debet = abs($selisih);
+                        } else {
+                            $kredit = abs($selisih);
+                        }
+                    }
+
+                    JurnalUmum::create([
+                        'nomor_bukti' => 'ADJ-'.$batchTime.'-'.$akunId,
+                        'tanggal' => $end->format('Y-m-d'),
+                        'keterangan' => 'Penyesuaian Manual Neraca Saldo',
+                        'kode_akun_id' => $akunId,
+                        'debet' => $debet,
+                        'kredit' => $kredit,
+                        'unit_wisata_id' => $this->unit_id,
+                    ]);
+                }
+            }
+        }
+
+        $this->isEditing = false;
+        $this->editValues = [];
+        unset($this->reportData);
     }
 
     private function getNormalBalanceType(string $tipe): string
@@ -149,6 +235,7 @@ class NeracaSaldo extends Component
                 }
 
                 $item = (object) [
+                    'id' => $akun->id,
                     'kode' => $akun->kode,
                     'nama' => $akun->nama,
                     'saldo' => $saldoAkhir,
@@ -182,6 +269,7 @@ class NeracaSaldo extends Component
             $labaBersihAkun = KodeAkun::where('kode', '3-3000')->first();
             if ($labaBersihAkun) {
                 $ekuitas->push((object) [
+                    'id' => $labaBersihAkun->id,
                     'kode' => $labaBersihAkun->kode,
                     'nama' => 'LABA BERSIH', // Override name to match excel
                     'saldo' => $labaBersih,

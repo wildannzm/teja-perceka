@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-6 max-w-2xl mx-auto w-full pb-20">
+<div class="flex flex-col gap-6 max-w-full mx-auto w-full pb-20">
     @if (session()->has('status'))
         <div class="p-4 mb-2 text-sm text-brand-900 bg-brand-100 rounded-xl border border-brand-200 flex items-center gap-3 shadow-sm"
             role="alert">
@@ -11,28 +11,25 @@
         </div>
     @endif
 
-    @if ($sudahInput)
-        <div
-            class="bg-white rounded-2xl p-8 sm:p-10 shadow-sm border border-brand-100 text-center flex flex-col items-center justify-center">
-            <div class="size-16 rounded-full bg-brand-100 flex items-center justify-center mb-4">
-                <svg class="size-8 text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+
+        {{-- Edit Mode Banner --}}
+        @if ($isEditing)
+            <div class="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl shadow-sm">
+                <div class="size-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                    <svg class="size-5 text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-amber-900">Mode Edit</p>
+                    <p class="text-xs text-amber-700 mt-0.5">Anda sedang mengubah data transaksi yang sudah ada. Simpan untuk memperbarui.</p>
+                </div>
+                <flux:button variant="ghost" size="sm" :href="route('riwayat-rekap')" wire:navigate icon="x-mark" class="shrink-0 text-amber-700 hover:bg-amber-100" />
             </div>
-            <h2 class="text-xl font-bold text-brand-900 mb-2">Transaksi Sudah Diisi</h2>
-            <p class="text-zinc-500 mb-6 max-w-md">
-                Anda sudah mengisi transaksi untuk {{ $isMingguan ? 'minggu' : 'tanggal' }} ini
-                ({{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }}).
-                Silakan cek halaman Riwayat & Rekap untuk melihat atau mengubah detailnya.
-            </p>
-            <flux:button variant="primary" :href="route('unit.riwayat-transaksi')" wire:navigate
-                icon="document-chart-bar">
-                Lihat Riwayat & Rekap
-            </flux:button>
-        </div>
-    @else
+        @endif
+
         <form wire:submit="submit" class="flex flex-col gap-5 sm:gap-6">
 
             {{-- Header / Tanggal --}}
@@ -82,8 +79,26 @@
                 </div>
             </div>
 
-            {{-- Daftar Kategori --}}
-            <div class="bg-white rounded-2xl shadow-sm border border-brand-100 overflow-hidden">
+            @if ($sudahInput && !$isEditing)
+                <div class="bg-white rounded-2xl p-8 sm:p-10 shadow-sm border border-brand-100 text-center flex flex-col items-center justify-center">
+                    <div class="size-16 rounded-full bg-brand-100 flex items-center justify-center mb-4">
+                        <svg class="size-8 text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-bold text-brand-900 mb-2">Transaksi Sudah Diisi</h2>
+                    <p class="text-zinc-500 mb-6 max-w-md">
+                        Anda sudah mengisi transaksi untuk {{ $isMingguan ? 'minggu' : 'tanggal' }} ini
+                        ({{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }}).
+                        Silakan cek halaman Riwayat & Rekap untuk melihat atau mengubah detailnya.
+                    </p>
+                    <flux:button variant="primary" :href="route('unit.riwayat-transaksi')" wire:navigate icon="document-chart-bar">
+                        Lihat Riwayat & Rekap
+                    </flux:button>
+                </div>
+            @else
+                {{-- Daftar Kategori --}}
+                <div class="bg-white rounded-2xl shadow-sm border border-brand-100 overflow-hidden">
                 <div class="p-5 border-b border-brand-100 bg-brand-50/50">
                     <h2 class="text-lg font-semibold text-brand-900 flex items-center gap-2">
                         <svg class="size-5 text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -184,17 +199,53 @@
 
                     {{-- Tombol submit tinggi minimum 52px agar touch friendly --}}
                     <button type="submit"
-                        class="w-full min-h-[56px] rounded-2xl text-base font-semibold shadow-md border border-transparent bg-brand-600 text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer">
-                        <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" />
-                        </svg>
-                        Simpan Transaksi
+                        class="w-full min-h-[56px] rounded-2xl text-base font-semibold shadow-md border border-transparent {{ $isEditing ? 'bg-amber-500 hover:bg-amber-600 focus:ring-amber-500/20' : 'bg-brand-600 hover:bg-brand-700 focus:ring-brand-500/20' }} text-white focus:outline-none focus:ring-4 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        @if ($isEditing)
+                            <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                            </svg>
+                            Perbarui Transaksi
+                        @else
+                            <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" />
+                            </svg>
+                            Simpan Transaksi
+                        @endif
                     </button>
                 </div>
             </div>
 
-        </form>
-    @endif
+
+        @endif
+    </form>
+
+    {{-- Modal Error Input Ganda --}}
+    <flux:modal wire:model="showDuplicateError" class="min-w-[400px]">
+        <div class="flex flex-col gap-6">
+            <div class="flex flex-col items-center justify-center text-center gap-4">
+                <div class="size-16 rounded-full bg-red-100 flex items-center justify-center">
+                    <svg class="size-8 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <div>
+                    <flux:heading size="lg">Input Ganda Ditolak</flux:heading>
+                    <flux:subheading class="mt-2 text-zinc-500">
+                        Data transaksi untuk periode/tanggal ini sudah pernah diinput.<br>
+                        Sistem memblokir input ganda. Silakan edit data yang sudah ada di Riwayat & Rekap.
+                    </flux:subheading>
+                </div>
+            </div>
+
+            <div class="flex justify-center w-full">
+                <flux:button variant="primary" wire:click="$set('showDuplicateError', false)" class="w-full sm:w-auto px-8">
+                    Mengerti & Tutup
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </div>

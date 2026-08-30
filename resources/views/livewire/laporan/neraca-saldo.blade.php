@@ -1,16 +1,35 @@
 <div>
-<div class="flex h-full w-full flex-col gap-4 sm:gap-6 max-w-5xl mx-auto pb-10">
+<div class="flex h-full w-full flex-col gap-4 sm:gap-6 max-w-full mx-auto pb-10">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div class="flex flex-col gap-1">
             <h1 class="text-xl sm:text-2xl font-semibold text-zinc-900">Neraca Saldo</h1>
             <p class="text-sm text-zinc-500">Ringkasan saldo akun untuk memastikan keseimbangan debit & kredit.</p>
         </div>
+        <style>
+            .btn-edit-yellow {
+                background-color: #f59e0b !important;
+                color: #ffffff !important;
+                border: 1px solid #f59e0b !important;
+            }
+            .btn-edit-yellow:hover {
+                background-color: #d97706 !important;
+                border-color: #d97706 !important;
+            }
+        </style>
         @if($this->canPrint)
-            <flux:button variant="primary" icon="document-arrow-down"
-                wire:click="exportPdf" wire:loading.attr="disabled"
-                class="w-full sm:w-auto shrink-0">
-                Cetak PDF
-            </flux:button>
+            <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                @if($isEditing)
+                    <flux:button variant="danger" wire:click="cancelEditing" class="w-full sm:w-auto shrink-0">Batal</flux:button>
+                    <flux:button variant="primary" wire:click="saveAdjustments" class="w-full sm:w-auto shrink-0" wire:loading.attr="disabled" wire:target="saveAdjustments">Simpan Perubahan</flux:button>
+                @else
+                    <flux:button variant="primary" icon="pencil" wire:click="startEditing" class="w-full sm:w-auto shrink-0 btn-edit-yellow">Edit</flux:button>
+                    <flux:button variant="primary" icon="document-arrow-down"
+                        wire:click="exportPdf" wire:loading.attr="disabled"
+                        class="w-full sm:w-auto shrink-0">
+                        Cetak PDF
+                    </flux:button>
+                @endif
+            </div>
         @endif
     </div>
 
@@ -91,7 +110,15 @@
                                 <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
                                     <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500">{{ $item->kode }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->nama }}</td>
-                                    <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->saldo == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">{{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}</td>
+                                    <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->saldo == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
+                                        @if($isEditing)
+                                            <div class="flex justify-end">
+                                                <input type="number" wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
+                                            </div>
+                                        @else
+                                            {{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}
+                                        @endif
+                                    </td>
                                 </tr>
                                 @endforeach
                                 <tr class="bg-zinc-100/50 border-y border-zinc-300">
@@ -107,7 +134,15 @@
                                 <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
                                     <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500">{{ $item->kode }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->nama }}</td>
-                                    <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->saldo == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">{{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}</td>
+                                    <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->saldo == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
+                                        @if($isEditing)
+                                            <div class="flex justify-end">
+                                                <input type="number" wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
+                                            </div>
+                                        @else
+                                            {{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}
+                                        @endif
+                                    </td>
                                 </tr>
                                 @endforeach
                                 <tr class="bg-zinc-100/50 border-y border-zinc-300">
@@ -145,7 +180,15 @@
                                 <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
                                     <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 pl-6">{{ $item->kode }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->nama }}</td>
-                                    <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->saldo == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">{{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}</td>
+                                    <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->saldo == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
+                                        @if($isEditing)
+                                            <div class="flex justify-end">
+                                                <input type="number" wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
+                                            </div>
+                                        @else
+                                            {{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}
+                                        @endif
+                                    </td>
                                 </tr>
                                 @endforeach
                                 
@@ -156,7 +199,15 @@
                                 <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
                                     <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 pl-6">{{ $item->kode }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->nama }}</td>
-                                    <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->saldo == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">{{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}</td>
+                                    <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->saldo == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
+                                        @if($isEditing)
+                                            <div class="flex justify-end">
+                                                <input type="number" wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
+                                            </div>
+                                        @else
+                                            {{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}
+                                        @endif
+                                    </td>
                                 </tr>
                                 @endforeach
 
@@ -173,7 +224,15 @@
                                 <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
                                     <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 pl-6">{{ $item->kode }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800 {{ $item->nama === 'LABA BERSIH' ? 'uppercase' : '' }}">{{ $item->nama }}</td>
-                                    <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->saldo == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">{{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}</td>
+                                    <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->saldo == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
+                                        @if($isEditing)
+                                            <div class="flex justify-end">
+                                                <input type="number" wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
+                                            </div>
+                                        @else
+                                            {{ $item->saldo == 0 ? '-' : number_format($item->saldo, 0, ',', '.') }}
+                                        @endif
+                                    </td>
                                 </tr>
                                 @endforeach
                                 

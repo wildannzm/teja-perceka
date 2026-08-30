@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-6 max-w-5xl mx-auto w-full pb-20">
+<div class="flex flex-col gap-6 max-w-full mx-auto w-full pb-20">
 
     {{-- Header --}}
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-brand-100">
@@ -26,7 +26,7 @@
         <div class="flex flex-col gap-1.5 w-full md:w-auto min-w-[200px]">
             <label class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Unit Wisata</label>
             <select wire:model.live="unit_id"
-                class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-colors cursor-pointer">
+                class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer">
                 <option value="">Semua Unit (Konsolidasi)</option>
                 @foreach ($this->units as $u)
                     <option value="{{ $u->id }}">{{ $u->nama }}</option>
@@ -37,7 +37,7 @@
         <div class="flex flex-col gap-1.5 w-full md:w-auto min-w-[150px]">
             <label class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Mode Laporan</label>
             <select wire:model.live="mode"
-                class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-colors cursor-pointer">
+                class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer">
                 <option value="bulanan">Bulanan</option>
                 <option value="semester">Semester</option>
                 <option value="tahunan">Tahunan</option>
@@ -67,21 +67,21 @@
             altInput: true,
             disableMobile: true
         })"
-        class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-colors cursor-pointer" />
+        class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer" />
 </div>
             @elseif ($mode === 'semester')
                 <div class="flex gap-2">
                     <select wire:model.live="semester"
-                        class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-colors cursor-pointer">
+                        class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer">
                         <option value="1">Sem 1 (Jan-Jun)</option>
                         <option value="2">Sem 2 (Jul-Des)</option>
                     </select>
                     <input type="number" wire:model.live="semesterTahun" placeholder="Tahun"
-                        class="w-24 rounded-xl border-2 border-zinc-200 px-3 py-2 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-colors cursor-pointer">
+                        class="w-24 rounded-xl border-2 border-zinc-200 px-3 py-2 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer">
                 </div>
             @else
                 <input type="number" wire:model.live="periode" placeholder="Pilih Tahun"
-                    class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-colors cursor-pointer">
+                    class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer">
             @endif
         </div>
     </div>
@@ -133,7 +133,7 @@
                         <div class="flex flex-col gap-1.5 flex-1">
                             <label class="text-xs font-bold text-zinc-700">Keterangan (Pos Alokasi)</label>
                             <input type="text" wire:model="formKeterangan" placeholder="Contoh: Pajak, Dana Desa, Bonus Pengurus..."
-                                class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
+                                class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none">
                             @error('formKeterangan') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                         </div>
 
@@ -141,7 +141,7 @@
                         <div class="flex flex-col gap-1.5 w-full sm:w-52">
                             <label class="text-xs font-bold text-zinc-700">Kelompok</label>
                             <select wire:model="formKelompok"
-                                class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-colors cursor-pointer">
+                                class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer">
                                 <option value="pengurang">Pengurang (dari Laba Bersih)</option>
                                 <option value="ad_art">AD/ART (dari Laba Setelah Pengurang)</option>
                             </select>
@@ -152,7 +152,7 @@
                         <div class="flex flex-col gap-1.5 w-full sm:w-36">
                             <label class="text-xs font-bold text-zinc-700">Persentase (%)</label>
                             <input type="number" step="0.01" wire:model="formPersentase" placeholder="Contoh: 12.5"
-                                class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10">
+                                class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2.5 text-sm text-zinc-900 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none">
                             @error('formPersentase') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                         </div>
                     </div>
