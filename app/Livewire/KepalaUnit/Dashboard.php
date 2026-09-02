@@ -40,9 +40,13 @@ class Dashboard extends Component
         $isMingguan = $this->unit->frekuensi_input === 'mingguan';
 
         if ($isMingguan) {
+            // For weekly units (TPS), show the alert only when there is no transaction
+            // at all within the current week (any entry in the week is sufficient).
             $this->isPeriodeBerjalanSudahDiisi = TransaksiHarian::where('unit_wisata_id', $this->unitId)
-                ->where('tanggal', $today->copy()->startOfWeek()->format('Y-m-d'))
-                ->where('tanggal_akhir', $today->copy()->endOfWeek()->format('Y-m-d'))
+                ->whereBetween('tanggal', [
+                    $today->copy()->startOfWeek()->format('Y-m-d'),
+                    $today->copy()->endOfWeek()->format('Y-m-d'),
+                ])
                 ->exists();
         } else {
             $this->isPeriodeBerjalanSudahDiisi = TransaksiHarian::where('unit_wisata_id', $this->unitId)

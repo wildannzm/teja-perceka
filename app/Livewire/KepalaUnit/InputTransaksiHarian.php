@@ -65,8 +65,9 @@ class InputTransaksiHarian extends Component
             $this->loadEditMode($editId);
         } else {
             if ($this->isMingguan) {
-                // Jika mingguan, ambil awal minggu (Senin) dan akhir minggu (Minggu) dari hari ini
-                $this->tanggal = $today->copy()->startOfWeek()->format('Y-m-d');
+                // For weekly units (TPS), default to today as the specific entry date,
+                // while tanggalAkhir marks the end of the current week period.
+                $this->tanggal = $today->format('Y-m-d');
                 $this->tanggalAkhir = $today->copy()->endOfWeek()->format('Y-m-d');
             } else {
                 $this->tanggal = $today->format('Y-m-d');
@@ -116,13 +117,12 @@ class InputTransaksiHarian extends Component
         $this->calculateAllSubtotals();
     }
 
-    public function updatedTanggal()
+    public function updatedTanggal(): void
     {
-        // Jika mingguan, tanggal bersifat readonly di UI.
-        // Namun jika secara logika function ini terpanggil, kita snap kembali ke awal minggu yang dipilih.
         if ($this->isMingguan) {
+            // For weekly units (TPS), the user picks a specific day within the week.
+            // Keep their chosen date and derive tanggalAkhir as the end of that week.
             $date = Carbon::parse($this->tanggal);
-            $this->tanggal = $date->copy()->startOfWeek()->format('Y-m-d');
             $this->tanggalAkhir = $date->copy()->endOfWeek()->format('Y-m-d');
         }
 
@@ -139,18 +139,11 @@ class InputTransaksiHarian extends Component
         $this->calculateAllSubtotals();
     }
 
-    private function checkSudahInput()
+    private function checkSudahInput(): void
     {
-        if ($this->isMingguan) {
-            $this->sudahInput = TransaksiHarian::where('unit_wisata_id', $this->unitId)
-                ->where('tanggal', $this->tanggal)
-                ->where('tanggal_akhir', $this->tanggalAkhir)
-                ->exists();
-        } else {
-            $this->sudahInput = TransaksiHarian::where('unit_wisata_id', $this->unitId)
-                ->whereDate('tanggal', $this->tanggal)
-                ->exists();
-        }
+        $this->sudahInput = TransaksiHarian::where('unit_wisata_id', $this->unitId)
+            ->whereDate('tanggal', $this->tanggal)
+            ->exists();
     }
 
     #[Computed]
@@ -243,6 +236,7 @@ class InputTransaksiHarian extends Component
             $this->checkSudahInput();
             if ($this->sudahInput) {
                 $this->showDuplicateError = true;
+
                 return;
             }
         }

@@ -49,9 +49,6 @@ class TabPendapatan extends Component
 
         switch ($this->mode) {
             case 'harian':
-                if ($isTps) {
-                    return null;
-                }
                 $date = Carbon::parse($this->tanggal ?: Carbon::today()->format('Y-m-d'));
 
                 return [$date->copy()->startOfDay(), $date->copy()->endOfDay()];
@@ -107,12 +104,7 @@ class TabPendapatan extends Component
             $q->where('unit_wisata_id', $this->unitId);
         }
 
-        if ($this->mode === 'mingguan' && $this->isUnitMingguan($unit) && $this->unitId) {
-            $q->where('tanggal', $start->format('Y-m-d'))
-                ->where('tanggal_akhir', $end->format('Y-m-d'));
-        } else {
-            $q->whereBetween('tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')]);
-        }
+        $q->whereBetween('tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')]);
 
         return $q;
     }

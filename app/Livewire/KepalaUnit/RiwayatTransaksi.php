@@ -22,7 +22,6 @@ class RiwayatTransaksi extends Component
 
     public ?UnitWisata $unit = null;
 
-    public bool $isMingguanOnly = false;
 
     public string $mode = 'harian';
 
@@ -40,9 +39,9 @@ class RiwayatTransaksi extends Component
 
         $this->unitId = $user->unit_wisata_id;
         $this->unit = UnitWisata::findOrFail($this->unitId);
-        $this->isMingguanOnly = $this->unit->frekuensi_input === 'mingguan';
+        $isMingguan = $this->unit->frekuensi_input === 'mingguan';
 
-        $this->mode = $this->isMingguanOnly ? 'mingguan' : 'harian';
+        $this->mode = $isMingguan ? 'mingguan' : 'harian';
 
         $today = Carbon::today();
         $this->dates = [

@@ -19,49 +19,49 @@
 
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
+        <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Total Pengguna</p>
-                    <h3 class="text-2xl font-bold text-zinc-900 dark:text-white mt-1">{{ number_format($totalUsers) }}</h3>
+                    <h3 class="text-2xl font-bold text-zinc-900 mt-1">{{ number_format($totalUsers) }}</h3>
                 </div>
-                <div class="p-3 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                <div class="p-3 bg-emerald-100 text-emerald-600 rounded-xl">
                     <flux:icon icon="users" class="size-6" />
                 </div>
             </div>
         </div>
 
-        <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
+        <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Unit Wisata</p>
-                    <h3 class="text-2xl font-bold text-zinc-900 dark:text-white mt-1">{{ number_format($totalUnits) }}</h3>
+                    <h3 class="text-2xl font-bold text-zinc-900 mt-1">{{ number_format($totalUnits) }}</h3>
                 </div>
-                <div class="p-3 bg-cyan-100 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-400 rounded-xl">
+                <div class="p-3 bg-cyan-100 text-cyan-600 rounded-xl">
                     <flux:icon icon="building-office-2" class="size-6" />
                 </div>
             </div>
         </div>
 
-        <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
+        <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Jumlah Role</p>
-                    <h3 class="text-2xl font-bold text-zinc-900 dark:text-white mt-1">{{ number_format($totalRoles) }}</h3>
+                    <h3 class="text-2xl font-bold text-zinc-900 mt-1">{{ number_format($totalRoles) }}</h3>
                 </div>
-                <div class="p-3 bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 rounded-xl">
+                <div class="p-3 bg-purple-100 text-purple-600 rounded-xl">
                     <flux:icon icon="key" class="size-6" />
                 </div>
             </div>
         </div>
 
-        <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
+        <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Aktivitas Hari Ini</p>
-                    <h3 class="text-2xl font-bold text-zinc-900 dark:text-white mt-1">{{ number_format($todayActivities) }}</h3>
+                    <h3 class="text-2xl font-bold text-zinc-900 mt-1">{{ number_format($todayActivities) }}</h3>
                 </div>
-                <div class="p-3 bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-xl">
+                <div class="p-3 bg-amber-100 text-amber-600 rounded-xl">
                     <flux:icon icon="bolt" class="size-6" />
                 </div>
             </div>
@@ -69,10 +69,10 @@
     </div>
 
     <!-- Activity Monitoring Chart - Full Width -->
-    <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
+    <div class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-2">
             <div>
-                <h2 class="text-lg font-bold text-zinc-900 dark:text-white">Grafik Monitoring Penggunaan User</h2>
+                <h2 class="text-lg font-bold text-zinc-900">Grafik Monitoring Penggunaan User</h2>
                 <p class="text-xs text-zinc-500">Trend aktivitas harian & penggunaan fitur penyamaran (7 Hari Terakhir)</p>
             </div>
             <a href="{{ route('super-admin.activity-logs') }}" wire:navigate class="text-xs font-semibold text-brand-600 hover:text-brand-700">Detail Audit Log →</a>

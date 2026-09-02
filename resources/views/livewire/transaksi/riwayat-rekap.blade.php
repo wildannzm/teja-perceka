@@ -43,7 +43,7 @@
                 <label class="text-sm font-medium text-zinc-700">Pilih {{ ucfirst($mode) }}</label>
                 
                 @if($mode === 'harian')
-                    <div wire:ignore x-data="{ val: $wire.entangle('tanggal').live }">
+                    <div wire:ignore wire:key="picker-harian" x-data="{ val: $wire.entangle('tanggal').live }">
     <input type="text" x-model="val"
         x-init="window.flatpickr($el, {
             locale: window.flatpickrIndonesian,
@@ -57,21 +57,7 @@
 </div>
                 
                 @elseif($mode === 'mingguan')
-                    @php $isTps = $this->selectedUnit && $this->selectedUnit->frekuensi_input === 'mingguan'; @endphp
-                    @if($isTps)
-                        @php
-                            // Load TPS weeks just for the filter if it's TPS
-                            $availableTpsWeeks = \App\Models\TransaksiHarian::where('unit_wisata_id', $unit_id)->select('tanggal', 'tanggal_akhir')->distinct()->orderBy('tanggal', 'desc')->get();
-                        @endphp
-                        <select wire:model.live="minggu" class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
-                            @forelse($availableTpsWeeks as $week)
-                                <option value="{{ $week->tanggal->format('Y-m-d') }}">{{ $week->tanggal->translatedFormat('d M') }} - {{ $week->tanggal_akhir->translatedFormat('d M Y') }}</option>
-                            @empty
-                                <option value="">Belum ada input</option>
-                            @endforelse
-                        </select>
-                    @else
-                        <div wire:ignore x-data="{ val: $wire.entangle('minggu').live }">
+                    <div wire:ignore wire:key="picker-mingguan" x-data="{ val: $wire.entangle('minggu').live }">
     <input type="text" x-model="val"
         x-init="window.flatpickr($el, {
             locale: window.flatpickrIndonesian,
@@ -83,10 +69,8 @@
         })"
         title="Pilih tanggal dalam minggu yang dituju" class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer" />
 </div>
-                    @endif
-                
                 @elseif($mode === 'bulanan')
-                    <div wire:ignore x-data="{ val: $wire.entangle('bulan').live }">
+                    <div wire:ignore wire:key="picker-bulanan" x-data="{ val: $wire.entangle('bulan').live }">
     <input type="text" x-model="val"
         x-init="window.flatpickr($el, {
             locale: window.flatpickrIndonesian,
@@ -106,7 +90,7 @@
 </div>
                 
                 @elseif($mode === 'semester')
-                    <div class="flex gap-2">
+                    <div wire:key="picker-semester" class="flex gap-2">
                         <select wire:model.live="semester"
                             class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                             <option value="1">Sem 1 (Jan-Jun)</option>
@@ -117,7 +101,7 @@
                     </div>
 
                 @elseif($mode === 'tahunan')
-                    <input type="number" wire:model.live="tahun" min="2020" placeholder="{{ date('Y') }}"
+                    <input wire:key="picker-tahunan" type="number" wire:model.live="tahun" min="2020" placeholder="{{ date('Y') }}"
                         class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                 @endif
             </div>

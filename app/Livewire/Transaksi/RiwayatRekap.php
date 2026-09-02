@@ -84,15 +84,12 @@ class RiwayatRekap extends Component
     #[Computed]
     public function isHarianDisabled(): bool
     {
-        return $this->isUnitMingguan($this->selectedUnit);
+        return false;
     }
 
     public function updatedMode(): void
     {
-        $unit = $this->selectedUnit;
-        if ($this->mode === 'harian' && $this->isUnitMingguan($unit)) {
-            $this->mode = 'mingguan';
-        }
+        // No overrides needed
     }
 
     public function updatingUnitId($value): void
@@ -105,10 +102,7 @@ class RiwayatRekap extends Component
 
     public function updatedUnitId(): void
     {
-        $unit = UnitWisata::find($this->unit_id);
-        if ($this->mode === 'harian' && $this->isUnitMingguan($unit)) {
-            $this->mode = 'mingguan';
-        }
+        // No overrides needed
     }
 
     public function updatedTab(): void

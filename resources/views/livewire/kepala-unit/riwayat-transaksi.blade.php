@@ -15,12 +15,10 @@
 
     {{-- Mode Selector (Segmented Control) --}}
     <div class="bg-zinc-100 p-1.5 rounded-2xl flex items-center shadow-sm border border-zinc-200 overflow-x-auto">
-        @if (!$isMingguanOnly)
             <button wire:click="$set('mode', 'harian')"
                 class="flex-1 min-w-[80px] min-h-[44px] text-sm font-semibold rounded-xl transition-all duration-150 {{ $mode === 'harian' ? 'bg-white text-brand-900 shadow shadow-black/5' : 'text-zinc-500 hover:text-zinc-700 :text-zinc-300' }}">
                 Harian
             </button>
-        @endif
         <button wire:click="$set('mode', 'mingguan')"
             class="flex-1 min-w-[80px] min-h-[44px] text-sm font-semibold rounded-xl transition-all duration-150 {{ $mode === 'mingguan' ? 'bg-white text-brand-900 shadow shadow-black/5' : 'text-zinc-500 hover:text-zinc-700 :text-zinc-300' }}">
             Mingguan
