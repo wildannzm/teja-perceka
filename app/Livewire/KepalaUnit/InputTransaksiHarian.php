@@ -384,18 +384,18 @@ class InputTransaksiHarian extends Component
         $kodeUnit = strtoupper($this->unit->kode ?? 'XX');
         $prefixNomor = 'D'.$kodeUnit;
 
-        // Generate nomor bukti aman dari race condition (berdasarkan bulan dan tahun berjalan)
-        $lastJurnal = JurnalUmum::where('nomor_bukti', 'like', $prefixNomor.'%')
+        $existingNumbers = JurnalUmum::where('nomor_bukti', 'like', $prefixNomor.'%')
             ->whereMonth('tanggal', $date->month)
             ->whereYear('tanggal', $date->year)
             ->lockForUpdate()
-            ->orderBy('nomor_bukti', 'desc')
-            ->first();
+            ->pluck('nomor_bukti')
+            ->map(fn($nomor) => (int) substr($nomor, -3))
+            ->unique()
+            ->toArray();
 
         $nextUrut = 1;
-        if ($lastJurnal) {
-            $lastUrut = (int) substr($lastJurnal->nomor_bukti, -3);
-            $nextUrut = $lastUrut + 1;
+        while (in_array($nextUrut, $existingNumbers)) {
+            $nextUrut++;
         }
 
         $nomorBukti = $prefixNomor.str_pad($nextUrut, 3, '0', STR_PAD_LEFT);

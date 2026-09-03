@@ -114,18 +114,16 @@ class CatatPengeluaran extends Component
         DB::transaction(function () use ($date, $prefix, $validItems) {
             $akunKas = KodeAkun::where('kode', '1-1100')->firstOrFail();
 
-            // Generate nomor bukti berurutan per bulan
-            $lastJurnal = JurnalUmum::where('nomor_bukti', 'like', $prefix.'%')
+            $existingNumbers = JurnalUmum::where('nomor_bukti', 'like', $prefix.'%')
                 ->whereMonth('tanggal', $date->month)
                 ->whereYear('tanggal', $date->year)
                 ->lockForUpdate()
-                ->orderBy('nomor_bukti', 'desc')
-                ->first();
+                ->pluck('nomor_bukti')
+                ->map(fn($nomor) => (int) substr($nomor, -3))
+                ->unique()
+                ->toArray();
 
             $nextUrut = 1;
-            if ($lastJurnal) {
-                $nextUrut = ((int) substr($lastJurnal->nomor_bukti, -3)) + 1;
-            }
 
             // Cek apakah ada transaksi_harian di tanggal ini untuk unit ini
             // (untuk mengaitkan pengeluaran ke transaksi_harian jika ada)
@@ -136,6 +134,11 @@ class CatatPengeluaran extends Component
             $totalPengeluaranBaru = (float) $this->totalPengeluaran;
 
             foreach ($validItems as $item) {
+                while (in_array($nextUrut, $existingNumbers)) {
+                    $nextUrut++;
+                }
+                $existingNumbers[] = $nextUrut;
+                
                 $nominalItem = (float) $item['nominal'];
                 $nomorBukti = $prefix.str_pad($nextUrut, 3, '0', STR_PAD_LEFT);
                 $keterangan = $item['keterangan'];

@@ -56,19 +56,18 @@ class CatatPengeluaran extends Component
             // "Umum BUMDes" -> KBM (kode tetap untuk pengeluaran level BUMDes)
             $prefix = 'KBM';
 
-            // Urutan dipisah per kombinasi prefix (K+kode) dan bulan+tahun berjalan
-            // lockForUpdate() mencegah nomor bentrok saat input bersamaan
-            $lastJurnal = JurnalUmum::where('nomor_bukti', 'like', $prefix.'%')
+            $existingNumbers = JurnalUmum::where('nomor_bukti', 'like', $prefix.'%')
                 ->whereMonth('tanggal', $date->month)
                 ->whereYear('tanggal', $date->year)
                 ->lockForUpdate()
-                ->orderBy('nomor_bukti', 'desc')
-                ->first();
+                ->pluck('nomor_bukti')
+                ->map(fn($nomor) => (int) substr($nomor, -3))
+                ->unique()
+                ->toArray();
 
             $nextUrut = 1;
-            if ($lastJurnal) {
-                $lastUrut = (int) substr($lastJurnal->nomor_bukti, -3);
-                $nextUrut = $lastUrut + 1;
+            while (in_array($nextUrut, $existingNumbers)) {
+                $nextUrut++;
             }
 
             $nomorBukti = $prefix.str_pad($nextUrut, 3, '0', STR_PAD_LEFT);
