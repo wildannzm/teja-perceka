@@ -365,6 +365,9 @@ class AlokasiLaba extends Component
         $totalAdArtPersen = $this->totalAdArtPersen;
         $totalAdArt = $this->totalAdArt;
 
+        ini_set('memory_limit', '-1');
+        set_time_limit(300);
+
         $pdf = Pdf::loadView('pdf.alokasi-laba', compact(
             'namaEntitas', 'tanggalCetak', 'tanggalTtd', 'periodeLabel', 'penandatangan', 'jabatan',
             'labaBersih', 'pengurangRows', 'totalPengurang', 'labaSetelahPengurang',

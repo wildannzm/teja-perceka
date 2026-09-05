@@ -313,6 +313,9 @@ class NeracaSaldo extends Component
             default => '',
         };
 
+        ini_set('memory_limit', '-1');
+        set_time_limit(300);
+
         $pdf = Pdf::loadView('pdf.neraca-saldo', array_merge($data, compact('periodeLabel', 'namaEntitas', 'tanggalCetak', 'tanggalTtd', 'penandatangan', 'jabatan')))
             ->setPaper('a4', 'portrait');
 

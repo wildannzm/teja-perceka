@@ -11,9 +11,12 @@
     @endif
 
     {{-- Jurnal List --}}
-    @php $journals = $this->transactions; @endphp
+    @php
+        $groups = $this->transactions['groups'] ?? collect();
+        $paginator = $this->transactions['paginator'] ?? null;
+    @endphp
 
-    @if($journals->isEmpty())
+    @if($groups->isEmpty())
         <div class="bg-white rounded-2xl border-2 border-dashed border-zinc-200 p-8 sm:p-12 text-center flex flex-col items-center justify-center min-h-[300px]">
             <div class="bg-zinc-100 text-zinc-400 p-4 rounded-full mb-4 inline-block">
                 <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -45,7 +48,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-zinc-100 text-zinc-700">
-                        @foreach($journals as $nomorBukti => $group)
+                        @foreach($groups as $nomorBukti => $group)
                             @foreach($group as $jurnal)
                                 <tr class="hover:bg-zinc-50 transition-colors">
                                     @if($loop->first)
@@ -62,22 +65,22 @@
                                     @if($this->canEdit || $this->canDelete)
                                         @if($loop->first)
                                             <td rowspan="{{ $group->count() }}" class="py-3 px-4 align-middle text-center border-l border-zinc-100">
-                                                <div class="flex flex-col gap-1.5 items-center">
+                                                <div class="flex flex-row justify-center gap-1.5 items-center">
                                                     @if($this->canEdit)
                                                         <button wire:click="openEdit({{ $jurnal->id }})"
                                                             type="button"
                                                             style="background-color:#fbbf24;color:#1c1917;"
-                                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors hover:opacity-90">
+                                                            title="Edit"
+                                                            class="inline-flex items-center justify-center size-7 rounded-lg transition-colors hover:opacity-90">
                                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-3.5">
                                                                 <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.263a1.75 1.75 0 0 0 0-2.474Z" />
                                                                 <path d="M4.75 3.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h6.5c.69 0 1.25-.56 1.25-1.25V9A.75.75 0 0 1 13 9v2.25A2.75 2.75 0 0 1 10.25 14h-6.5A2.75 2.75 0 0 1 1 11.25v-6.5A2.75 2.75 0 0 1 3.75 2H6a.75.75 0 0 1 0 1.5H3.75Z" />
                                                             </svg>
-                                                            Edit
                                                         </button>
                                                     @endif
                                                     @if($this->canDelete)
                                                         <flux:button wire:click="confirmDelete({{ $jurnal->id }})"
-                                                            variant="danger" size="sm" icon="trash">Hapus</flux:button>
+                                                            variant="danger" size="xs" icon="trash" title="Hapus" />
                                                     @endif
                                                 </div>
                                             </td>
@@ -93,7 +96,7 @@
 
         {{-- Mobile: Card per transaksi (visible only on mobile) --}}
         <div class="flex flex-col gap-3 sm:hidden">
-            @foreach($journals as $nomorBukti => $group)
+            @foreach($groups as $nomorBukti => $group)
                 @php $firstJurnal = $group->first(); @endphp
                 <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
                     {{-- Card Header --}}
@@ -152,6 +155,13 @@
                     </div>
                 </div>
             @endforeach
+        </div>
+    @endif
+
+    {{-- Pagination Links --}}
+    @if($paginator && $paginator->hasPages())
+        <div class="mt-6 px-4">
+            {{ $paginator->links() }}
         </div>
     @endif
 

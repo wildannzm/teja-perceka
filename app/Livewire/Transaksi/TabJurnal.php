@@ -12,9 +12,12 @@ use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Reactive;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class TabJurnal extends Component
 {
+    use WithPagination;
+
     #[Reactive]
     public $unitId = null;
 
@@ -140,19 +143,45 @@ class TabJurnal extends Component
             $query->where('unit_wisata_id', $this->unitId);
         }
 
-        return $query->get()->groupBy('nomor_bukti');
+        $paginatedNomorBukti = (clone $query)->select('nomor_bukti')
+            ->groupBy('nomor_bukti')
+            ->paginate(20);
+
+        $details = JurnalUmum::with(['unitWisata', 'kodeAkun'])
+            ->whereIn('nomor_bukti', $paginatedNomorBukti->pluck('nomor_bukti'))
+            ->orderBy('tanggal', 'asc')
+            ->orderBy('nomor_bukti', 'asc')
+            ->orderBy('id', 'asc')
+            ->get()
+            ->groupBy('nomor_bukti');
+            
+        // We need to return an object that contains both the grouped transactions and the paginator
+        return [
+            'paginator' => $paginatedNomorBukti,
+            'groups' => $details,
+        ];
     }
 
     #[Computed]
     public function totalDebet(): float
     {
-        return $this->transactions->flatten()->sum('debet');
+        [$start, $end] = $this->dateRange;
+        $query = JurnalUmum::whereBetween('tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')]);
+        if ($this->unitId) {
+            $query->where('unit_wisata_id', $this->unitId);
+        }
+        return (float) $query->sum('debet');
     }
 
     #[Computed]
     public function totalKredit(): float
     {
-        return $this->transactions->flatten()->sum('kredit');
+        [$start, $end] = $this->dateRange;
+        $query = JurnalUmum::whereBetween('tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')]);
+        if ($this->unitId) {
+            $query->where('unit_wisata_id', $this->unitId);
+        }
+        return (float) $query->sum('kredit');
     }
 
     #[Computed]
@@ -344,6 +373,10 @@ class TabJurnal extends Component
 
             return;
         }
+
+        // Fix OOM & timeout untuk data besar (ribuan baris) saat cetak PDF
+        ini_set('memory_limit', '-1');
+        set_time_limit(300);
 
         [$start, $end] = $this->dateRange;
 

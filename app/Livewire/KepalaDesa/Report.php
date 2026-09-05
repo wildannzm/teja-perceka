@@ -17,6 +17,12 @@ class Report extends Component
 
     public $end_date = '';
 
+    public function mount()
+    {
+        $this->start_date = now()->startOfMonth()->format('Y-m-d');
+        $this->end_date = now()->endOfMonth()->format('Y-m-d');
+    }
+
     public function render()
     {
         $query = JurnalUmum::with(['unitWisata', 'kodeAkun'])

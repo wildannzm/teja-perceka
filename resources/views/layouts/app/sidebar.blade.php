@@ -183,15 +183,7 @@
                         </svg>
                         Dashboard
                     </a>
-                    <a href="{{ route('sekretaris.transaksi') }}" wire:navigate
-                        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('sekretaris.transaksi') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="size-4 shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75.125a1.125 1.125 0 0 0 1.125-1.125V15m16.125 4.5h-1.5c-.621 0-1.125-.504-1.125-1.125M18.375 19.5V15m0 0a3 3 0 0 0-3-3H8.625a3 3 0 0 0-3 3m12.75 0H5.25" />
-                        </svg>
-                        Kelola Jurnal
-                    </a>
+
                     <a href="{{ route('sekretaris.laporan') }}" wire:navigate
                         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('sekretaris.laporan') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -279,15 +271,7 @@
                         </svg>
                         Dashboard
                     </a>
-                    <a href="{{ route('bendahara.transaksi') }}" wire:navigate
-                        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('bendahara.transaksi') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="size-4 shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75.125a1.125 1.125 0 0 0 1.125-1.125V15m16.125 4.5h-1.5c-.621 0-1.125-.504-1.125-1.125M18.375 19.5V15m0 0a3 3 0 0 0-3-3H8.625a3 3 0 0 0-3 3m12.75 0H5.25" />
-                        </svg>
-                        Kelola Jurnal
-                    </a>
+
                     <a href="{{ route('bendahara.laporan') }}" wire:navigate
                         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('bendahara.laporan') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -376,15 +360,7 @@
                         </svg>
                         Dashboard
                     </a>
-                    <a href="{{ route('direktur-bumdes.transaksi') }}" wire:navigate
-                        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('direktur-bumdes.transaksi') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="size-4 shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75.125a1.125 1.125 0 0 0 1.125-1.125V15m16.125 4.5h-1.5c-.621 0-1.125-.504-1.125-1.125M18.375 19.5V15m0 0a3 3 0 0 0-3-3H8.625a3 3 0 0 0-3 3m12.75 0H5.25" />
-                        </svg>
-                        Kelola Jurnal
-                    </a>
+
                     <a href="{{ route('direktur-bumdes.laporan') }}" wire:navigate
                         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('direktur-bumdes.laporan') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"

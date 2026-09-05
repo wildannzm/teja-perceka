@@ -34,7 +34,7 @@
         <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Unit Wisata</p>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Unit Usaha</p>
                     <h3 class="text-2xl font-bold text-zinc-900 mt-1">{{ number_format($totalUnits) }}</h3>
                 </div>
                 <div class="p-3 bg-cyan-100 text-cyan-600 rounded-xl">

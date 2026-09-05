@@ -9,6 +9,7 @@ use App\Models\UnitWisata;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
@@ -25,11 +26,39 @@ class CatatPengeluaran extends Component
 
     public string $tanggal = '';
 
-    // Array item pengeluaran
-    // Format: [['kode_akun_id' => int, 'keterangan' => string, 'nominal' => float]]
     public array $items = [];
 
     public float $totalPengeluaran = 0;
+
+    public string $filterMode = 'harian';
+
+    public string $filterDate = '';
+
+    public string $filterBulan = '';
+
+    public string $filterSemester = '1';
+
+    public string $filterSemesterTahun = '';
+
+    public string $filterTahun = '';
+
+    public bool $showCreateModal = false;
+
+    public bool $showEditModal = false;
+
+    public bool $showDeleteModal = false;
+
+    public ?string $editingNomorBukti = null;
+
+    public ?string $deletingNomorBukti = null;
+
+    public string $editTanggal = '';
+
+    public string $editKodeAkunId = '';
+
+    public string $editKeterangan = '';
+
+    public $editNominal = '';
 
     public function mount(): void
     {
@@ -43,7 +72,14 @@ class CatatPengeluaran extends Component
         $this->unit = UnitWisata::findOrFail($this->unitId);
         $this->tanggal = Carbon::today()->format('Y-m-d');
 
-        // Mulai dengan satu baris kosong
+        $today = Carbon::today();
+        $this->filterMode = 'harian';
+        $this->filterDate = $today->format('Y-m-d');
+        $this->filterBulan = $today->format('Y-m');
+        $this->filterSemester = $today->month <= 6 ? '1' : '2';
+        $this->filterSemesterTahun = $today->format('Y');
+        $this->filterTahun = $today->format('Y');
+
         $this->addItem();
     }
 
@@ -73,6 +109,45 @@ class CatatPengeluaran extends Component
         // Tidak ada aksi khusus, tanggal bebas dipilih
     }
 
+    public function openCreateModal(): void
+    {
+        $this->resetErrorBag();
+        $this->reset(['items', 'totalPengeluaran']);
+        $this->tanggal = Carbon::today()->format('Y-m-d');
+        $this->addItem();
+        $this->showCreateModal = true;
+    }
+
+    public function closeCreateModal(): void
+    {
+        $this->showCreateModal = false;
+        $this->resetErrorBag();
+    }
+
+    public function closeEditModal(): void
+    {
+        $this->showEditModal = false;
+        $this->reset(['editingNomorBukti', 'editKodeAkunId', 'editKeterangan', 'editNominal', 'editTanggal']);
+        $this->resetErrorBag();
+    }
+
+    public function closeDeleteModal(): void
+    {
+        $this->showDeleteModal = false;
+        $this->deletingNomorBukti = null;
+    }
+
+    public function resetFilter(): void
+    {
+        $today = Carbon::today();
+        $this->filterMode = 'harian';
+        $this->filterDate = $today->format('Y-m-d');
+        $this->filterBulan = $today->format('Y-m');
+        $this->filterSemester = $today->month <= 6 ? '1' : '2';
+        $this->filterSemesterTahun = $today->format('Y');
+        $this->filterTahun = $today->format('Y');
+    }
+
     private function calculateTotal(): void
     {
         $total = 0;
@@ -89,16 +164,16 @@ class CatatPengeluaran extends Component
             'items' => 'required|array|min:1',
             'items.*.kode_akun_id' => 'required|exists:kode_akun,id',
             'items.*.keterangan' => 'required|string|max:500',
-            'items.*.nominal' => 'required|numeric|min:1',
+            'items.*.nominal' => 'required|numeric|min:1|max:9999999999999',
         ], [
             'items.required' => 'Minimal satu item pengeluaran harus diisi.',
             'items.*.kode_akun_id.required' => 'Pilih jenis biaya untuk setiap item.',
             'items.*.keterangan.required' => 'Keterangan wajib diisi untuk setiap item.',
             'items.*.nominal.required' => 'Nominal wajib diisi untuk setiap item.',
             'items.*.nominal.min' => 'Nominal harus lebih dari 0.',
+            'items.*.nominal.max' => 'Nominal terlalu besar.',
         ]);
 
-        // Filter item yang valid (nominal > 0)
         $validItems = array_filter($this->items, fn ($item) => (float) ($item['nominal'] ?? 0) > 0 && ! empty($item['kode_akun_id']));
 
         if (empty($validItems)) {
@@ -119,14 +194,12 @@ class CatatPengeluaran extends Component
                 ->whereYear('tanggal', $date->year)
                 ->lockForUpdate()
                 ->pluck('nomor_bukti')
-                ->map(fn($nomor) => (int) substr($nomor, -3))
+                ->map(fn ($nomor) => (int) substr($nomor, -3))
                 ->unique()
                 ->toArray();
 
             $nextUrut = 1;
 
-            // Cek apakah ada transaksi_harian di tanggal ini untuk unit ini
-            // (untuk mengaitkan pengeluaran ke transaksi_harian jika ada)
             $transaksiHarian = TransaksiHarian::where('unit_wisata_id', $this->unitId)
                 ->whereDate('tanggal', $this->tanggal)
                 ->first();
@@ -138,12 +211,11 @@ class CatatPengeluaran extends Component
                     $nextUrut++;
                 }
                 $existingNumbers[] = $nextUrut;
-                
+
                 $nominalItem = (float) $item['nominal'];
                 $nomorBukti = $prefix.str_pad($nextUrut, 3, '0', STR_PAD_LEFT);
                 $keterangan = $item['keterangan'];
 
-                // Debet: akun biaya yang dipilih
                 JurnalUmum::create([
                     'nomor_bukti' => $nomorBukti,
                     'tanggal' => $this->tanggal,
@@ -155,7 +227,6 @@ class CatatPengeluaran extends Component
                     'unit_wisata_id' => $this->unitId,
                 ]);
 
-                // Kredit: keluar dari Kas
                 JurnalUmum::create([
                     'nomor_bukti' => $nomorBukti,
                     'tanggal' => $this->tanggal,
@@ -170,7 +241,6 @@ class CatatPengeluaran extends Component
                 $nextUrut++;
             }
 
-            // Jika ada transaksi_harian, update total_pengeluaran
             if ($transaksiHarian) {
                 $transaksiHarian->increment('total_pengeluaran', $totalPengeluaranBaru);
             }
@@ -178,10 +248,175 @@ class CatatPengeluaran extends Component
 
         \Flux::toast(variant: 'success', text: 'Pengeluaran unit berhasil dicatat!');
 
-        // Reset form
         $this->reset(['items', 'totalPengeluaran']);
         $this->tanggal = Carbon::today()->format('Y-m-d');
         $this->addItem();
+        $this->showCreateModal = false;
+    }
+
+    public function editRiwayat($nomorBukti): void
+    {
+        $jurnalDebet = JurnalUmum::where('nomor_bukti', $nomorBukti)
+            ->where('unit_wisata_id', $this->unitId)
+            ->where('debet', '>', 0)
+            ->first();
+
+        if (! $jurnalDebet) {
+            return;
+        }
+
+        $this->editingNomorBukti = $nomorBukti;
+        $this->editTanggal = $jurnalDebet->tanggal
+            ? Carbon::parse($jurnalDebet->tanggal)->format('Y-m-d')
+            : Carbon::today()->format('Y-m-d');
+        $this->editKodeAkunId = (string) $jurnalDebet->kode_akun_id;
+        $this->editKeterangan = $jurnalDebet->keterangan;
+        $this->editNominal = $jurnalDebet->debet;
+        $this->showEditModal = true;
+    }
+
+    public function updateRiwayat(): void
+    {
+        $validated = $this->validate([
+            'editTanggal' => 'required|date',
+            'editKodeAkunId' => 'required|exists:kode_akun,id',
+            'editKeterangan' => 'required|string|max:500',
+            'editNominal' => 'required|numeric|min:1|max:9999999999999',
+        ]);
+
+        $jurnals = JurnalUmum::where('nomor_bukti', $this->editingNomorBukti)
+            ->where('unit_wisata_id', $this->unitId)
+            ->get();
+
+        $oldTotal = $jurnals->sum('debet');
+        $transaksiHarianId = $jurnals->first()?->transaksi_harian_id;
+
+        DB::transaction(function () use ($jurnals, $oldTotal, $transaksiHarianId, $validated) {
+            $akunKas = KodeAkun::where('kode', '1-1100')->firstOrFail();
+
+            foreach ($jurnals as $j) {
+                $isDebet = $j->debet > 0;
+                $j->update([
+                    'tanggal' => $validated['editTanggal'],
+                    'keterangan' => $validated['editKeterangan'],
+                    'kode_akun_id' => $isDebet ? (int) $validated['editKodeAkunId'] : $akunKas->id,
+                    'debet' => $isDebet ? $validated['editNominal'] : 0,
+                    'kredit' => $isDebet ? 0 : $validated['editNominal'],
+                ]);
+            }
+
+            if ($transaksiHarianId) {
+                $th = TransaksiHarian::find($transaksiHarianId);
+                if ($th) {
+                    $th->increment('total_pengeluaran', (float) $validated['editNominal'] - $oldTotal);
+                }
+            }
+        });
+
+        $this->showEditModal = false;
+        $this->reset(['editingNomorBukti', 'editKodeAkunId', 'editKeterangan', 'editNominal', 'editTanggal']);
+
+        \Flux::toast(variant: 'success', text: 'Data pengeluaran berhasil diperbarui.');
+    }
+
+    public function confirmDelete($nomorBukti): void
+    {
+        $this->deletingNomorBukti = $nomorBukti;
+        $this->showDeleteModal = true;
+    }
+
+    public function executeDelete(): void
+    {
+        if (! $this->deletingNomorBukti) {
+            return;
+        }
+
+        $this->deleteRiwayat($this->deletingNomorBukti, false);
+
+        $this->showDeleteModal = false;
+        $this->deletingNomorBukti = null;
+
+        \Flux::toast(variant: 'success', text: 'Data pengeluaran berhasil dihapus.');
+    }
+
+    public function deleteRiwayat($nomorBukti, $showToast = true): void
+    {
+        $jurnals = JurnalUmum::where('nomor_bukti', $nomorBukti)->where('unit_wisata_id', $this->unitId)->get();
+        if ($jurnals->isEmpty()) {
+            return;
+        }
+
+        $totalDebet = $jurnals->sum('debet');
+        $transaksiHarianId = $jurnals->first()->transaksi_harian_id;
+
+        DB::transaction(function () use ($jurnals, $totalDebet, $transaksiHarianId) {
+            foreach ($jurnals as $j) {
+                $j->delete();
+            }
+
+            if ($transaksiHarianId) {
+                $th = TransaksiHarian::find($transaksiHarianId);
+                if ($th) {
+                    $th->decrement('total_pengeluaran', $totalDebet);
+                }
+            }
+        });
+
+        if ($showToast) {
+            \Flux::toast(variant: 'success', text: 'Data pengeluaran berhasil dihapus.');
+        }
+    }
+
+    public function updatedFilterMode(): void
+    {
+        $today = Carbon::today();
+        match ($this->filterMode) {
+            'harian' => $this->filterDate = $this->filterDate ?: $today->format('Y-m-d'),
+            'bulanan' => $this->filterBulan = $this->filterBulan ?: $today->format('Y-m'),
+            'semester' => [
+                $this->filterSemester = $this->filterSemester ?: '1',
+                $this->filterSemesterTahun = $this->filterSemesterTahun ?: $today->format('Y'),
+            ],
+            'tahunan' => $this->filterTahun = $this->filterTahun ?: $today->format('Y'),
+            default => $this->filterDate = $this->filterDate ?: $today->format('Y-m-d'),
+        };
+    }
+
+    #[Computed]
+    public function riwayat()
+    {
+        $query = JurnalUmum::with('kodeAkun')
+            ->where('unit_wisata_id', $this->unitId)
+            ->where('kredit', 0)
+            ->where('nomor_bukti', 'like', 'K%');
+
+        match ($this->filterMode) {
+            'harian' => $query->whereDate('tanggal', $this->filterDate ?: Carbon::today()->format('Y-m-d')),
+            'bulanan' => $query->whereBetween('tanggal', [
+                Carbon::parse(($this->filterBulan ?: date('Y-m')).'-01')->startOfMonth()->format('Y-m-d'),
+                Carbon::parse(($this->filterBulan ?: date('Y-m')).'-01')->endOfMonth()->format('Y-m-d'),
+            ]),
+            'semester' => $query->whereBetween('tanggal', [
+                Carbon::create((int) ($this->filterSemesterTahun ?: date('Y')), $this->filterSemester === '1' ? 1 : 7, 1)->startOfMonth()->format('Y-m-d'),
+                Carbon::create((int) ($this->filterSemesterTahun ?: date('Y')), $this->filterSemester === '1' ? 6 : 12, 1)->endOfMonth()->format('Y-m-d'),
+            ]),
+            'tahunan' => $query->whereBetween('tanggal', [
+                Carbon::create((int) ($this->filterTahun ?: date('Y')), 1, 1)->startOfDay()->format('Y-m-d'),
+                Carbon::create((int) ($this->filterTahun ?: date('Y')), 12, 31)->endOfDay()->format('Y-m-d'),
+            ]),
+            default => null,
+        };
+
+        $query->orderByRaw('LENGTH(nomor_bukti) ASC')
+            ->orderByRaw('nomor_bukti ASC');
+
+        return $query->limit(50)->get();
+    }
+
+    #[Computed]
+    public function riwayatTotal(): float
+    {
+        return $this->riwayat->sum('debet');
     }
 
     public function render()
@@ -190,6 +425,8 @@ class CatatPengeluaran extends Component
 
         return view('livewire.kepala-unit.catat-pengeluaran', [
             'akunBiaya' => $akunBiaya,
+            'riwayat' => $this->riwayat,
+            'riwayatTotal' => $this->riwayatTotal,
         ]);
     }
 }

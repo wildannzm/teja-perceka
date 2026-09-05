@@ -13,7 +13,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mb-1">
                 <div class="flex flex-col gap-1.5">
                     <label class="text-sm font-semibold text-zinc-700">Pilih Unit Usaha</label>
-                    <select wire:model.live="unit_id" class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 focus:border-brand-500 focus:ring-0 transition-colors shadow-sm text-sm py-2.5 px-3.5 bg-white">
+                    <select wire:model.live="unit_id" class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors shadow-sm text-sm py-2.5 px-3.5 bg-white">
                         <option value="">Semua Unit</option>
                         @foreach ($units as $unit)
                             <option value="{{ $unit->id }}">{{ $unit->nama }}</option>
@@ -38,7 +38,7 @@
             altInput: true,
             disableMobile: true
         })"
-        class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 focus:border-brand-500 focus:ring-0 transition-colors shadow-sm text-sm py-2.5 px-3.5 bg-white cursor-pointer" />
+        class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors shadow-sm text-sm py-2.5 px-3.5 bg-white cursor-pointer" />
 </div>
                 </div>
             </div>

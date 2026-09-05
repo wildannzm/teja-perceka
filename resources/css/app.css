@@ -60,6 +60,7 @@
 
 
 @layer base {
+
     *,
     ::after,
     ::before,
@@ -97,7 +98,6 @@
     button,
     [role="button"],
     a,
-    label[for],
     input[type="checkbox"],
     input[type="radio"] {
         min-height: 44px;
@@ -129,5 +129,3 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
-
-

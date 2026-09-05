@@ -168,6 +168,9 @@ class RiwayatTransaksi extends Component
         $totalDebet = $this->totalDebet;
         $totalKredit = $this->totalKredit;
 
+        ini_set('memory_limit', '-1');
+        set_time_limit(300);
+
         $pdf = Pdf::loadView('pdf.riwayat-transaksi', compact(
             'transactions',
             'periode',

@@ -4,11 +4,11 @@ use App\Http\Controllers\ImpersonationController;
 use App\Livewire\Asset\KelolaAsset;
 use App\Livewire\Bendahara\Dashboard as BendaharaDashboard;
 use App\Livewire\Bendahara\Report as BendaharaReport;
-use App\Livewire\Bendahara\TransactionList as BendaharaTransactionList;
+
 use App\Livewire\DirekturBumdes\Dashboard as DirekturBumdesDashboard;
 use App\Livewire\DirekturBumdes\KelolaAkunUnit;
 use App\Livewire\DirekturBumdes\Report as DirekturBumdesReport;
-use App\Livewire\DirekturBumdes\TransactionList as DirekturBumdesTransactionList;
+
 use App\Livewire\KepalaDesa\Dashboard as KepalaDesaDashboard;
 use App\Livewire\KepalaDesa\Report as KepalaDesaReport;
 use App\Livewire\KepalaDesa\UserManager as KepalaDesaUserManager;
@@ -26,7 +26,7 @@ use App\Livewire\Pengawas\Report as PengawasReport;
 use App\Livewire\Pengeluaran\CatatPengeluaran;
 use App\Livewire\Sekretaris\Dashboard as SekretarisDashboard;
 use App\Livewire\Sekretaris\Report as SekretarisReport;
-use App\Livewire\Sekretaris\TransactionList as SekretarisTransactionList;
+
 use App\Livewire\SuperAdmin\ActivityLogs as SuperAdminActivityLogs;
 use App\Livewire\SuperAdmin\Dashboard as SuperAdminDashboard;
 use App\Livewire\SuperAdmin\UserManager as SuperAdminUserManager;
@@ -95,14 +95,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ===== Sekretaris =====
     Route::middleware(['role:sekretaris'])->prefix('sekretaris')->group(function () {
         Route::get('/dashboard', SekretarisDashboard::class)->name('sekretaris.dashboard');
-        Route::get('/transaksi', SekretarisTransactionList::class)->name('sekretaris.transaksi');
+
         Route::get('/laporan', SekretarisReport::class)->name('sekretaris.laporan');
     });
 
     // ===== Bendahara =====
     Route::middleware(['role:bendahara'])->prefix('bendahara')->group(function () {
         Route::get('/dashboard', BendaharaDashboard::class)->name('bendahara.dashboard');
-        Route::get('/transaksi', BendaharaTransactionList::class)->name('bendahara.transaksi');
+
         Route::get('/laporan', BendaharaReport::class)->name('bendahara.laporan');
     });
 
@@ -121,7 +121,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ===== Direktur BUMDes =====
     Route::middleware(['role:direktur_bumdes'])->prefix('direktur-bumdes')->group(function () {
         Route::get('/dashboard', DirekturBumdesDashboard::class)->name('direktur-bumdes.dashboard');
-        Route::get('/transaksi', DirekturBumdesTransactionList::class)->name('direktur-bumdes.transaksi');
+
         Route::get('/laporan', DirekturBumdesReport::class)->name('direktur-bumdes.laporan');
         Route::get('/kelola-akun', KelolaAkunUnit::class)->name('direktur-bumdes.kelola-akun');
     });
