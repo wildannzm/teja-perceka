@@ -12,7 +12,7 @@
     @endif
 
 
-    {{-- Edit Mode Banner --}}
+    {{-- Edit mode banner --}}
     @if ($isEditing)
         <div class="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl shadow-sm">
             <div class="size-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
@@ -34,7 +34,7 @@
 
     <form wire:submit="submit" class="flex flex-col gap-5 sm:gap-6">
 
-        {{-- Header / Tanggal --}}
+        {{-- Header / date --}}
         <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-brand-100">
             <h2 class="text-lg font-semibold text-brand-900 mb-4 flex items-center gap-2">
                 <svg class="size-5 text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -102,7 +102,7 @@
                 </flux:button>
             </div>
         @else
-            {{-- Daftar Kategori --}}
+            {{-- Category list --}}
             <div class="bg-white rounded-2xl shadow-sm border border-brand-100 overflow-hidden">
                 <div class="p-5 border-b border-brand-100 bg-brand-50/50">
                     <h2 class="text-lg font-semibold text-brand-900 flex items-center gap-2">
@@ -179,7 +179,7 @@
                 </div>
             </div>
 
-            {{-- Error Summary --}}
+            {{-- Error summary --}}
             @php($formError = $errors->first('submit') ?: $errors->first('totalPemasukan'))
             @if ($formError)
                 <div class="p-4 text-sm text-red-800 bg-red-100 rounded-xl border border-red-200 flex items-start gap-3 shadow-sm"
@@ -195,7 +195,7 @@
                 </div>
             @endif
 
-            {{-- Spacer untuk scroll di atas sticky footer (mobile friendly) --}}
+            {{-- Spacer for scrolling above the sticky footer (mobile friendly) --}}
             <div class="h-32 min-h-[8rem] shrink-0 w-full sm:hidden"></div>
 
             <div
@@ -209,7 +209,7 @@
                             {{ number_format($totalPemasukan, 0, ',', '.') }}</span>
                     </div>
 
-                    {{-- Tombol submit tinggi minimum 52px agar touch friendly --}}
+                    {{-- Submit button with 52px minimum height for touch friendliness --}}
                     <button type="submit"
                         class="w-full min-h-[56px] rounded-2xl text-base font-semibold shadow-md border border-transparent {{ $isEditing ? 'bg-amber-500 hover:bg-amber-600 focus:ring-amber-500/20' : 'bg-brand-600 hover:bg-brand-700 focus:ring-brand-500/20' }} text-white focus:outline-none focus:ring-4 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer">
                         @if ($isEditing)
@@ -235,7 +235,7 @@
         @endif
     </form>
 
-    {{-- Modal Error Input Ganda --}}
+    {{-- Duplicate input error modal --}}
     <flux:modal wire:model="showDuplicateError" class="min-w-[400px]">
         <div class="flex flex-col gap-6">
             <div class="flex flex-col items-center justify-center text-center gap-4">

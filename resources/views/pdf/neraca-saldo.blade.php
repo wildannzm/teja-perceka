@@ -44,7 +44,7 @@
         <tbody>
             <tr>
                 <td style="vertical-align: top; border: 1px solid #000; padding: 0;">
-                    <!-- SISI AKTIVA -->
+                    <!-- ASSETS SIDE -->
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr><td colspan="3" style="padding: 4px; font-weight: bold;">1-1000 AKTIVA LANCAR</td></tr>
                         @foreach($aktivaLancar as $item)
@@ -74,7 +74,7 @@
                     </table>
                 </td>
                 <td style="vertical-align: top; border: 1px solid #000; padding: 0;">
-                    <!-- SISI PASIVA -->
+                    <!-- LIABILITIES & EQUITY SIDE -->
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr><td colspan="3" style="padding: 4px; font-weight: bold;">2-0000 KEWAJIBAN</td></tr>
                         <tr><td colspan="3" style="padding: 4px; font-weight: bold; padding-left: 8px;">2-1000 KEWAJIBAN JANGKA PENDEK</td></tr>

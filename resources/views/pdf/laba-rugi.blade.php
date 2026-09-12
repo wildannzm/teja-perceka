@@ -110,7 +110,7 @@
         </thead>
         <tbody>
 
-            {{-- ── PENDAPATAN USAHA ── --}}
+            {{-- ── OPERATING REVENUE ── --}}
             <tr class="row-group-header">
                 <td colspan="4">PENDAPATAN USAHA</td>
             </tr>
@@ -129,7 +129,7 @@
                 <td class="text-right">{{ $totalPendapatan != 0 ? number_format($totalPendapatan, 0, ',', '.') : '-' }}</td>
             </tr>
 
-            {{-- ── HARGA POKOK PENJUALAN ── --}}
+            {{-- ── COST OF GOODS SOLD ── --}}
             <tr class="row-group-header">
                 <td colspan="4">HARGA POKOK PENJUALAN</td>
             </tr>
@@ -152,7 +152,7 @@
                 <td class="text-right">{{ $labaKotor != 0 ? number_format($labaKotor, 0, ',', '.') : '-' }}</td>
             </tr>
 
-            {{-- ── BIAYA USAHA ── --}}
+            {{-- ── OPERATING EXPENSES ── --}}
             <tr class="row-group-header">
                 <td colspan="4">BIAYA USAHA</td>
             </tr>
@@ -171,7 +171,7 @@
                 <td class="text-right">{{ $totalBeban != 0 ? number_format($totalBeban, 0, ',', '.') : '-' }}</td>
             </tr>
 
-            {{-- ── PENDAPATAN & BIAYA LAIN-LAIN ── --}}
+            {{-- ── OTHER INCOME & EXPENSES ── --}}
             <tr class="row-group-header">
                 <td colspan="4">PENDAPATAN & BIAYA LAIN-LAIN</td>
             </tr>
@@ -196,7 +196,7 @@
                 </tr>
             @endforeach
 
-            {{-- ── LABA BERSIH ── --}}
+            {{-- ── NET PROFIT ── --}}
             <tr class="row-laba">
                 <td colspan="3" class="text-right">LABA BERSIH</td>
                 <td class="text-right">{{ $labaBersih != 0 ? number_format($labaBersih, 0, ',', '.') : '-' }}</td>

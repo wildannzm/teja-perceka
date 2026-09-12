@@ -1,4 +1,4 @@
-{{-- Tab Jurnal Umum --}}
+{{-- General journal tab --}}
 <div class="flex flex-col gap-5 min-w-0 pb-10">
 
     @if ($errors->has('pdf'))
@@ -10,7 +10,7 @@
         </div>
     @endif
 
-    {{-- Jurnal List --}}
+    {{-- Journal list --}}
     @php
         $groups = $this->transactions['groups'] ?? collect();
         $paginator = $this->transactions['paginator'] ?? null;
@@ -27,7 +27,7 @@
             <p class="text-zinc-500 text-sm max-w-md mx-auto">Belum ada catatan jurnal umum untuk periode ini.</p>
         </div>
     @else
-        {{-- Desktop: Table view (hidden on mobile) --}}
+        {{-- Desktop: table view (hidden on mobile) --}}
         <div class="hidden sm:block bg-white rounded-2xl shadow-sm border border-brand-100 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm whitespace-nowrap">
@@ -94,12 +94,12 @@
             </div>
         </div>
 
-        {{-- Mobile: Card per transaksi (visible only on mobile) --}}
+        {{-- Mobile: one card per transaction (mobile only) --}}
         <div class="flex flex-col gap-3 sm:hidden">
             @foreach($groups as $nomorBukti => $group)
                 @php $firstJurnal = $group->first(); @endphp
                 <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
-                    {{-- Card Header --}}
+                    {{-- Card header --}}
                     <div class="bg-brand-50/60 border-b border-brand-100 px-4 py-3 flex items-start justify-between gap-2">
                         <div>
                             <p class="text-xs font-mono text-zinc-500">{{ $firstJurnal->nomor_bukti }}</p>
@@ -127,13 +127,13 @@
                         </div>
                     </div>
 
-                    {{-- Keterangan --}}
+                    {{-- Description --}}
                     <div class="px-4 py-3 border-b border-zinc-100">
                         <p class="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-0.5">Keterangan</p>
                         <p class="text-sm text-zinc-800 leading-relaxed">{{ $firstJurnal->keterangan }}</p>
                     </div>
 
-                    {{-- Baris Jurnal (per entry Debit/Kredit) --}}
+                    {{-- Journal rows (per debit/credit entry) --}}
                     <div class="divide-y divide-zinc-100">
                         @foreach($group as $jurnal)
                             <div class="px-4 py-3 flex items-center justify-between gap-3">
@@ -158,17 +158,17 @@
         </div>
     @endif
 
-    {{-- Pagination Links --}}
+    {{-- Pagination links --}}
     @if($paginator && $paginator->hasPages())
         <div class="mt-6 px-4">
             {{ $paginator->links() }}
         </div>
     @endif
 
-    {{-- Spacer for mobile footer to prevent overlap --}}
+    {{-- Spacer for the mobile footer to prevent overlap --}}
     <div style="height: 350px; flex-shrink: 0;" class="w-full block sm:hidden"></div>
 
-    {{-- Footer: Grand Total + Cetak PDF --}}
+    {{-- Footer: grand total + print PDF --}}
     <div class="fixed bottom-0 left-0 right-0 z-20 sm:relative sm:bottom-auto sm:left-auto sm:right-auto sm:z-auto sm:mt-2">
         <div class="bg-white sm:rounded-2xl p-5 sm:p-6 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-6 shadow-[0_-8px_32px_-8px_rgba(0,0,0,0.1)] sm:shadow-md border-t sm:border border-brand-100 flex flex-col gap-4">
             
@@ -215,7 +215,7 @@
         </div>
     </div>
 
-    {{-- Modal Konfirmasi Hapus --}}
+    {{-- Delete confirmation modal --}}
     @if ($showDeleteModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div wire:click="$set('showDeleteModal', false)" class="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm transition-opacity"></div>
@@ -241,13 +241,13 @@
         </div>
     @endif
 
-    {{-- Modal Edit Jurnal --}}
+    {{-- Edit journal modal --}}
     @if ($showEditModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div wire:click="cancelEdit" class="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm transition-opacity"></div>
             <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden z-10 max-h-[90vh]">
 
-                {{-- Modal Header --}}
+                {{-- Modal header --}}
                 <div class="px-6 py-4 border-b border-zinc-100 flex items-center justify-between gap-4 shrink-0">
                     <div class="flex items-center gap-3">
                         <div class="size-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
@@ -267,10 +267,10 @@
                     </button>
                 </div>
 
-                {{-- Modal Body --}}
+                {{-- Modal body --}}
                 <div class="px-6 py-5 flex flex-col gap-5 overflow-y-auto">
 
-                    {{-- Tanggal --}}
+                    {{-- Date --}}
                     <div class="flex flex-col gap-1.5">
                         <label class="text-sm font-medium text-zinc-700">Tanggal</label>
                         <div wire:ignore x-data="{ val: $wire.entangle('editTanggal').live }">
@@ -290,7 +290,7 @@
                         @enderror
                     </div>
 
-                    {{-- Keterangan --}}
+                    {{-- Description --}}
                     <div class="flex flex-col gap-1.5">
                         <label class="text-sm font-medium text-zinc-700">Keterangan</label>
                         <textarea wire:model.live="editKeterangan" rows="2"
@@ -301,7 +301,7 @@
                         @enderror
                     </div>
 
-                    {{-- Baris Jurnal --}}
+                    {{-- Journal row --}}
                     <div class="flex flex-col gap-2">
                         <label class="text-sm font-medium text-zinc-700">Entri Jurnal</label>
                         <div class="flex flex-col divide-y divide-zinc-100 border border-zinc-200 rounded-xl overflow-hidden">
@@ -335,7 +335,7 @@
 
                 </div>
 
-                {{-- Modal Footer --}}
+                {{-- Modal footer --}}
                 <div class="px-6 py-4 border-t border-zinc-100 flex justify-end gap-2 shrink-0">
                     <button type="button" wire:click="cancelEdit"
                         class="px-4 py-2 rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">

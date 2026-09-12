@@ -2,7 +2,7 @@
 
     <x-page-header title="Riwayat & Rekap" description="Rincian pendapatan operasional dan riwayat jurnal transaksi." />
 
-    {{-- Filter Section --}}
+    {{-- Filter section --}}
     <div class="bg-white p-4 sm:p-5 rounded-2xl border border-zinc-200 shadow-sm flex flex-col gap-5">
         
         @unless(auth()->user()->hasRole('kepala_unit'))
@@ -19,7 +19,7 @@
         @endunless
 
         <div class="flex flex-col md:flex-row gap-5 md:items-end">
-            {{-- Mode Selector --}}
+            {{-- Mode selector --}}
             <div class="flex flex-col gap-1.5 w-full md:w-auto">
                 <label class="text-sm font-medium text-zinc-700">Periode</label>
                 <select wire:model.live="mode"
@@ -34,7 +34,7 @@
                 </select>
             </div>
 
-            {{-- Date/Period Picker --}}
+            {{-- Date/period picker --}}
             <div class="flex flex-col gap-1.5 w-full md:w-auto md:min-w-48">
                 <label class="text-sm font-medium text-zinc-700">Pilih {{ ucfirst($mode) }}</label>
                 
@@ -116,7 +116,7 @@
         </button>
     </div>
 
-    {{-- Tab Content --}}
+    {{-- Tab content --}}
     <div class="mt-2 min-w-0">
         @if($tab === 'pendapatan')
             <livewire:transaksi.tab-pendapatan 

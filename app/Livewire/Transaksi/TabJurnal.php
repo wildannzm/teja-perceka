@@ -228,7 +228,7 @@ class TabJurnal extends Component
             return;
         }
 
-        // Kepala Unit: only delete own unit's journals
+        // Unit heads: only delete own unit's journals
         if (Auth::user()->hasRole('kepala_unit')) {
             if ($jurnal->unit_wisata_id !== Auth::user()->unit_wisata_id) {
                 abort(403);
@@ -258,7 +258,7 @@ class TabJurnal extends Component
 
         $jurnal = JurnalUmum::findOrFail($jurnalId);
 
-        // Kepala Unit: only edit own unit's journals
+        // Unit heads: only edit own unit's journals
         if (Auth::user()->hasRole('kepala_unit')) {
             if ($jurnal->unit_wisata_id !== Auth::user()->unit_wisata_id) {
                 abort(403);

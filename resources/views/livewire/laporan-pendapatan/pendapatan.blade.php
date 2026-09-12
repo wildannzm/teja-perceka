@@ -2,7 +2,7 @@
 
     <x-page-header title="Pendapatan" description="Rincian pendapatan operasional berdasarkan kategori transaksi." />
 
-    {{-- Filter Section --}}
+    {{-- Filter section --}}
     <div class="bg-white p-4 sm:p-5 rounded-2xl border border-zinc-200 shadow-sm flex flex-col gap-5">
         
         @unless($this->isKepalaUnit)
@@ -19,7 +19,7 @@
         @endunless
 
         <div class="flex flex-col md:flex-row gap-5 md:items-end">
-            {{-- Mode Selector --}}
+            {{-- Mode selector --}}
             <div class="flex flex-col gap-1.5 w-full md:w-auto">
                 <label class="text-sm font-medium text-zinc-700">Periode</label>
                 <select wire:model.live="mode"
@@ -34,7 +34,7 @@
                 </select>
             </div>
 
-            {{-- Date/Period Picker --}}
+            {{-- Date/period picker --}}
             <div class="flex flex-col gap-1.5 w-full md:w-auto md:min-w-48">
                 <label class="text-sm font-medium text-zinc-700">Pilih {{ ucfirst($mode) }}</label>
                 
@@ -121,7 +121,7 @@
         $isKonsolidasi = is_null($this->unit_id);
     @endphp
 
-    {{-- Total Pendapatan Card (Large Summary) --}}
+    {{-- Total income card (large summary) --}}
     <div class="bg-brand-500 text-white rounded-2xl p-6 sm:p-8 shadow-lg shadow-brand-500/20 border border-brand-400 flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-w-0">
         <div class="min-w-0 w-full">
             <p class="text-brand-100 font-medium text-sm sm:text-base uppercase tracking-wide mb-1 break-words">{{ $data['unit'] }}</p>
@@ -137,7 +137,7 @@
         </div>
     </div>
 
-    {{-- Breakdown Kategori --}}
+    {{-- Category breakdown --}}
     @if($data['kosong'])
         <div class="bg-white rounded-2xl border-2 border-dashed border-zinc-200 p-8 sm:p-12 text-center mt-2 flex flex-col items-center justify-center min-h-[300px] min-w-0">
             <div class="bg-zinc-100 text-zinc-400 p-4 rounded-full mb-4 inline-block">

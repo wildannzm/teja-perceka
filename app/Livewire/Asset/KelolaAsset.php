@@ -119,7 +119,7 @@ class KelolaAsset extends Component
         }
 
         $validated = $this->validate();
-        // Pastikan harga dikonversi ke float, 0 jika kosong
+        // Ensure the price is cast to float, 0 when empty
         $validated['harga'] = (float) ($this->harga ?: 0);
 
         if ($this->editingId) {

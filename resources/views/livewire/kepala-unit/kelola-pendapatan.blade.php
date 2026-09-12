@@ -2,7 +2,7 @@
 
     <x-page-header title="Kelola Pendapatan" />
 
-    {{-- Tombol Tambah Kategori Baru --}}
+    {{-- Add new category button --}}
     <div class="flex justify-end">
         <button type="button" wire:click="$toggle('showTambahForm')"
             class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95
@@ -21,7 +21,7 @@
         </button>
     </div>
 
-    {{-- Form Tambah Kategori Baru --}}
+    {{-- New category form --}}
     @if ($showTambahForm)
         <div class="bg-white rounded-2xl border border-brand-200 shadow-sm overflow-hidden">
             <div class="bg-brand-50 px-5 py-4 border-b border-brand-100">
@@ -36,7 +36,7 @@
 
             <form wire:submit.prevent="tambahKategori" class="p-5 flex flex-col gap-4">
 
-                {{-- Nama Kategori --}}
+                {{-- Category name --}}
                 <div class="flex flex-col gap-1.5">
                     <label class="text-sm font-semibold text-zinc-700">Nama Kategori <span class="text-red-500">*</span></label>
                     <input type="text" wire:model="namaKategori" placeholder="cth: Sewa Pelampung, Tiket VIP..."
@@ -46,9 +46,9 @@
                     @enderror
                 </div>
 
-                {{-- Tipe & Harga dalam 2 kolom --}}
+                {{-- Type & price in 2 columns --}}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {{-- Tipe Kategori --}}
+                    {{-- Category type --}}
                     <div class="flex flex-col gap-1.5">
                         <label class="text-sm font-semibold text-zinc-700">Tipe Kategori <span class="text-red-500">*</span></label>
                         <select wire:model.live="tipeKategori"
@@ -68,7 +68,7 @@
                         </p>
                     </div>
 
-                    {{-- Harga (kondisional) --}}
+                    {{-- Price (conditional) --}}
                     @if ($tipeKategori !== 'bebas')
                         <div class="flex flex-col gap-1.5">
                             <label class="text-sm font-semibold text-zinc-700">
@@ -94,7 +94,7 @@
                     @endif
                 </div>
 
-                {{-- Akun Pendapatan --}}
+                {{-- Income account --}}
                 <div class="flex flex-col gap-1.5">
                     <label class="text-sm font-semibold text-zinc-700">Masuk ke Akun <span class="text-red-500">*</span></label>
                     <select wire:model="kodeAkunKategoriId"
@@ -131,7 +131,7 @@
         </div>
     @endif
 
-    {{-- Daftar Kategori Existing (edit harga) --}}
+    {{-- Existing category list (price editing) --}}
     <div>
         <h2 class="text-base font-semibold text-zinc-700 mb-3 flex items-center gap-2">
             <svg class="size-4 text-zinc-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -208,7 +208,7 @@
         </div>
     </div>
 
-    {{-- Kategori Tipe Bebas (read-only, info saja) --}}
+    {{-- Free-type categories (read-only, info only) --}}
     @if ($bebasCategories->count() > 0)
         <div>
             <h2 class="text-base font-semibold text-zinc-500 mb-3 flex items-center gap-2">
@@ -242,7 +242,7 @@
         </div>
     @endif
 
-    {{-- Modal Edit Kategori --}}
+    {{-- Edit category modal --}}
     @if ($showEditModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/50 backdrop-blur-sm" aria-modal="true">
             <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -256,7 +256,7 @@
                 </div>
                 
                 <form wire:submit.prevent="simpanEditKategori" class="p-5 flex flex-col gap-4">
-                    {{-- Nama Kategori --}}
+                    {{-- Category name --}}
                     <div class="flex flex-col gap-1.5">
                         <label class="text-sm font-semibold text-zinc-700">Nama Kategori <span class="text-red-500">*</span></label>
                         <input type="text" wire:model="editNamaKategori" placeholder="cth: Sewa Pelampung..."
@@ -264,7 +264,7 @@
                         @error('editNamaKategori') <p class="text-xs text-red-500">{{ $message }}</p> @enderror
                     </div>
 
-                    {{-- Tipe Kategori --}}
+                    {{-- Category type --}}
                     <div class="flex flex-col gap-1.5">
                         <label class="text-sm font-semibold text-zinc-700">Tipe Kategori <span class="text-red-500">*</span></label>
                         <select wire:model="editTipeKategori"
@@ -282,7 +282,7 @@
                         </p>
                     </div>
 
-                    {{-- Akun Pendapatan --}}
+                    {{-- Income account --}}
                     <div class="flex flex-col gap-1.5">
                         <label class="text-sm font-semibold text-zinc-700">Masuk ke Akun <span class="text-red-500">*</span></label>
                         <select wire:model="editKodeAkunKategoriId"
@@ -309,7 +309,7 @@
         </div>
     @endif
 
-    {{-- Modal Konfirmasi Hapus Kategori --}}
+    {{-- Delete category confirmation modal --}}
     @if ($showDeleteModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/50 backdrop-blur-sm" aria-modal="true">
             <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">

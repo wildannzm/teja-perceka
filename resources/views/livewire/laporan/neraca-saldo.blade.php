@@ -93,13 +93,13 @@
             </div>
 
             <div class="flex flex-col md:flex-row w-full text-sm text-zinc-700">
-                {{-- SISI AKTIVA --}}
+                {{-- ASSETS SIDE --}}
                 <div class="w-full md:w-1/2 md:border-r border-zinc-300 flex flex-col">
                     <div class="bg-zinc-200/60 py-2 text-center font-bold border-b border-zinc-300 uppercase tracking-widest text-zinc-900">Aktiva</div>
                     <div class="flex-1 overflow-x-auto">
                         <table class="w-full min-w-[300px]">
                             <tbody>
-                                <!-- Aktiva Lancar -->
+                                <!-- Current assets -->
                                 <tr class="bg-zinc-50 border-b border-zinc-200">
                                     <td class="px-3 py-2 font-bold text-xs" colspan="3">1-1000 AKTIVA LANCAR</td>
                                 </tr>
@@ -123,7 +123,7 @@
                                     <td class="px-3 py-2 text-right font-bold whitespace-nowrap">{{ number_format($data['totalAktivaLancar'], 0, ',', '.') }}</td>
                                 </tr>
                                 
-                                <!-- Aktiva Tidak Lancar -->
+                                <!-- Non-current assets -->
                                 <tr class="bg-zinc-50 border-b border-zinc-200">
                                     <td class="px-3 py-2 font-bold text-xs" colspan="3">1-2000 AKTIVA TIDAK LANCAR</td>
                                 </tr>
@@ -149,7 +149,7 @@
                             </tbody>
                         </table>
                     </div>
-                    {{-- TOTAL AKTIVA ditaruh di bawah dengan margin-top auto agar selalu sejajar di bagian bawah --}}
+                    {{-- TOTAL ASSETS pinned to the bottom with margin-top auto to stay aligned --}}
                     <div class="mt-auto border-t-2 border-zinc-400 bg-[#78a2a8] text-zinc-900">
                         <table class="w-full min-w-[300px]">
                             <tr>
@@ -160,13 +160,13 @@
                     </div>
                 </div>
 
-                {{-- SISI PASIVA --}}
+                {{-- LIABILITIES & EQUITY SIDE --}}
                 <div class="w-full md:w-1/2 flex flex-col border-t-4 md:border-t-0 border-zinc-300 md:border-transparent mt-6 md:mt-0">
                     <div class="bg-zinc-200/60 py-2 text-center font-bold border-b border-zinc-300 uppercase tracking-widest text-zinc-900">Pasiva</div>
                     <div class="flex-1 overflow-x-auto">
                         <table class="w-full min-w-[300px]">
                             <tbody>
-                                <!-- Kewajiban -->
+                                <!-- Liabilities -->
                                 <tr class="bg-zinc-50 border-b border-zinc-200">
                                     <td class="px-3 py-2 font-bold text-xs" colspan="3">2-0000 KEWAJIBAN</td>
                                 </tr>
@@ -213,7 +213,7 @@
                                     <td class="px-3 py-2 text-right font-bold whitespace-nowrap">{{ number_format($data['totalKewajiban'], 0, ',', '.') }}</td>
                                 </tr>
                                 
-                                <!-- Ekuitas -->
+                                <!-- Equity -->
                                 <tr class="bg-zinc-50 border-b border-zinc-200">
                                     <td class="px-3 py-2 font-bold text-xs" colspan="3">3-0000 EKUITAS</td>
                                 </tr>
@@ -240,7 +240,7 @@
                             </tbody>
                         </table>
                     </div>
-                    {{-- TOTAL PASIVA ditaruh di bawah dengan margin-top auto --}}
+                    {{-- TOTAL LIABILITIES & EQUITY pinned to the bottom with margin-top auto --}}
                     <div class="mt-auto border-t-2 border-zinc-400 bg-[#78a2a8] text-zinc-900">
                         <table class="w-full min-w-[300px]">
                             <tr>

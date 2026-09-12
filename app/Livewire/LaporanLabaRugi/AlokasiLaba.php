@@ -275,7 +275,7 @@ class AlokasiLaba extends Component
     #[Computed]
     public function canEdit(): bool
     {
-        // Hanya Direktur, Sekretaris, Bendahara yang bisa edit
+        // Only the director, secretary, and treasurer can edit
         return Auth::user()->hasAnyRole(['direktur_bumdes', 'sekretaris', 'bendahara']);
     }
 

@@ -13,14 +13,14 @@
         </x-slot:actions>
     </x-page-header>
 
-    {{-- Error global --}}
+    {{-- Global error --}}
     @error('items')
         <div class="p-4 bg-red-50 border border-red-200 rounded-2xl text-sm text-red-700">
             {{ $message }}
         </div>
     @enderror
 
-    {{-- Riwayat Pengeluaran (Catatan Pengeluaran) --}}
+    {{-- Expense history (expense records) --}}
     <div class="bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden">
         <div class="p-4 sm:p-5 border-b border-zinc-100 bg-zinc-50">
             <div class="flex flex-col gap-4">
@@ -50,9 +50,9 @@
                         </select>
                     </div>
 
-                    {{-- Date/Period picker based on filterMode --}}
+                    {{-- Date/period picker based on filterMode --}}
                     <div class="flex flex-col gap-1.5 w-full md:w-auto md:min-w-48">
-                        {{-- Harian --}}
+                        {{-- Daily --}}
                         @if ($filterMode === 'harian')
                             <label for="filterDate" class="text-xs font-semibold text-zinc-600">Tanggal</label>
                             <div wire:ignore wire:key="picker-harian" x-data="{ val: $wire.entangle('filterDate').live }">
@@ -67,7 +67,7 @@
                                     class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer" />
                             </div>
 
-                            {{-- Bulanan --}}
+                            {{-- Monthly --}}
                         @elseif($filterMode === 'bulanan')
                             <label for="filterBulan" class="text-xs font-semibold text-zinc-600">Bulan</label>
                             <div wire:ignore wire:key="picker-bulanan" x-data="{ val: $wire.entangle('filterBulan').live }">
@@ -88,7 +88,7 @@
                                     class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer" />
                             </div>
 
-                            {{-- Semester --}}
+                            {{-- Semesterly --}}
                         @elseif($filterMode === 'semester')
                             <div wire:key="picker-semester" class="flex flex-col sm:flex-row gap-5">
                                 <div class="flex flex-col gap-1.5 w-full sm:w-auto">
@@ -110,7 +110,7 @@
                                 </div>
                             </div>
 
-                            {{-- Tahunan --}}
+                            {{-- Yearly --}}
                         @elseif($filterMode === 'tahunan')
                             <div wire:key="picker-tahunan">
                                 <label for="filterTahun" class="text-xs font-semibold text-zinc-600">Tahun</label>

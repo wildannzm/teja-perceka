@@ -131,7 +131,7 @@ class KelolaPendapatan extends Component
 
     public function updatedTipeKategori(): void
     {
-        // Reset harga jika beralih ke tipe bebas
+        // Reset the price when switching to the free type
         if ($this->tipeKategori === 'bebas') {
             $this->hargaKategori = '';
         }
@@ -157,7 +157,7 @@ class KelolaPendapatan extends Component
             'hargaKategori.min' => 'Harga tidak boleh negatif.',
         ]);
 
-        // Cek duplikasi nama dalam unit yang sama
+        // Check for duplicate names within the same unit
         $duplikat = KategoriTransaksi::where('unit_wisata_id', $this->unitId)
             ->where('nama', $this->namaKategori)
             ->exists();
@@ -177,7 +177,7 @@ class KelolaPendapatan extends Component
                 'jenis' => JenisTransaksi::Pemasukan,
             ]);
 
-            // Simpan harga awal jika tipe bukan bebas
+            // Store the initial price unless the type is free
             if (in_array($this->tipeKategori, ['harga_x_qty', 'tahunan'])) {
                 KategoriHargaRiwayat::create([
                     'kategori_transaksi_id' => $kategori->id,
@@ -185,11 +185,11 @@ class KelolaPendapatan extends Component
                     'berlaku_dari' => now()->startOfDay(),
                 ]);
 
-                // Tambah ke array prices agar langsung muncul di daftar edit harga
+                // Append to the prices array so it shows up in the price-edit list immediately
                 $this->prices[$kategori->id] = (float) $this->hargaKategori;
             }
 
-            // Kirim notifikasi ke bendahara & direktur
+            // Notify the treasurer & director
             $akun = KodeAkun::find($this->kodeAkunKategoriId);
             $message = "Kepala Unit {$this->unitNama} menambahkan kategori pendapatan baru: "
                 ."\"{$this->namaKategori}\" (Tipe: {$this->tipeKategori}, Akun: {$akun?->kode} {$akun?->nama})";
@@ -202,7 +202,7 @@ class KelolaPendapatan extends Component
 
         \Flux::toast(variant: 'success', text: "Kategori \"{$this->namaKategori}\" berhasil ditambahkan!");
 
-        // Reset form
+        // Reset the form
         $this->reset(['namaKategori', 'hargaKategori', 'kodeAkunKategoriId']);
         $this->tipeKategori = 'harga_x_qty';
         $this->showTambahForm = false;
@@ -257,7 +257,7 @@ class KelolaPendapatan extends Component
             'kode_akun_id' => $this->editKodeAkunKategoriId,
         ]);
 
-        // Kirim notifikasi perubahan jika nama berubah
+        // Notify about the change when the name changes
         if ($oldName !== $this->editNamaKategori) {
             $message = "Kepala Unit {$this->unitNama} mengubah kategori \"{$oldName}\" menjadi \"{$this->editNamaKategori}\".";
             $recipients = User::role(['bendahara', 'direktur_bumdes'])->get();
@@ -294,7 +294,7 @@ class KelolaPendapatan extends Component
             ->where('unit_wisata_id', $this->unitId)
             ->firstOrFail();
 
-        // Cek apakah dipakai di transaksi detail (tidak bisa dihapus jika ada untuk mencegah data hilang)
+        // Check usage in transaction details (undeletable when referenced, to prevent data loss)
         $terpakai = TransaksiDetail::where('kategori_transaksi_id', $this->deleteId)->exists();
 
         if ($terpakai) {

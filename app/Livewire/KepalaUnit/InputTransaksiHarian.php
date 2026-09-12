@@ -36,7 +36,7 @@ class InputTransaksiHarian extends Component
 
     public bool $isEditing = false;
 
-    // Array untuk menyimpan state input setiap kategori
+    // Holds the input state of each category
     // Format: [kategori_id => ['qty' => value, 'nominal' => value, 'aktif' => boolean, 'subtotal' => value]]
     public array $inputs = [];
 
@@ -50,7 +50,7 @@ class InputTransaksiHarian extends Component
     {
         $user = Auth::user();
 
-        // Validasi akses hanya untuk role kepala_unit dan memiliki unit_wisata
+        // Restrict access to the kepala_unit role owning a unit_wisata
         if (! $user->hasRole('kepala_unit') || ! $user->unit_wisata_id) {
             abort(403, 'Akses ditolak. Anda bukan kepala unit yang valid.');
         }
@@ -130,7 +130,7 @@ class InputTransaksiHarian extends Component
             $this->checkSudahInput();
         }
 
-        // Hitung ulang semua subtotal karena harga mungkin berbeda di tanggal yang baru
+        // Recalculate all subtotals since prices may differ on the new date
         $this->calculateAllSubtotals();
     }
 
@@ -160,17 +160,17 @@ class InputTransaksiHarian extends Component
         $currentYear = Carbon::parse($this->tanggal)->year;
 
         foreach ($this->kategoriList as $kategori) {
-            // Logic khusus untuk kategori Tahunan: sembunyikan jika sudah diinput tahun ini,
-            // kecuali saat edit (kita tampilkan semua kategori yang ada di data aslinya).
+            // Special rule for yearly categories: hide when already submitted this year,
+            // except while editing (show every category from the original data).
             if (! $this->isEditing && $kategori->tipe === TipeKategori::Tahunan) {
-                // Cek apakah sudah pernah diinput di tahun berjalan
+                // Check whether it was already submitted in the current year
                 $sudahAdaTahunan = TransaksiDetail::where('kategori_transaksi_id', $kategori->id)
                     ->whereHas('transaksiHarian', function ($query) use ($currentYear) {
                         $query->whereYear('tanggal', $currentYear);
                     })->exists();
 
                 if ($sudahAdaTahunan) {
-                    continue; // Sembunyikan jika sudah pernah diinput tahun ini
+                    continue; // Hide when already submitted this year
                 }
             }
 
@@ -220,7 +220,7 @@ class InputTransaksiHarian extends Component
 
     public function submit()
     {
-        // Validasi dasar
+        // Base validation
         $this->validate([
             'tanggal' => 'required|date',
             'totalPemasukan' => 'required|numeric|min:0',
@@ -291,7 +291,7 @@ class InputTransaksiHarian extends Component
 
             DB::commit();
 
-            // Reset form
+            // Reset the form
             $this->initKategoriInputs();
             $this->totalPemasukan = 0;
 

@@ -52,7 +52,7 @@
                 </p>
             </div>
         @else
-            {{-- Desktop Table --}}
+            {{-- Desktop table --}}
             <div class="hidden sm:block overflow-x-auto">
                 <table class="w-full text-sm text-left">
                     <thead class="bg-zinc-50 border-b border-zinc-200">
@@ -123,7 +123,7 @@
                 </table>
             </div>
 
-            {{-- Mobile Card --}}
+            {{-- Mobile card --}}
             <div class="sm:hidden flex flex-col divide-y divide-zinc-100">
                 @foreach($this->assets as $asset)
                     <div class="p-4 flex items-start justify-between gap-3">
@@ -174,7 +174,7 @@
         @endif
     </div>
 
-    {{-- Total Summary --}}
+    {{-- Total summary --}}
     @if(!$this->assets->isEmpty())
         <div class="bg-brand-50 border border-brand-200 rounded-2xl px-5 py-4 flex items-center justify-between">
             <span class="text-sm font-medium text-brand-800">Total Jenis Aset</span>
@@ -182,7 +182,7 @@
         </div>
     @endif
 
-    {{-- Modal Tambah/Edit Aset --}}
+    {{-- Add/edit asset modal --}}
     @if($showModal)
         <div
             class="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -196,9 +196,9 @@
                 wire:click="closeModal"
             ></div>
 
-            {{-- Modal Panel --}}
+            {{-- Modal panel --}}
             <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col gap-0 overflow-hidden z-10">
-                {{-- Modal Header --}}
+                {{-- Modal header --}}
                 <div class="px-6 py-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
                     <h2 class="text-base font-semibold text-zinc-900">
                         {{ $editingId ? 'Edit Aset' : 'Tambah Aset Baru' }}
@@ -213,9 +213,9 @@
                     </button>
                 </div>
 
-                {{-- Modal Body --}}
+                {{-- Modal body --}}
                 <form wire:submit="save" class="px-6 py-5 flex flex-col gap-4">
-                    {{-- Nama Aset --}}
+                    {{-- Asset name --}}
                     <div class="flex flex-col gap-1.5">
                         <label for="modal-nama-aset" class="text-sm font-medium text-zinc-700">
                             Nama Aset <span class="text-red-500">*</span>
@@ -233,7 +233,7 @@
                         @enderror
                     </div>
 
-                    {{-- Jumlah & Satuan --}}
+                    {{-- Quantity & unit --}}
                     <div class="grid grid-cols-2 gap-3">
                         <div class="flex flex-col gap-1.5">
                             <label for="modal-jumlah" class="text-sm font-medium text-zinc-700">
@@ -267,7 +267,7 @@
                         </div>
                     </div>
 
-                    {{-- Harga Perolehan --}}
+                    {{-- Acquisition cost --}}
                     <div class="flex flex-col gap-1.5">
                         <label for="modal-harga" class="text-sm font-medium text-zinc-700">
                             Harga Perolehan <span class="text-zinc-400 font-normal">(opsional)</span>
@@ -289,7 +289,7 @@
                         @enderror
                     </div>
 
-                    {{-- Keterangan --}}
+                    {{-- Description --}}
                     <div class="flex flex-col gap-1.5">
                         <label for="modal-keterangan" class="text-sm font-medium text-zinc-700">
                             Keterangan <span class="text-zinc-400 font-normal">(opsional)</span>
@@ -331,7 +331,7 @@
         </div>
     @endif
 
-    {{-- Modal Konfirmasi Hapus --}}
+    {{-- Delete confirmation modal --}}
     @if ($showDeleteModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div wire:click="$set('showDeleteModal', false)" class="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm transition-opacity"></div>

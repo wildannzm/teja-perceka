@@ -36,7 +36,7 @@
         <h2 class="text-base sm:text-lg font-semibold mb-4 text-zinc-900">Filter Laporan</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 {{ $this->isKepalaUnit ? '' : 'md:grid-cols-3' }} gap-3 sm:gap-4">
 
-            {{-- Unit selector (non kepala_unit only) --}}
+            {{-- Unit selector (non unit-head roles only) --}}
             @unless($this->isKepalaUnit)
                 <div class="flex flex-col gap-1.5">
                     <label class="text-sm font-medium text-zinc-700">Unit Usaha</label>
@@ -61,7 +61,7 @@
                 </select>
             </div>
 
-            {{-- Input periode --}}
+            {{-- Period input --}}
             <div class="flex flex-col gap-1.5">
                 @if($mode === 'bulanan')
                     <label class="text-sm font-medium text-zinc-700">Bulan</label>
@@ -104,7 +104,7 @@
         </div>
     </div>
 
-    {{-- Laporan --}}
+    {{-- Report --}}
     @php
         $data = $this->reportData;
         $pendapatanRows = $data['pendapatanRows'];
@@ -123,7 +123,7 @@
 
     <div class="bg-white rounded-xl border border-brand-100 shadow-sm overflow-hidden mb-6 pb-6">
 
-        {{-- Sub-header laporan --}}
+        {{-- Report sub-header --}}
         <div class="px-4 sm:px-6 py-4 border-b border-zinc-100 text-center">
             <p class="text-sm font-bold text-zinc-900 uppercase">{{ $namaEntitas }}</p>
             <p class="text-sm font-bold text-zinc-900">LABA RUGI</p>
@@ -142,7 +142,7 @@
                 </thead>
                 <tbody class="block md:table-row-group">
 
-                    {{-- ── PENDAPATAN USAHA ── --}}
+                    {{-- ── OPERATING REVENUE ── --}}
                     <tr class="block md:table-row bg-zinc-100/50 border-b md:border-none border-zinc-200">
                         <td colspan="4" class="block md:table-cell px-4 sm:px-6 py-3 text-xs font-bold text-zinc-800 uppercase tracking-wider">
                             PENDAPATAN USAHA
@@ -176,7 +176,7 @@
                         </td>
                     </tr>
 
-                    {{-- ── HARGA POKOK PENJUALAN ── --}}
+                    {{-- ── COST OF GOODS SOLD ── --}}
                     <tr class="block md:table-row bg-zinc-100/50 border-b md:border-none border-zinc-200 mt-2 md:mt-0">
                         <td colspan="4" class="block md:table-cell px-4 sm:px-6 py-3 text-xs font-bold text-zinc-800 uppercase tracking-wider">
                             HARGA POKOK PENJUALAN
@@ -221,7 +221,7 @@
                         </td>
                     </tr>
 
-                    {{-- ── BIAYA USAHA ── --}}
+                    {{-- ── OPERATING EXPENSES ── --}}
                     <tr class="block md:table-row bg-zinc-100/50 border-b md:border-none border-zinc-200 mt-2 md:mt-0">
                         <td colspan="4" class="block md:table-cell px-4 sm:px-6 py-3 text-xs font-bold text-zinc-800 uppercase tracking-wider">
                             BIAYA USAHA
@@ -255,7 +255,7 @@
                         </td>
                     </tr>
 
-                    {{-- ── PENDAPATAN & BIAYA LAIN-LAIN ── --}}
+                    {{-- ── OTHER INCOME & EXPENSES ── --}}
                     <tr class="block md:table-row bg-zinc-100/50 border-b md:border-none border-zinc-200 mt-2 md:mt-0">
                         <td colspan="4" class="block md:table-cell px-4 sm:px-6 py-3 text-xs font-bold text-zinc-800 uppercase tracking-wider">
                             PENDAPATAN & BIAYA LAIN-LAIN
@@ -294,7 +294,7 @@
                         </tr>
                     @endforeach
 
-                    {{-- ── LABA BERSIH ── --}}
+                    {{-- ── NET PROFIT ── --}}
                     <tr class="flex justify-between items-center md:table-row {{ $labaBersih >= 0 ? 'bg-emerald-600' : 'bg-red-600' }} px-4 py-4 md:p-0 mt-4 md:mt-0 rounded-b-xl md:rounded-none">
                         <td colspan="3" class="hidden md:table-cell md:px-6 md:py-4 font-extrabold text-white uppercase tracking-wide text-sm md:text-base text-right">
                             LABA BERSIH

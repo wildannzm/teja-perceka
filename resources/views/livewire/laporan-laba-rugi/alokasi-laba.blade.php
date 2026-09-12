@@ -14,7 +14,7 @@
     </x-page-header>
     </div>
 
-    {{-- Filter Panel --}}
+    {{-- Filter panel --}}
     <div class="bg-white p-5 rounded-2xl shadow-sm border border-brand-100 flex flex-col md:flex-row gap-4 items-end">
         
         <div class="flex flex-col gap-1.5 w-full md:w-auto min-w-[200px]">
@@ -80,7 +80,7 @@
         </div>
     </div>
 
-    {{-- Info Laba Bersih --}}
+    {{-- Net profit info --}}
     <div class="bg-gradient-to-br from-brand-600 to-brand-700 p-6 rounded-2xl shadow-sm text-white flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
             <h2 class="text-brand-100 font-semibold mb-1">Total Laba Bersih</h2>
@@ -95,7 +95,7 @@
         </div>
     </div>
 
-    {{-- Tabel Alokasi --}}
+    {{-- Allocation table --}}
     <div class="bg-white rounded-2xl shadow-sm border border-brand-100 overflow-hidden">
         <div class="px-5 py-4 border-b border-brand-100 flex items-center justify-between bg-zinc-50/50">
             <h3 class="font-bold text-zinc-900">Rincian Alokasi</h3>
@@ -118,12 +118,12 @@
             @endif
         </div>
 
-        {{-- Form Tambah --}}
+        {{-- Add form --}}
         @if($showForm && $this->canEdit)
             <div class="p-4 sm:p-5 border-b border-brand-100 bg-brand-50/30">
                 <form wire:submit.prevent="simpanBaris" class="flex flex-col gap-4">
                     <div class="flex flex-col sm:flex-row gap-4">
-                        {{-- Keterangan --}}
+                        {{-- Description --}}
                         <div class="flex flex-col gap-1.5 flex-1">
                             <label class="text-xs font-bold text-zinc-700">Keterangan (Pos Alokasi)</label>
                             <input type="text" wire:model="formKeterangan" placeholder="Contoh: Pajak, Dana Desa, Bonus Pengurus..."
@@ -131,7 +131,7 @@
                             @error('formKeterangan') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                         </div>
 
-                        {{-- Kelompok --}}
+                        {{-- Group --}}
                         <div class="flex flex-col gap-1.5 w-full sm:w-52">
                             <label class="text-xs font-bold text-zinc-700">Kelompok</label>
                             <select wire:model="formKelompok"
@@ -142,7 +142,7 @@
                             @error('formKelompok') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                         </div>
 
-                        {{-- Persentase --}}
+                        {{-- Percentage --}}
                         <div class="flex flex-col gap-1.5 w-full sm:w-36">
                             <label class="text-xs font-bold text-zinc-700">Persentase (%)</label>
                             <input type="number" step="0.01" wire:model="formPersentase" placeholder="Contoh: 12.5"
@@ -151,7 +151,7 @@
                         </div>
                     </div>
 
-                    {{-- Info kontekstual --}}
+                    {{-- Contextual info --}}
                     <div class="text-xs text-zinc-500 bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-200">
                         @if($formKelompok === 'pengurang')
                             <span class="font-semibold text-zinc-700">Pengurang:</span>
@@ -172,7 +172,7 @@
             </div>
         @endif
 
-        {{-- Tabel --}}
+        {{-- Table --}}
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
                 <thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-semibold">
@@ -186,7 +186,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {{-- ── LABA BERSIH awal ─────────────────────────────────── --}}
+                    {{-- ── Initial NET PROFIT ─────────────────────────────────── --}}
                     <tr class="bg-brand-50 border-b border-brand-100">
                         <td class="px-4 sm:px-5 py-3.5 font-bold text-brand-900" colspan="2">LABA BERSIH</td>
                         <td class="px-4 sm:px-5 py-3.5 text-right font-mono font-bold text-brand-900">
@@ -195,7 +195,7 @@
                         @if($this->canEdit)<td></td>@endif
                     </tr>
 
-                    {{-- ── Section PENGURANG ────────────────────────────────── --}}
+                    {{-- ── Deduction section ────────────────────────────────── --}}
                     @forelse ($this->pengurangRows as $row)
                         <tr class="hover:bg-zinc-50 transition-colors border-b border-zinc-100">
                             <td class="px-4 sm:px-5 py-3 text-zinc-800 pl-8 sm:pl-10">{{ $row['keterangan'] }}</td>
@@ -225,7 +225,7 @@
                         </tr>
                     @endforelse
 
-                    {{-- ── Baris Laba setelah Pengurang ─────────────────────── --}}
+                    {{-- ── Profit row after deductions ─────────────────────── --}}
                     <tr class="bg-zinc-100 border-y-2 border-zinc-300">
                         <td class="px-4 sm:px-5 py-3.5 font-bold text-zinc-900" colspan="2">
                             Laba/Rugi Bersih setelah Pengurang
@@ -236,14 +236,14 @@
                         @if($this->canEdit)<td></td>@endif
                     </tr>
 
-                    {{-- ── Header section AD/ART ────────────────────────────── --}}
+                    {{-- ── Articles of Association header section ────────────────────────────── --}}
                     <tr class="bg-zinc-50 border-b border-zinc-200">
                         <td class="px-4 sm:px-5 py-2.5 text-xs font-bold text-zinc-500 uppercase tracking-wider" colspan="{{ $this->canEdit ? 4 : 3 }}">
                             Alokasi Laba Bersih sesuai AD/ART
                         </td>
                     </tr>
 
-                    {{-- ── Section AD/ART ───────────────────────────────────── --}}
+                    {{-- ── Articles of Association section ───────────────────────────────────── --}}
                     @forelse ($this->adArtRows as $row)
                         <tr class="hover:bg-zinc-50 transition-colors border-b border-zinc-100">
                             <td class="px-4 sm:px-5 py-3 text-zinc-800 pl-8 sm:pl-10">{{ $row['keterangan'] }}</td>
@@ -273,7 +273,7 @@
                         </tr>
                     @endforelse
 
-                    {{-- ── Total AD/ART ─────────────────────────────────────── --}}
+                    {{-- ── Total Articles of Association allocation ─────────────────────────────────────── --}}
                     @if($this->adArtRows->count() > 0)
                         <tr class="bg-zinc-50 border-t-2 border-zinc-300">
                             <td class="px-4 sm:px-5 py-3.5 font-bold text-zinc-900 text-right">TOTAL AD/ART</td>
@@ -290,7 +290,7 @@
                         </tr>
                     @endif
 
-                    {{-- Pesan kosong jika tidak ada data sama sekali --}}
+                    {{-- Empty state when there is no data at all --}}
                     @if($this->alokasiRows->count() === 0 && !$showForm)
                         <tr>
                             <td colspan="{{ $this->canEdit ? 4 : 3 }}" class="px-5 py-8 text-center text-zinc-500">
@@ -303,7 +303,7 @@
         </div>
     </div>
 
-    {{-- Modal Konfirmasi Hapus --}}
+    {{-- Delete confirmation modal --}}
     @if ($showDeleteModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div wire:click="$set('showDeleteModal', false)" class="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm transition-opacity"></div>

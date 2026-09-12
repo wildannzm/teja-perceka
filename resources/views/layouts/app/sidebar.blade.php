@@ -6,7 +6,7 @@
 </head>
 
 <body class="min-h-screen bg-[#FDFDFC] pb-[env(safe-area-inset-bottom)] relative overflow-x-clip font-sans">
-    <!-- Dekorasi Background Lingkaran Solid -->
+    <!-- Solid circle background decoration -->
     <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
         <div
             class="absolute top-[-20%] left-[-10%] w-[400px] h-[400px] md:w-[600px] md:h-[600px] rounded-full bg-brand-300 opacity-20">
@@ -19,13 +19,13 @@
         </div>
     </div>
 
-    <!-- Layout Wrapper -->
+    <!-- Layout wrapper -->
     <div class="flex min-h-screen" x-data="{ sidebarOpen: false }">
 
         <!-- ===================== SIDEBAR ===================== -->
         <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
             class="fixed left-0 top-14 bottom-0 z-30 w-64 bg-white border-r border-zinc-200 shadow-sm flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:bottom-auto lg:h-screen lg:z-auto">
-            <!-- Header Sidebar -->
+            <!-- Sidebar header -->
             <div class="relative hidden border-b border-zinc-100 px-4 py-3 shrink-0 lg:block">
                 <a href="{{ route('dashboard') }}" wire:navigate class="flex justify-center">
                     <img src="{{ asset('assets/images/logo-sidebar-bumdes-teja-perceka.png') }}" alt="Logo BUMDes Teja Perceka"
@@ -33,7 +33,7 @@
                 </a>
             </div>
 
-            <!-- Navigasi Utama -->
+            <!-- Primary navigation -->
             <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
 
                 @role('super_admin')
@@ -588,7 +588,7 @@
 
             </nav>
 
-            <!-- User Menu Bawah Sidebar -->
+            <!-- Sidebar bottom user menu -->
             <div class="border-t border-zinc-100 p-3" x-data="{ menuOpen: false }" @click.outside="menuOpen = false">
                 <button @click="menuOpen = !menuOpen"
                     class="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-zinc-100 transition-colors">
@@ -607,7 +607,7 @@
                     </svg>
                 </button>
 
-                <!-- Dropdown Menu -->
+                <!-- Dropdown menu -->
                 <div x-show="menuOpen" x-transition
                     class="mt-1 bg-white border border-zinc-200 rounded-xl shadow-lg overflow-hidden">
                     <a href="{{ route('profile.edit') }}" wire:navigate
@@ -638,11 +638,11 @@
             </div>
         </aside>
 
-        <!-- Overlay mobile -->
+        <!-- Mobile overlay -->
         <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed left-0 right-0 top-14 bottom-0 z-20 bg-black/30 lg:hidden"
             x-transition.opacity></div>
 
-        <!-- Main Content -->
+        <!-- Main content -->
         <div class="flex-1 flex flex-col min-w-0 overflow-x-clip">
             <!-- Mobile topbar -->
             <header
@@ -660,17 +660,17 @@
                     <img src="{{ asset('assets/images/logo-sidebar-bumdes-teja-perceka.png') }}" alt="Logo BUMDes Teja Perceka"
                         class="block h-12 w-auto max-w-[220px] object-contain">
                 </a>
-                <!-- Placeholder to keep logo centered in justify-between -->
+                <!-- Placeholder to keep the logo centered in justify-between -->
                 <div class="w-8"></div>
             </header>
 
-            <!-- Slot konten halaman -->
+            <!-- Page content slot -->
             <main class="flex-1 px-0 py-3 sm:p-6">
                 {{ $slot }}
             </main>
         </div>
 
-    </div><!-- end flex wrapper -->
+    </div><!-- End flex wrapper -->
 
     @if (session()->has('impersonator_id'))
         <div
@@ -681,7 +681,7 @@
                 🔑
             </div>
 
-            <!-- User Info -->
+            <!-- User info -->
             <div
                 style="display: flex !important; flex-direction: column !important; text-align: left !important; line-height: 1.25 !important;">
                 <span
@@ -694,7 +694,7 @@
                 </span>
             </div>
 
-            <!-- Exit Button -->
+            <!-- Exit button -->
             <form method="POST" action="{{ route('impersonate.stop') }}"
                 style="display: inline-flex !important; margin: 0 !important; padding: 0 !important;">
                 @csrf

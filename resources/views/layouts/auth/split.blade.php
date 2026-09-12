@@ -14,7 +14,7 @@
 
     <div class="flex min-h-dvh items-center justify-center p-4 sm:p-6 md:p-10">
         <div class="grid w-full max-w-md overflow-hidden rounded-3xl border border-zinc-200/70 bg-white shadow-[0_1px_2px_rgb(16,24,40,0.05),0_16px_40px_-16px_rgb(16,24,40,0.12)] md:max-w-4xl md:grid-cols-2">
-            <!-- Panel Logo : atas di mobile, kiri di md+ -->
+            <!-- Logo panel: top on mobile, left on md+ -->
             <div class="flex flex-col items-center justify-center gap-4 border-b border-zinc-100 bg-gradient-to-b from-brand-50/90 to-white p-6 sm:p-8 md:border-b-0 md:border-r md:p-10">
                 <a href="{{ route('home') }}" wire:navigate>
                     <img src="{{ asset('assets/images/logo-bumdes-teja-perceka.png') }}" alt="Logo BUMDes Teja Perceka"
@@ -36,7 +36,7 @@
                 </blockquote>
             </div>
 
-            <!-- Panel Form -->
+            <!-- Form panel -->
             <div class="flex flex-col justify-center gap-6 p-6 sm:p-8 md:p-10">
                 {{ $slot }}
                 <p class="text-center text-xs text-zinc-400">© {{ date('Y') }} BUMDes Teja Perceka</p>

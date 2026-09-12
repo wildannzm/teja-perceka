@@ -132,7 +132,7 @@ class RiwayatTransaksi extends Component
     {
         [$start, $end] = $this->dateRange;
 
-        // Ambil data dari Jurnal Umum untuk semua akun
+        // Fetch General Journal data for all accounts
         return JurnalUmum::with('kodeAkun')
             ->where('unit_wisata_id', $this->unitId)
             ->whereBetween('tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')])
@@ -177,7 +177,7 @@ class RiwayatTransaksi extends Component
             'unit',
             'totalDebet',
             'totalKredit'
-        ))->setPaper('a4', 'landscape'); // Landscape lebih cocok untuk tabel ledger
+        ))->setPaper('a4', 'landscape'); // Landscape fits ledger tables better
 
         $filename = 'JurnalUmum_'.str_replace(' ', '_', $unit->nama).'_'.str_replace([' ', '-', '/'], '_', $periode).'.pdf';
 

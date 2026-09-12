@@ -7,7 +7,7 @@
         <div class="my-6 w-full max-w-xl">
             <form method="POST" wire:submit="updatePassword" class="flex flex-col gap-5">
                 
-                <!-- Password Baru -->
+                <!-- New password -->
                 <div class="flex flex-col gap-0.5" x-data="{ show: false }">
                     <label for="new_password" class="text-sm font-medium text-zinc-700">Kata Sandi Baru</label>
                     <div class="relative">
@@ -30,7 +30,7 @@
                     @enderror
                 </div>
 
-                <!-- Konfirmasi Password -->
+                <!-- Password confirmation -->
                 <div class="flex flex-col gap-0.5" x-data="{ show: false }">
                     <label for="password_confirmation" class="text-sm font-medium text-zinc-700">Konfirmasi Kata Sandi</label>
                     <div class="relative">
@@ -49,7 +49,7 @@
                     </div>
                 </div>
 
-                <!-- Notifikasi sukses -->
+                <!-- Success notification -->
                 @if (session('status') === 'password-updated')
                     <div class="rounded-lg bg-brand-50 border border-brand-200 px-4 py-3 text-sm text-brand-700 font-medium flex items-center gap-2">
                         <svg class="size-5 text-brand-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">

@@ -3,7 +3,7 @@
         <x-page-header title="Dashboard" description="Tinjauan ringkas performa keuangan seluruh unit BUMDes pada bulan ini." />
 
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-            {{-- Pemasukan --}}
+            {{-- Income --}}
             <div class="bg-white p-4 sm:p-6 rounded-2xl border border-zinc-200 shadow-sm flex items-start gap-3 sm:gap-4 transition-shadow hover:shadow-md">
                 <div class="size-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
                     <svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -16,7 +16,7 @@
                 </div>
             </div>
 
-            {{-- Pengeluaran --}}
+            {{-- Expenses --}}
             <div class="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex items-start gap-4 transition-shadow hover:shadow-md">
                 <div class="size-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
                     <svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -29,7 +29,7 @@
                 </div>
             </div>
 
-            {{-- Saldo --}}
+            {{-- Balance --}}
             <div class="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex items-start gap-4 transition-shadow hover:shadow-md">
                 <div class="size-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                     <svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">

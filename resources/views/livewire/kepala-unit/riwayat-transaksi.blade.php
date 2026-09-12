@@ -1,6 +1,6 @@
 <div class="flex flex-col gap-5 max-w-full mx-auto w-full pb-36">
 
-    {{-- Error Notification --}}
+    {{-- Error notification --}}
     @if ($errors->has('pdf'))
         <div class="p-4 text-sm text-red-800 bg-red-100 rounded-xl border border-red-200 flex items-start gap-3 shadow-sm"
             role="alert">
@@ -13,7 +13,7 @@
         </div>
     @endif
 
-    {{-- Mode Selector (Segmented Control) --}}
+    {{-- Mode selector (segmented control) --}}
     <div class="bg-zinc-100 p-1.5 rounded-2xl flex items-center shadow-sm border border-zinc-200 overflow-x-auto">
             <button wire:click="$set('mode', 'harian')"
                 class="flex-1 min-w-[80px] min-h-[44px] text-sm font-semibold rounded-xl transition-all duration-150 {{ $mode === 'harian' ? 'bg-white text-brand-900 shadow shadow-black/5' : 'text-zinc-500 hover:text-zinc-700 :text-zinc-300' }}">
@@ -33,7 +33,7 @@
         </button>
     </div>
 
-    {{-- Navigator Periode & Date Picker --}}
+    {{-- Period navigator & date picker --}}
     <div
         class="flex items-center justify-between bg-white rounded-2xl p-2 shadow-sm border border-brand-100 flex-wrap gap-2">
         <button wire:click="previousPeriod"
@@ -51,7 +51,7 @@
                 {{ $this->periodeLabel }}
             </div>
 
-            {{-- Date Picker Tersembunyi tapi interaktif --}}
+            {{-- Hidden but interactive date picker --}}
             <div class="mt-1.5 flex justify-center" wire:ignore x-data="{
                 val: $wire.entangle('currentDate').live,
                 mode: $wire.entangle('mode').live,
@@ -122,7 +122,7 @@
         </button>
     </div>
 
-    {{-- Tabel Jurnal Umum --}}
+    {{-- General journal table --}}
     <div class="bg-white rounded-2xl shadow-sm border border-brand-100 overflow-hidden relative"
         wire:loading.class="opacity-60" wire:target="previousPeriod,nextPeriod,mode,currentDate">
         <div class="overflow-x-auto">
@@ -171,7 +171,7 @@
         </div>
     </div>
 
-    {{-- Sticky Footer: Grand Total + Cetak PDF --}}
+    {{-- Sticky footer: grand total + print PDF --}}
     <div class="fixed bottom-0 left-0 right-0 z-20 sm:relative sm:bottom-auto sm:left-auto sm:right-auto sm:z-auto">
         <div
             class="bg-brand-300 sm:rounded-2xl px-5 pt-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-5 shadow-[0_-8px_32px_-8px_rgba(0,0,0,0.4)] sm:shadow-xl border-t sm:border border-brand-400">
@@ -201,7 +201,7 @@
 
             <button wire:click="exportPdf" wire:loading.attr="disabled" wire:target="exportPdf"
                 class="w-full min-h-[52px] rounded-xl text-base font-semibold bg-white text-brand-950 hover:bg-brand-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-70 disabled:cursor-wait disabled:active:scale-100 shadow-lg">
-                {{-- Icon & text saat idle --}}
+                {{-- Idle icon & text --}}
                 <span wire:loading.remove wire:target="exportPdf" class="flex items-center gap-2.5">
                     <svg class="size-5 text-brand-800" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">

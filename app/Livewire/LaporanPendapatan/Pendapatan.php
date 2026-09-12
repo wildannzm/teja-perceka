@@ -275,19 +275,19 @@ class Pendapatan extends Component
             ];
         }
 
-        // Agregasi detail per kategori — 1 query tunggal
+        // Aggregate details per category — single query
         $aggrRows = TransaksiDetail::whereIn('transaksi_harian_id', $transaksiIds)
             ->select(
                 'kategori_transaksi_id',
                 DB::raw('SUM(qty) as total_qty'),
-                DB::raw('MAX(harga_satuan) as harga_satuan'),   // harga_satuan sama sepanjang periode (cukup MAX)
+                DB::raw('MAX(harga_satuan) as harga_satuan'),   // unit price is constant over the period (MAX is enough)
                 DB::raw('SUM(subtotal) as total_subtotal')
             )
             ->groupBy('kategori_transaksi_id')
             ->with('kategoriTransaksi.unitWisata')
             ->get();
 
-        // Susun kategoriRows sesuai format yang diinginkan
+        // Shape kategoriRows into the expected format
         $kategoriRows = $aggrRows->map(function ($row) {
             $kat = $row->kategoriTransaksi;
 
@@ -315,7 +315,7 @@ class Pendapatan extends Component
 
     public function updatedMode(): void
     {
-        // Jika user memilih mode harian padahal unit-nya mingguan, otomatis pindah ke mingguan
+        // When the daily mode is picked for a weekly unit, switch to weekly automatically
         $unit = $this->selectedUnit;
         if ($this->mode === 'harian' && $this->isUnitMingguan($unit)) {
             $this->mode = 'mingguan';
@@ -324,7 +324,7 @@ class Pendapatan extends Component
 
     public function updatedUnitId(): void
     {
-        // Kalau user ganti ke TPS dan mode masih harian → otomatis pindah ke mingguan
+        // When switching to TPS while still in daily mode → move to weekly automatically
         $unit = UnitWisata::find($this->unit_id);
         if ($this->mode === 'harian' && $this->isUnitMingguan($unit)) {
             $this->mode = 'mingguan';

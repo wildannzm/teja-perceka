@@ -36,7 +36,7 @@ Route::redirect('/', '/login')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // Redirect otomatis sesuai role setelah login
+    // Auto-redirect by role after login
     Route::get('/dashboard', function (Request $request) {
         $user = $request->user();
 
@@ -65,7 +65,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         abort(403, 'Role tidak dikenali.');
     })->name('dashboard');
 
-    // ===== Kepala Unit =====
+    // ===== Unit heads =====
     Route::middleware(['role:kepala_unit'])->group(function () {
         Route::get('unit/dashboard', KepalaUnitDashboard::class)
             ->name('dashboard.unit');
@@ -88,33 +88,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
         })->name('unit.edit-transaksi');
     });
 
-    // ===== Sekretaris =====
+    // ===== Secretary =====
     Route::middleware(['role:sekretaris'])->prefix('sekretaris')->group(function () {
         Route::get('/dashboard', SekretarisDashboard::class)->name('sekretaris.dashboard');
 
         Route::get('/laporan', SekretarisReport::class)->name('sekretaris.laporan');
     });
 
-    // ===== Bendahara =====
+    // ===== Treasurer =====
     Route::middleware(['role:bendahara'])->prefix('bendahara')->group(function () {
         Route::get('/dashboard', BendaharaDashboard::class)->name('bendahara.dashboard');
 
         Route::get('/laporan', BendaharaReport::class)->name('bendahara.laporan');
     });
 
-    // Dashboard gabungan Sekretaris & Bendahara (halaman placeholder umum)
+    // Joint Secretary & Treasurer dashboard (shared placeholder page)
     Route::middleware(['role:sekretaris|bendahara'])->get('dashboard/keuangan', function () {
         return view('dashboard.keuangan');
     })->name('dashboard.keuangan');
 
-    // ===== Kepala Desa =====
+    // ===== Village head =====
     Route::middleware(['role:kepala_desa'])->prefix('kepala-desa')->group(function () {
         Route::get('/dashboard', KepalaDesaDashboard::class)->name('kepala-desa.dashboard');
         Route::get('/report', KepalaDesaReport::class)->name('kepala-desa.report');
         Route::get('/users', KepalaDesaUserManager::class)->name('kepala-desa.users');
     });
 
-    // ===== Direktur BUMDes =====
+    // ===== BUMDes director =====
     Route::middleware(['role:direktur_bumdes'])->prefix('direktur-bumdes')->group(function () {
         Route::get('/dashboard', DirekturBumdesDashboard::class)->name('direktur-bumdes.dashboard');
 
@@ -122,45 +122,45 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/kelola-akun', KelolaAkunUnit::class)->name('direktur-bumdes.kelola-akun');
     });
 
-    // ===== Pengawas =====
+    // ===== Supervisor =====
     Route::middleware(['role:pengawas'])->prefix('pengawas')->group(function () {
         Route::get('/dashboard', PengawasDashboard::class)->name('pengawas.dashboard');
         Route::get('/laporan', PengawasReport::class)->name('pengawas.laporan');
     });
 
-    // ===== Pengeluaran (Shared: direktur_bumdes, sekretaris, bendahara) =====
+    // ===== Expenses (shared: direktur_bumdes, sekretaris, bendahara) =====
     Route::middleware(['role:direktur_bumdes|sekretaris|bendahara'])
         ->get('pengeluaran/catat', CatatPengeluaran::class)
         ->name('pengeluaran.catat');
 
-    // ===== Laporan Keuangan Terpusat =====
+    // ===== Centralized financial reports =====
     Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])->group(function () {
         Route::get('laporan/laba-rugi', LabaRugi::class)->name('laporan.laba-rugi');
         Route::get('laporan/buku-besar', BukuBesar::class)->name('laporan.buku-besar');
         Route::get('laporan/neraca-saldo', NeracaSaldo::class)->name('laporan.neraca-saldo');
     });
 
-    // ===== Alokasi Laba (Tanpa Kepala Unit) =====
+    // ===== Profit allocation (excluding unit heads) =====
     Route::middleware(['role:sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])->group(function () {
         Route::get('laporan/alokasi-laba', AlokasiLaba::class)->name('laporan.alokasi-laba');
     });
 
-    // ===== Aset (Direktur, Sekretaris, Bendahara bisa CRUD; lainnya read-only via policy) =====
+    // ===== Assets (Direktur, Secretary, Treasurer can CRUD; others read-only via policy) =====
     Route::middleware(['role:direktur_bumdes|sekretaris|bendahara|kepala_desa|pengawas|kepala_unit'])
         ->get('asset', KelolaAsset::class)
         ->name('asset.kelola');
 
-    // ===== Pendapatan (Semua role) — redirect ke Riwayat & Rekap =====
+    // ===== Income (all roles) — redirect to History & Recap =====
     Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])
         ->get('pendapatan', fn () => redirect()->route('riwayat-rekap', ['tab' => 'pendapatan']))
         ->name('pendapatan');
 
-    // ===== Riwayat & Rekap (Gabungan Pendapatan + Jurnal Umum) =====
+    // ===== History & Recap (combined Income + General Journal) =====
     Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])
         ->get('riwayat-rekap', RiwayatRekap::class)
         ->name('riwayat-rekap');
 
-    // Redirect lama: unit/riwayat-transaksi → riwayat-rekap
+    // Legacy redirect: unit/riwayat-transaksi → riwayat-rekap
     Route::middleware(['role:kepala_unit'])
         ->get('unit/riwayat-transaksi-lama', fn () => redirect()->route('riwayat-rekap'))
         ->name('unit.riwayat-transaksi.redirect');
@@ -172,7 +172,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/activity-logs', SuperAdminActivityLogs::class)->name('super-admin.activity-logs');
     });
 
-    // ===== Impersonation Routes =====
+    // ===== Impersonation routes =====
     Route::post('/impersonate/start/{user}', [ImpersonationController::class, 'start'])->name('impersonate.start');
     Route::post('/impersonate/stop', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
 

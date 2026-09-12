@@ -2,7 +2,7 @@
     <div class="flex h-full w-full flex-col gap-6">
         <x-page-header title="Kelola Hak Akses" />
 
-        <!-- Search and List -->
+        <!-- Search & list -->
         <div class="flex flex-col gap-4 bg-white p-4 sm:p-6 rounded-3xl shadow-[0_1px_2px_rgb(16,24,40,0.05),0_16px_40px_-16px_rgb(16,24,40,0.12)] border border-zinc-200/70">
 
             <div class="flex justify-between items-center mb-6">
@@ -74,7 +74,7 @@
         </div>
     </div>
 
-    <!-- Edit Modal (Pure Tailwind) -->
+    <!-- Edit modal (pure Tailwind) -->
     <div x-show="editingUserId !== null" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto"
         aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">

@@ -3,13 +3,13 @@
     <x-page-header title="Kelola Akun Kepala Unit" description="Kelola nama, assignment unit, password, dan status aktif untuk semua akun Kepala Unit." />
 
 
-    {{-- Daftar User Kepala Unit --}}
+    {{-- Unit head user list --}}
     <div class="flex flex-col gap-4">
         @forelse ($users as $user)
             <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden">
-                {{-- Info baris utama --}}
+                {{-- Primary row info --}}
                 <div class="flex flex-col sm:flex-row sm:items-center gap-3 p-5">
-                    {{-- Avatar & Info --}}
+                    {{-- Avatar & info --}}
                     <div class="flex items-center gap-3 flex-1 min-w-0">
                         <div class="min-w-0">
                             <div class="font-semibold text-zinc-900 truncate">{{ $user->name }}</div>
@@ -23,7 +23,7 @@
 
 
 
-                    {{-- Action Buttons --}}
+                    {{-- Action buttons --}}
                     <div class="flex flex-wrap items-center justify-end gap-2 shrink-0 w-full sm:w-auto">
                         <button wire:click="startEdit({{ $user->id }})"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-2 border-brand-500 text-zinc-700 hover:bg-zinc-100 :bg-zinc-800 transition-colors">
@@ -40,7 +40,7 @@
                     </div>
                 </div>
 
-                {{-- Panel Edit (collapsible) --}}
+                {{-- Edit panel (collapsible) --}}
                 @if ($editingUserId === $user->id)
                     <div class="border-t border-zinc-200 bg-zinc-50 px-5 py-4">
                         <p class="text-sm font-semibold text-zinc-700 mb-3">Edit Data Akun</p>

@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('alokasi_laba_riwayat', function (Blueprint $table) {
-            // 'pengurang' = dihitung dari Laba Bersih asli
-            // 'ad_art'    = dihitung dari Laba Bersih setelah Pengurang
+            // 'pengurang' = computed from the original net profit
+            // 'ad_art'    = computed from net profit after deductions
             $table->string('kelompok', 20)->default('pengurang')->after('persentase');
         });
     }

@@ -129,7 +129,7 @@
             </tr>
         </thead>
         <tbody>
-            {{-- Baris Laba Bersih --}}
+            {{-- Net profit row --}}
             <tr class="row-laba-bersih">
                 <td class="text-center">—</td>
                 <td>LABA BERSIH</td>
@@ -137,7 +137,7 @@
                 <td class="text-right font-mono">{{ number_format($labaBersih, 0, ',', '.') }}</td>
             </tr>
 
-            {{-- Section Pengurang --}}
+            {{-- Deduction section --}}
             @forelse($pengurangRows as $index => $row)
                 <tr class="row-pengurang">
                     <td class="text-center">{{ $index + 1 }}</td>
@@ -152,7 +152,7 @@
                 </tr>
             @endforelse
 
-            {{-- Baris Laba setelah Pengurang --}}
+            {{-- Profit row after deductions --}}
             <tr class="row-laba-setelah">
                 <td class="text-center">—</td>
                 <td>Laba/Rugi Bersih setelah Pengurang</td>
@@ -160,12 +160,12 @@
                 <td class="text-right font-mono">{{ number_format($labaSetelahPengurang, 0, ',', '.') }}</td>
             </tr>
 
-            {{-- Header Section AD/ART --}}
+            {{-- Articles of Association header section --}}
             <tr class="row-section-header">
                 <td colspan="4">Alokasi Laba Bersih sesuai AD/ART</td>
             </tr>
 
-            {{-- Section AD/ART --}}
+            {{-- Articles of Association section --}}
             @forelse($adArtRows as $index => $row)
                 <tr class="row-ad-art">
                     <td class="text-center">{{ $index + 1 }}</td>
@@ -180,7 +180,7 @@
                 </tr>
             @endforelse
 
-            {{-- Total AD/ART --}}
+            {{-- Total Articles of Association allocation --}}
             @if(count($adArtRows) > 0)
                 <tr class="row-total">
                     <td colspan="2" class="text-right">JUMLAH ALOKASI AD/ART</td>

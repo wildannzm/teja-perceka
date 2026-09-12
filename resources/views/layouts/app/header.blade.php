@@ -39,7 +39,7 @@
         <x-desktop-user-menu />
     </flux:header>
 
-    <!-- Mobile Menu -->
+    <!-- Mobile menu -->
     <flux:sidebar collapsible="mobile" sticky class="lg:hidden border-e border-zinc-200 bg-zinc-50">
         <flux:sidebar.header>
             <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />

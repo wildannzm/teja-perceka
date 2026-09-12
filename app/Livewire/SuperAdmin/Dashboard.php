@@ -18,7 +18,7 @@ class Dashboard extends Component
         $totalRoles = Role::count();
         $todayActivities = ActivityLog::whereDate('created_at', today())->count();
 
-        // Data Grafik Monitoring Aktivitas Pengguna (7 Hari Terakhir)
+        // User activity monitoring chart data (last 7 days)
         $chartDates = [];
         $chartActivityCounts = [];
         $chartImpersonateCounts = [];

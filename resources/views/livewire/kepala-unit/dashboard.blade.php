@@ -2,7 +2,7 @@
 
     <x-page-header :title="'Dashboard — ' . ($unit->nama ?? 'Unit Usaha')" />
 
-    {{-- Alert Belum Input Transaksi --}}
+    {{-- Unsubmitted transaction alert --}}
     @if (!$isPeriodeBerjalanSudahDiisi)
         <div
             class="rounded-xl border border-red-200 bg-red-50 p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -32,17 +32,17 @@
         </div>
     @endif
 
-    {{-- Tanggal Hari Ini --}}
+    {{-- Today date --}}
 
     <p class="text-xs text-zinc-400 px-1">
         {{ \Illuminate\Support\Carbon::now()->translatedFormat('l, d F Y') }}
     </p>
 
-    {{-- 4 Stat Cards --}}
-    {{-- 4 Stat Cards --}}
+    {{-- 4 Stat cards --}}
+    {{-- 4 Stat cards --}}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-        {{-- Hari Ini --}}
+        {{-- Today --}}
         <div class="bg-white rounded-2xl border border-brand-100 p-5 shadow-sm flex flex-col gap-2 transition-shadow hover:shadow-md">
             <div class="flex items-center gap-2">
                 <div class="size-8 rounded-lg bg-brand-100 flex items-center justify-center shrink-0">
@@ -61,7 +61,7 @@
             </div>
         </div>
 
-        {{-- Minggu Ini --}}
+        {{-- This week --}}
         <div class="bg-white rounded-2xl border border-brand-100 p-5 shadow-sm flex flex-col gap-2 transition-shadow hover:shadow-md">
             <div class="flex items-center gap-2">
                 <div class="size-8 rounded-lg bg-brand-100 flex items-center justify-center shrink-0">
@@ -82,7 +82,7 @@
             </div>
         </div>
 
-        {{-- Bulan Ini --}}
+        {{-- This month --}}
         <div class="bg-brand-300 rounded-2xl border border-brand-400 p-5 shadow-sm flex flex-col gap-2 transition-shadow hover:shadow-md">
             <div class="flex items-center gap-2">
                 <div class="size-8 rounded-lg bg-white/40 flex items-center justify-center shrink-0">
@@ -100,7 +100,7 @@
             <div class="text-xs text-brand-700">{{ \Illuminate\Support\Carbon::now()->translatedFormat('F Y') }}</div>
         </div>
 
-        {{-- Tahun Ini --}}
+        {{-- This year --}}
         <div class="bg-white rounded-2xl border border-brand-100 p-5 shadow-sm flex flex-col gap-2 transition-shadow hover:shadow-md">
             <div class="flex items-center gap-2">
                 <div class="size-8 rounded-lg bg-brand-100 flex items-center justify-center shrink-0">
@@ -119,7 +119,7 @@
         </div>
     </div>
 
-    {{-- Grafik Rekapitulasi --}}
+    {{-- Recap chart --}}
     <div class="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex flex-col w-full">
         <h2 class="text-lg font-bold text-zinc-900 mb-4">Grafik Rekapitulasi</h2>
         <div class="w-full relative min-h-[350px]">
@@ -127,7 +127,7 @@
         </div>
     </div>
 
-    {{-- Transaksi Terakhir --}}
+    {{-- Latest transactions --}}
     <div class="bg-white rounded-2xl border border-brand-100 shadow-sm overflow-hidden">
         <div class="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
             <div>

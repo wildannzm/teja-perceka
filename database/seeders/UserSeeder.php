@@ -27,7 +27,7 @@ class UserSeeder extends Seeder
         );
         $superAdmin->assignRole('super_admin');
 
-        // 1. Kepala Unit Sawah Bengkok
+        // 1. Sawah Bengkok unit head
         $sawahBengkok = UnitWisata::where('kode', 'SB')->first();
         $kepalaUnit = User::firstOrCreate(
             ['email' => 'kepala.sawahbengkok@tejaperceka.com'],
@@ -39,7 +39,7 @@ class UserSeeder extends Seeder
         );
         $kepalaUnit->assignRole('kepala_unit');
 
-        // 2. Kepala Unit Situ Ciranca
+        // 2. Situ Ciranca unit head
         $situCiranca = UnitWisata::where('kode', 'SC')->first();
         $kepalaUnitSC = User::firstOrCreate(
             ['email' => 'kepala.situciranca@tejaperceka.com'],
@@ -51,7 +51,7 @@ class UserSeeder extends Seeder
         );
         $kepalaUnitSC->assignRole('kepala_unit');
 
-        // 3. Kepala Unit Bukit Sampora
+        // 3. Bukit Sampora unit head
         $bukitSampora = UnitWisata::where('kode', 'BS')->first();
         $kepalaUnitBS = User::firstOrCreate(
             ['email' => 'kepala.bukitsampora@tejaperceka.com'],
@@ -63,7 +63,7 @@ class UserSeeder extends Seeder
         );
         $kepalaUnitBS->assignRole('kepala_unit');
 
-        // 4. Kepala Unit Buper Ciranca
+        // 4. Buper Ciranca unit head
         $buperCiranca = UnitWisata::where('kode', 'BC')->first();
         $kepalaUnitBC = User::firstOrCreate(
             ['email' => 'kepala.buperciranca@tejaperceka.com'],
@@ -75,7 +75,7 @@ class UserSeeder extends Seeder
         );
         $kepalaUnitBC->assignRole('kepala_unit');
 
-        // 5. Kepala Unit TPS
+        // 5. TPS unit head
         $tps = UnitWisata::where('kode', 'TPS')->first();
         $kepalaUnitTPS = User::firstOrCreate(
             ['email' => 'kepala.tps@tejaperceka.com'],
@@ -87,7 +87,7 @@ class UserSeeder extends Seeder
         );
         $kepalaUnitTPS->assignRole('kepala_unit');
 
-        // 6. Sekretaris
+        // 6. Secretary
         $sekretaris = User::firstOrCreate(
             ['email' => 'sekretaris@tejaperceka.com'],
             [
@@ -97,7 +97,7 @@ class UserSeeder extends Seeder
         );
         $sekretaris->assignRole('sekretaris');
 
-        // 7. Bendahara
+        // 7. Treasurer
         $bendahara = User::firstOrCreate(
             ['email' => 'bendahara@tejaperceka.com'],
             [
@@ -107,7 +107,7 @@ class UserSeeder extends Seeder
         );
         $bendahara->assignRole('bendahara');
 
-        // 8. Direktur BUMDes
+        // 8. BUMDes director
         $direktur = User::firstOrCreate(
             ['email' => 'direktur@tejaperceka.com'],
             [
@@ -117,7 +117,7 @@ class UserSeeder extends Seeder
         );
         $direktur->assignRole('direktur_bumdes');
 
-        // 9. Kepala Desa
+        // 9. Village head
         $kepalaDesa = User::firstOrCreate(
             ['email' => 'kepaladesa@tejaperceka.com'],
             [
@@ -127,7 +127,7 @@ class UserSeeder extends Seeder
         );
         $kepalaDesa->assignRole('kepala_desa');
 
-        // 10. Pengawas
+        // 10. Supervisor
         $pengawas = User::firstOrCreate(
             ['email' => 'pengawas@tejaperceka.com'],
             [
