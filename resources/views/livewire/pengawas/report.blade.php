@@ -1,9 +1,9 @@
-<div>
-    <div class="flex h-full w-full flex-col gap-6 max-w-7xl mx-auto pb-10">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h1 class="text-2xl font-bold text-zinc-900">Laporan Jurnal Umum</h1>
- 
-        </div>
+    <div class="flex h-full w-full flex-col gap-6 max-w-full pb-10">
+        <x-page-header title="Laporan Jurnal Umum">
+            <x-slot:actions>
+                
+            </x-slot:actions>
+        </x-page-header>
 
         <div class="bg-white p-5 sm:p-6 rounded-2xl border border-zinc-200 shadow-sm print:hidden">
             <h2 class="text-base font-bold mb-4 text-zinc-900 flex items-center gap-2">
@@ -113,5 +113,4 @@
             </div>
         </div>
     </div>
-</div>
 

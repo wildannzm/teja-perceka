@@ -1,11 +1,9 @@
 <div x-data="{ editingUserId: @entangle('editingUserId') }">
     <div class="flex h-full w-full flex-col gap-6">
-        <div class="flex items-center justify-between">
-            <h1 class="text-2xl font-semibold text-zinc-900">Kelola Hak Akses</h1>
-        </div>
+        <x-page-header title="Kelola Hak Akses" />
 
         <!-- Search and List -->
-        <div class="flex flex-col gap-4 bg-white p-6 rounded-2xl shadow-sm border border-brand-100">
+        <div class="flex flex-col gap-4 bg-white p-4 sm:p-6 rounded-3xl shadow-[0_1px_2px_rgb(16,24,40,0.05),0_16px_40px_-16px_rgb(16,24,40,0.12)] border border-zinc-200/70">
 
             <div class="flex justify-between items-center mb-6">
                 <div class="w-full md:w-1/2 relative">
@@ -18,7 +16,7 @@
                     </div>
                     <input type="text" wire:model.live.debounce.300ms="search"
                         placeholder="Cari nama atau email pengguna..."
-                        class="pl-12 block w-full rounded-2xl border-2 border-zinc-200 text-zinc-900 focus:border-brand-500 focus:ring-0 transition-colors shadow-sm text-base py-3">
+                        class="pl-12 block w-full rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-900 text-base py-3 placeholder-zinc-400 focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/15 transition outline-none">
                 </div>
             </div>
 
@@ -49,7 +47,7 @@
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <button wire:click="editUser({{ $user->id }})"
-                                        class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-lg transition-colors border border-transparent focus:outline-none focus:ring-2 focus:ring-0 focus:ring-offset-2">
+                                        class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-lg transition-colors border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
                                         Edit Profil
                                     </button>
                                 </td>
@@ -97,15 +95,26 @@
                 x-transition:leave="ease-in duration-200"
                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                class="inline-block w-full max-w-lg p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl relative z-10">
-                <h2 class="text-xl font-bold text-zinc-900 mb-6" id="modal-title">Edit Profil Pengguna</h2>
+                class="inline-block w-full max-w-lg p-6 sm:p-8 my-8 overflow-hidden text-left align-middle transition-all transform bg-white border border-zinc-200/70 shadow-[0_1px_2px_rgb(16,24,40,0.05),0_16px_40px_-16px_rgb(16,24,40,0.12)] rounded-3xl relative z-10">
+                <div class="flex items-start justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-lg font-bold text-zinc-900" id="modal-title">Edit Profil Pengguna</h2>
+                        <p class="mt-1 text-sm text-zinc-500">Perbarui nama dan email pengguna.</p>
+                    </div>
+                    <button type="button" wire:click="cancelEdit" aria-label="Tutup"
+                        class="flex size-9 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
+                        <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
 
                 <form wire:submit.prevent="saveUser" class="flex flex-col gap-5">
 
                     <div class="flex flex-col gap-1.5">
                         <label for="name" class="text-sm font-medium text-zinc-700">Nama Lengkap</label>
                         <input id="name" type="text" wire:model="name" placeholder="Masukkan nama..." required
-                            class="w-full rounded-xl border-zinc-300 text-zinc-900 focus:border-brand-500 focus:ring-0 transition-colors shadow-sm text-sm @error('name') border-red-400 @enderror">
+                            class="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-base text-zinc-900 placeholder-zinc-400 focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/15 transition outline-none @error('name') border-red-400 @enderror">
                         @error('name')
                             <span class="text-xs text-red-600">{{ $message }}</span>
                         @enderror
@@ -114,7 +123,7 @@
                     <div class="flex flex-col gap-1.5">
                         <label for="email" class="text-sm font-medium text-zinc-700">Alamat Email</label>
                         <input id="email" type="email" wire:model="email" placeholder="email@contoh.com" required
-                            class="w-full rounded-xl border-zinc-300 text-zinc-900 focus:border-brand-500 focus:ring-0 transition-colors shadow-sm text-sm @error('email') border-red-400 @enderror">
+                            class="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-base text-zinc-900 placeholder-zinc-400 focus:border-brand-500 focus:bg-white focus:ring-4 focus:ring-brand-500/15 transition outline-none @error('email') border-red-400 @enderror">
                         @error('email')
                             <span class="text-xs text-red-600">{{ $message }}</span>
                         @enderror
@@ -122,24 +131,14 @@
 
                     <div class="flex justify-end gap-3 mt-4">
                         <button type="button" wire:click="cancelEdit"
-                            class="px-4 py-2.5 text-sm font-medium text-zinc-700 bg-white border border-zinc-300 rounded-xl hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-0 transition-colors">
+                            class="px-4 py-2.5 text-sm font-medium text-zinc-700 bg-white border border-zinc-300 rounded-xl hover:bg-zinc-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 transition-colors">
                             Batal
                         </button>
                         <button type="submit"
-                            class="px-4 py-2.5 text-sm font-medium text-white bg-brand-500 border border-transparent rounded-xl hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-0 transition-colors flex items-center gap-2"
+                            class="px-4 py-2.5 text-sm font-medium text-white bg-brand-500 border border-transparent rounded-xl hover:bg-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 transition-colors flex items-center gap-2"
                             wire:loading.attr="disabled">
                             <span wire:loading.remove wire:target="saveUser">Simpan Perubahan</span>
-                            <span wire:loading wire:target="saveUser" class="flex items-center gap-2">
-                                <svg class="animate-spin size-4 text-white" xmlns="http://www.w3.org/2000/svg"
-                                    fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                        stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                    </path>
-                                </svg>
-                                Menyimpan...
-                            </span>
+                            <span wire:loading wire:target="saveUser">Memproses...</span>
                         </button>
                     </div>
                 </form>

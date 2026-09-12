@@ -1,10 +1,6 @@
-<div>
     <div class="flex h-full w-full flex-col gap-6 max-w-full mx-auto pb-10">
         
-        <div class="flex flex-col gap-1">
-            <h1 class="text-2xl font-bold text-zinc-900">Dashboard</h1>
-            <p class="text-sm text-zinc-500">Tinjauan ringkas performa keuangan seluruh unit BUMDes pada bulan ini.</p>
-        </div>
+        <x-page-header title="Dashboard" description="Tinjauan ringkas performa keuangan seluruh unit BUMDes pada bulan ini." />
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {{-- Pemasukan --}}
@@ -54,7 +50,6 @@
             </div>
         </div>
     </div>
-</div>
 
 @script
 <script>

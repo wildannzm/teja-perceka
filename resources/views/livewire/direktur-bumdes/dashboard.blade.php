@@ -1,14 +1,10 @@
-<div>
     <div class="flex h-full w-full flex-col gap-6 max-w-full mx-auto pb-10">
         
-        <div class="flex flex-col gap-1">
-            <h1 class="text-2xl font-bold text-zinc-900">Dashboard</h1>
-            <p class="text-sm text-zinc-500">Tinjauan ringkas performa keuangan seluruh unit BUMDes pada bulan ini.</p>
-        </div>
+        <x-page-header title="Dashboard" description="Tinjauan ringkas performa keuangan seluruh unit BUMDes pada bulan ini." />
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
             {{-- Pemasukan --}}
-            <div class="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex items-start gap-4 transition-shadow hover:shadow-md">
+            <div class="bg-white p-4 sm:p-6 rounded-2xl border border-zinc-200 shadow-sm flex items-start gap-3 sm:gap-4 transition-shadow hover:shadow-md">
                 <div class="size-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
                     <svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 4.5l-15 15m0 0h11.25m-11.25 0V8.25" />
@@ -16,7 +12,7 @@
                 </div>
                 <div class="flex flex-col">
                     <h3 class="text-sm font-semibold text-zinc-500">Total Pemasukan (Bulan Ini)</h3>
-                    <p class="mt-1 text-2xl font-bold text-zinc-900">Rp {{ number_format($pemasukan, 0, ',', '.') }}</p>
+                    <p class="mt-1 text-xl sm:text-2xl font-bold text-zinc-900 break-all">Rp {{ number_format($pemasukan, 0, ',', '.') }}</p>
                 </div>
             </div>
 
@@ -29,7 +25,7 @@
                 </div>
                 <div class="flex flex-col">
                     <h3 class="text-sm font-semibold text-zinc-500">Total Pengeluaran (Bulan Ini)</h3>
-                    <p class="mt-1 text-2xl font-bold text-zinc-900">Rp {{ number_format($pengeluaran, 0, ',', '.') }}</p>
+                    <p class="mt-1 text-xl sm:text-2xl font-bold text-zinc-900 break-all">Rp {{ number_format($pengeluaran, 0, ',', '.') }}</p>
                 </div>
             </div>
 
@@ -42,19 +38,18 @@
                 </div>
                 <div class="flex flex-col">
                     <h3 class="text-sm font-semibold text-zinc-500">Saldo Akhir</h3>
-                    <p class="mt-1 text-2xl font-bold text-emerald-600">Rp {{ number_format($saldo, 0, ',', '.') }}</p>
+                    <p class="mt-1 text-xl sm:text-2xl font-bold text-emerald-600 break-all">Rp {{ number_format($saldo, 0, ',', '.') }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex-1 flex flex-col">
+        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-zinc-200 shadow-sm flex-1 flex flex-col">
             <h2 class="text-lg font-bold text-zinc-900 mb-4">Grafik Rekapitulasi</h2>
             <div class="flex-1 w-full relative min-h-[350px]">
                 <canvas id="recapChart"></canvas>
             </div>
         </div>
     </div>
-</div>
 
 @script
 <script>

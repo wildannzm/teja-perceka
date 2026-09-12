@@ -1,11 +1,6 @@
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-zinc-900">Audit Log Aktivitas Sistem</h1>
-            <p class="text-sm text-zinc-500 mt-1">Catatan lengkap mengenai aksi, login, dan penyamaran (*impersonation*) oleh pengguna.</p>
-        </div>
-    </div>
+    <x-page-header title="Audit Log Aktivitas Sistem" description="Catatan lengkap mengenai aksi, login, dan penyamaran (impersonation) oleh pengguna." />
+
 
     <!-- Filters & Search -->
     <div class="bg-white p-4 border border-zinc-200 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">

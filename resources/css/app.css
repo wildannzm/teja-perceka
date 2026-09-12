@@ -81,11 +81,7 @@
         -webkit-text-size-adjust: 100%;
     }
 
-    body {
-        /* Safe area untuk HP dengan notch/dynamic island */
-        padding-left: env(safe-area-inset-left);
-        padding-right: env(safe-area-inset-right);
-    }
+    /* Safe area horizontal ditangani per-komponen (header/main) agar konten bisa full-bleed di mobile. */
 
     /* Input font-size min 16px mencegah auto-zoom iOS saat focus */
     input,

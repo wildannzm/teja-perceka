@@ -1,10 +1,6 @@
 <div class="flex flex-col gap-6 max-w-full mx-auto w-full pb-10">
 
-    <div class="flex flex-col gap-1">
-        <h1 class="text-2xl font-bold text-zinc-900">Kelola Akun Kepala Unit</h1>
-        <p class="text-sm text-zinc-500">Kelola nama, assignment unit, password, dan status aktif untuk semua akun Kepala
-            Unit.</p>
-    </div>
+    <x-page-header title="Kelola Akun Kepala Unit" description="Kelola nama, assignment unit, password, dan status aktif untuk semua akun Kepala Unit." />
 
 
     {{-- Daftar User Kepala Unit --}}
@@ -15,10 +11,6 @@
                 <div class="flex flex-col sm:flex-row sm:items-center gap-3 p-5">
                     {{-- Avatar & Info --}}
                     <div class="flex items-center gap-3 flex-1 min-w-0">
-                        <div class="size-10 rounded-full bg-brand-100 flex items-center justify-center shrink-0">
-                            <span
-                                class="text-sm font-bold text-brand-700">{{ strtoupper(substr($user->name, 0, 2)) }}</span>
-                        </div>
                         <div class="min-w-0">
                             <div class="font-semibold text-zinc-900 truncate">{{ $user->name }}</div>
                             <div class="text-xs text-zinc-500 truncate">{{ $user->email }}</div>
@@ -32,7 +24,7 @@
 
 
                     {{-- Action Buttons --}}
-                    <div class="flex flex-wrap items-center gap-2 shrink-0">
+                    <div class="flex flex-wrap items-center justify-end gap-2 shrink-0 w-full sm:w-auto">
                         <button wire:click="startEdit({{ $user->id }})"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-2 border-brand-500 text-zinc-700 hover:bg-zinc-100 :bg-zinc-800 transition-colors">
                             <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
@@ -96,11 +88,11 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class="flex gap-2 mt-5">
+                        <div class="flex gap-2 mt-5 justify-end">
                             <button wire:click="saveEdit"
                                 class="px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white text-sm font-semibold transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">Simpan Perubahan</button>
                             <button wire:click="cancelEdit"
-                                class="px-5 py-2.5 rounded-xl border border-zinc-200 bg-white text-zinc-700 text-sm font-semibold hover:bg-zinc-50 hover:border-zinc-300 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2">Batal</button>
+                                class="px-5 py-2.5 rounded-xl border border-zinc-200 bg-white text-zinc-700 text-sm font-semibold hover:bg-zinc-50 hover:border-zinc-300 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">Batal</button>
                         </div>
                     </div>
                 @endif

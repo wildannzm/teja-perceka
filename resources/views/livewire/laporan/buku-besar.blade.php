@@ -1,18 +1,15 @@
-<div>
 <div class="flex h-full w-full flex-col gap-4 sm:gap-6 max-w-full mx-auto pb-10">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div class="flex flex-col gap-1">
-            <h1 class="text-xl sm:text-2xl font-semibold text-zinc-900">Laporan Buku Besar</h1>
-            <p class="text-sm text-zinc-500">Rincian mutasi transaksi per kode akun.</p>
-        </div>
-        @if($this->canPrint)
+    <x-page-header title="Laporan Buku Besar" description="Rincian mutasi transaksi per kode akun.">
+        <x-slot:actions>
+            @if($this->canPrint)
             <flux:button variant="primary" icon="document-arrow-down"
                 wire:click="exportPdf" wire:loading.attr="disabled"
                 class="w-full sm:w-auto shrink-0">
                 Cetak PDF
             </flux:button>
         @endif
-    </div>
+        </x-slot:actions>
+    </x-page-header>
 
     <div class="bg-white p-4 sm:p-6 rounded-xl border border-brand-100 shadow-sm">
         <h2 class="text-base sm:text-lg font-semibold mb-4 text-zinc-900">Filter Laporan</h2>
@@ -163,4 +160,3 @@
         </div>
         @endif
     </div>
-</div>

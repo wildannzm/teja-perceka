@@ -1,13 +1,6 @@
 <div class="flex flex-col gap-6 max-w-full mx-auto w-full pb-20">
 
-    {{-- Header --}}
-    <div class="flex flex-col gap-1">
-        <h1 class="text-2xl font-bold text-zinc-900">Kelola Pendapatan</h1>
-        <p class="text-sm text-zinc-500">
-            Atur harga kategori dan tambah kategori pendapatan baru untuk unit
-            <span class="font-semibold text-brand-700">{{ $unitNama }}</span>.
-        </p>
-    </div>
+    <x-page-header title="Kelola Pendapatan" />
 
     {{-- Tombol Tambah Kategori Baru --}}
     <div class="flex justify-end">

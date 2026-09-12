@@ -1,12 +1,6 @@
 <div class="flex h-full w-full flex-col gap-4 sm:gap-6 max-w-full mx-auto pb-10">
 
-    {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div class="flex flex-col gap-1">
-            <h1 class="text-xl sm:text-2xl font-semibold text-zinc-900">Laporan Laba Rugi</h1>
-            <p class="text-sm text-zinc-500">Rekap pendapatan dan biaya operasional per periode.</p>
-        </div>
-        <style>
+    <style>
             .btn-edit-yellow {
                 background-color: #f59e0b !important;
                 color: #ffffff !important;
@@ -17,7 +11,9 @@
                 border-color: #d97706 !important;
             }
         </style>
-        @if($this->canPrint)
+    <x-page-header title="Laporan Laba Rugi" description="Rekap pendapatan dan biaya operasional per periode.">
+        <x-slot:actions>
+            @if($this->canPrint)
             <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                 @if($isEditing)
                     <flux:button variant="danger" wire:click="cancelEditing" class="w-full sm:w-auto shrink-0">Batal</flux:button>
@@ -31,8 +27,9 @@
                     </flux:button>
                 @endif
             </div>
-        @endif
-    </div>
+            @endif
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Filter --}}
     <div class="bg-white p-4 sm:p-6 rounded-xl border border-brand-100 shadow-sm">

@@ -1,23 +1,17 @@
 <div class="flex flex-col gap-6 max-w-full mx-auto w-full pb-20">
 
-    {{-- Header --}}
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-brand-100">
-        <div class="flex flex-col gap-1">
-            <h1 class="text-2xl font-bold text-zinc-900">Alokasi Laba</h1>
-            <p class="text-sm text-zinc-500">
-                Hitung alokasi dari Laba Bersih berdasarkan persentase.
-            </p>
-        </div>
-
-        <div class="flex items-center gap-3">
+    <x-page-header title="Alokasi Laba" description="Hitung alokasi dari Laba Bersih berdasarkan persentase.">
+        <x-slot:actions>
+            <div class="flex items-center gap-3 w-full md:w-auto">
             <button type="button" wire:click="exportPdf"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-brand-200 text-brand-700 rounded-xl text-sm font-bold hover:bg-brand-50 hover:border-brand-300 transition-all active:scale-95 shadow-sm">
+                class="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-brand-200 text-brand-700 rounded-xl text-sm w-full md:w-auto justify-center font-bold hover:bg-brand-50 hover:border-brand-300 transition-all active:scale-95 shadow-sm">
                 <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                 </svg>
                 Cetak PDF
             </button>
-        </div>
+        </x-slot:actions>
+    </x-page-header>
     </div>
 
     {{-- Filter Panel --}}

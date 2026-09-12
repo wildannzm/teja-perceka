@@ -1,12 +1,8 @@
 <div class="flex flex-col gap-6 max-w-full mx-auto w-full pb-10">
 
-    {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <h1 class="text-xl sm:text-2xl font-semibold text-zinc-900">Daftar Aset BUMDes</h1>
-            <p class="text-sm text-zinc-500 mt-1">Inventaris aset milik BUMDes Teja Perceka.</p>
-        </div>
-        @if($this->canManage)
+    <x-page-header title="Daftar Aset BUMDes" description="Inventaris aset milik BUMDes Teja Perceka.">
+        <x-slot:actions>
+            @if($this->canManage)
             <button
                 wire:click="openCreate"
                 id="btn-tambah-aset"
@@ -18,7 +14,8 @@
                 Tambah Aset
             </button>
         @endif
-    </div>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Search --}}
     <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm p-4 sm:p-5">

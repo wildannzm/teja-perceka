@@ -1,11 +1,6 @@
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-zinc-900">Manajemen Pengguna & Impersonasi</h1>
-            <p class="text-sm text-zinc-500 mt-1">Daftar seluruh akun pengguna sistem BUMDes. Gunakan opsi penyamaran (*impersonate*) untuk masuk ke akun terkait.</p>
-        </div>
-    </div>
+    <x-page-header title="Manajemen Pengguna & Impersonasi" description="Daftar seluruh akun pengguna sistem BUMDes. Gunakan opsi penyamaran (impersonate) untuk masuk ke akun terkait." />
+
 
     <!-- Filters & Search -->
     <div class="bg-white p-4 border border-zinc-200 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">

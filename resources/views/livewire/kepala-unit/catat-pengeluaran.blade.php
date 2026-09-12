@@ -1,15 +1,8 @@
 <div class="flex flex-col gap-6 max-w-full mx-auto w-full pb-20">
 
-    {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div class="flex flex-col gap-1">
-            <h1 class="text-2xl font-bold text-zinc-900">Catat Pengeluaran</h1>
-            <p class="text-sm text-zinc-500">
-                Riwayat pengeluaran operasional
-                <span class="font-semibold text-brand-700">{{ $unit->nama }}</span>.
-            </p>
-        </div>
-        <button type="button" wire:click="openCreateModal"
+    <x-page-header title="Catat Pengeluaran" description="Riwayat pengeluaran operasional unit usaha.">
+        <x-slot:actions>
+            <button type="button" wire:click="openCreateModal"
             class="flex items-center justify-center gap-1.5 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 px-4 py-2.5 rounded-xl transition-all shadow-sm shrink-0">
             <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
                 stroke="currentColor">
@@ -17,7 +10,8 @@
             </svg>
             Tambah Pengeluaran
         </button>
-    </div>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Error global --}}
     @error('items')

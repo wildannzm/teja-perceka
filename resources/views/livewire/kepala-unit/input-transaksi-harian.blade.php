@@ -180,7 +180,8 @@
             </div>
 
             {{-- Error Summary --}}
-            @if ($errors->has('submit') || $errors->has('totalPemasukan'))
+            @php($formError = $errors->first('submit') ?: $errors->first('totalPemasukan'))
+            @if ($formError)
                 <div class="p-4 text-sm text-red-800 bg-red-100 rounded-xl border border-red-200 flex items-start gap-3 shadow-sm"
                     role="alert">
                     <svg class="size-5 shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
@@ -190,7 +191,7 @@
                             clip-rule="evenodd" />
                     </svg>
                     <span
-                        class="font-medium leading-relaxed">{{ $errors->first('submit') ?? $errors->first('totalPemasukan') }}</span>
+                        class="font-medium leading-relaxed">{{ $formError }}</span>
                 </div>
             @endif
 

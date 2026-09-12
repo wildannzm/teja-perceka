@@ -5,7 +5,7 @@
     @include('partials.head')
 </head>
 
-<body class="min-h-screen bg-[#FDFDFC] pb-[env(safe-area-inset-bottom)] relative overflow-x-hidden font-sans">
+<body class="min-h-screen bg-[#FDFDFC] pb-[env(safe-area-inset-bottom)] relative overflow-x-clip font-sans">
     <!-- Dekorasi Background Lingkaran Solid -->
     <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
         <div
@@ -24,31 +24,13 @@
 
         <!-- ===================== SIDEBAR ===================== -->
         <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-            class="fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-zinc-200 shadow-sm flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:z-auto">
+            class="fixed left-0 top-14 bottom-0 z-30 w-64 bg-white border-r border-zinc-200 shadow-sm flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:bottom-auto lg:h-screen lg:z-auto">
             <!-- Header Sidebar -->
-            <div class="flex items-center justify-between h-16 px-4 border-b border-zinc-100 shrink-0">
-                <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-2.5">
-                    <span
-                        class="flex size-8 items-center justify-center rounded-md bg-brand-300 text-brand-900 shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
-                            <path
-                                d="M11.47 3.841a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 0 1.06-1.061l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a.75.75 0 1 0 1.061 1.06l8.69-8.689Z" />
-                            <path
-                                d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21a.75.75 0 0 1-.75.75H5.625a1.875 1.875 0 0 1-1.875-1.875v-6.198a2.29 2.29 0 0 0 .091-.086L12 5.432Z" />
-                        </svg>
-                    </span>
-                    <span class="font-semibold text-sm text-zinc-800 leading-tight">
-                        BUMDES Teja Perceka
-                    </span>
+            <div class="relative hidden border-b border-zinc-100 px-4 py-3 shrink-0 lg:block">
+                <a href="{{ route('dashboard') }}" wire:navigate class="flex justify-center">
+                    <img src="{{ asset('assets/images/logo-sidebar-bumdes-teja-perceka.png') }}" alt="Logo BUMDes Teja Perceka"
+                        class="block h-16 w-auto max-w-full object-contain">
                 </a>
-                <!-- Tombol tutup sidebar (mobile) -->
-                <button @click="sidebarOpen = false"
-                    class="lg:hidden size-9 flex items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="size-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                    </svg>
-                </button>
             </div>
 
             <!-- Navigasi Utama -->
@@ -537,15 +519,6 @@
                         </svg>
                         Dashboard
                     </a>
-                    <a href="{{ route('pengawas.transaksi') }}" wire:navigate
-                        class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('pengawas.transaksi') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="size-4 shrink-0">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75.125a1.125 1.125 0 0 0 1.125-1.125V15m16.125 4.5h-1.5c-.621 0-1.125-.504-1.125-1.125M18.375 19.5V15m0 0a3 3 0 0 0-3-3H8.625a3 3 0 0 0-3 3m12.75 0H5.25" />
-                        </svg>
-                        Lihat Jurnal
-                    </a>
                     <a href="{{ route('pengawas.laporan') }}" wire:navigate
                         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('pengawas.laporan') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -666,29 +639,33 @@
         </aside>
 
         <!-- Overlay mobile -->
-        <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 z-30 bg-black/30 lg:hidden"
+        <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed left-0 right-0 top-14 bottom-0 z-20 bg-black/30 lg:hidden"
             x-transition.opacity></div>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+        <div class="flex-1 flex flex-col min-w-0 overflow-x-clip">
             <!-- Mobile topbar -->
             <header
-                class="lg:hidden flex items-center justify-between h-14 px-4 bg-white border-b border-zinc-200 shrink-0">
-                <button @click="sidebarOpen = true"
-                    class="size-9 flex items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="size-5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                    </svg>
+                class="lg:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 bg-white border-b border-zinc-200 shrink-0">
+                <button @click="sidebarOpen = !sidebarOpen" :aria-expanded="sidebarOpen" aria-label="Buka atau tutup menu navigasi"
+                    class="flex size-10 shrink-0 cursor-pointer flex-col items-center justify-center gap-[6px] rounded-lg transition-colors hover:bg-zinc-100 active:bg-zinc-200">
+                    <span aria-hidden="true" class="block h-[2px] w-[18px] shrink-0 origin-center rounded-full bg-zinc-700 transition-all duration-300 ease-in-out"
+                        :class="sidebarOpen ? 'translate-y-[8px] rotate-45' : 'translate-y-0 rotate-0'"></span>
+                    <span aria-hidden="true" class="block h-[2px] w-[18px] shrink-0 rounded-full bg-zinc-700 transition-all duration-300 ease-in-out"
+                        :class="sidebarOpen ? 'scale-x-0 opacity-0' : 'scale-x-100 opacity-100'"></span>
+                    <span aria-hidden="true" class="block h-[2px] w-[18px] shrink-0 origin-center rounded-full bg-zinc-700 transition-all duration-300 ease-in-out"
+                        :class="sidebarOpen ? '-translate-y-[8px] -rotate-45' : 'translate-y-0 rotate-0'"></span>
                 </button>
-                <span class="text-sm font-semibold text-zinc-700">BUMDES Teja Perceka</span>
-                <!-- Placeholder to keep title centered in justify-between -->
+                <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center">
+                    <img src="{{ asset('assets/images/logo-sidebar-bumdes-teja-perceka.png') }}" alt="Logo BUMDes Teja Perceka"
+                        class="block h-12 w-auto max-w-[220px] object-contain">
+                </a>
+                <!-- Placeholder to keep logo centered in justify-between -->
                 <div class="w-8"></div>
             </header>
 
             <!-- Slot konten halaman -->
-            <main class="flex-1 p-4 sm:p-6">
+            <main class="flex-1 px-0 py-3 sm:p-6">
                 {{ $slot }}
             </main>
         </div>

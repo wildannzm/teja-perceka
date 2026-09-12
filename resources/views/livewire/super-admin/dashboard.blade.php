@@ -1,10 +1,7 @@
 <div class="space-y-6">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div class="flex flex-col gap-1">
-            <h1 class="text-2xl font-bold text-zinc-900">Dashboard Super Admin</h1>
-            <p class="text-sm text-zinc-500">Kelola seluruh akses pengguna, penyamaran (*impersonation*), dan log aktivitas sistem secara realtime.</p>
-        </div>
+        <x-page-header title="Dashboard" description="Tinjauan ringkas performa keuangan seluruh unit BUMDes pada bulan ini." />
         <div class="flex items-center gap-3">
             <a href="{{ route('super-admin.users') }}" wire:navigate class="inline-flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm rounded-xl transition-colors shadow-sm">
                 <flux:icon icon="users" class="size-4" />

@@ -1,11 +1,5 @@
-<div>
 <div class="flex h-full w-full flex-col gap-4 sm:gap-6 max-w-full mx-auto pb-10">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div class="flex flex-col gap-1">
-            <h1 class="text-xl sm:text-2xl font-semibold text-zinc-900">Neraca Saldo</h1>
-            <p class="text-sm text-zinc-500">Ringkasan saldo akun untuk memastikan keseimbangan debit & kredit.</p>
-        </div>
-        <style>
+    <style>
             .btn-edit-yellow {
                 background-color: #f59e0b !important;
                 color: #ffffff !important;
@@ -16,7 +10,9 @@
                 border-color: #d97706 !important;
             }
         </style>
-        @if($this->canPrint)
+    <x-page-header title="Neraca Saldo" description="Ringkasan saldo akun untuk memastikan keseimbangan debit & kredit.">
+        <x-slot:actions>
+            @if($this->canPrint)
             <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                 @if($isEditing)
                     <flux:button variant="danger" wire:click="cancelEditing" class="w-full sm:w-auto shrink-0">Batal</flux:button>
@@ -30,8 +26,9 @@
                     </flux:button>
                 @endif
             </div>
-        @endif
-    </div>
+            @endif
+        </x-slot:actions>
+    </x-page-header>
 
     <div class="bg-white p-4 sm:p-6 rounded-xl border border-brand-100 shadow-sm">
         <h2 class="text-base sm:text-lg font-semibold mb-4 text-zinc-900">Filter Laporan</h2>
@@ -256,4 +253,3 @@
             </div>
         </div>
     </div>
-</div>

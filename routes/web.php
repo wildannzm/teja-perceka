@@ -4,11 +4,9 @@ use App\Http\Controllers\ImpersonationController;
 use App\Livewire\Asset\KelolaAsset;
 use App\Livewire\Bendahara\Dashboard as BendaharaDashboard;
 use App\Livewire\Bendahara\Report as BendaharaReport;
-
 use App\Livewire\DirekturBumdes\Dashboard as DirekturBumdesDashboard;
 use App\Livewire\DirekturBumdes\KelolaAkunUnit;
 use App\Livewire\DirekturBumdes\Report as DirekturBumdesReport;
-
 use App\Livewire\KepalaDesa\Dashboard as KepalaDesaDashboard;
 use App\Livewire\KepalaDesa\Report as KepalaDesaReport;
 use App\Livewire\KepalaDesa\UserManager as KepalaDesaUserManager;
@@ -21,12 +19,10 @@ use App\Livewire\LaporanLabaRugi\AlokasiLaba;
 use App\Livewire\LaporanLabaRugi\LabaRugi;
 use App\Livewire\LaporanPendapatan\Pendapatan;
 use App\Livewire\Pengawas\Dashboard as PengawasDashboard;
-use App\Livewire\Pengawas\LihatJurnal as PengawasLihatJurnal;
 use App\Livewire\Pengawas\Report as PengawasReport;
 use App\Livewire\Pengeluaran\CatatPengeluaran;
 use App\Livewire\Sekretaris\Dashboard as SekretarisDashboard;
 use App\Livewire\Sekretaris\Report as SekretarisReport;
-
 use App\Livewire\SuperAdmin\ActivityLogs as SuperAdminActivityLogs;
 use App\Livewire\SuperAdmin\Dashboard as SuperAdminDashboard;
 use App\Livewire\SuperAdmin\UserManager as SuperAdminUserManager;
@@ -129,7 +125,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ===== Pengawas =====
     Route::middleware(['role:pengawas'])->prefix('pengawas')->group(function () {
         Route::get('/dashboard', PengawasDashboard::class)->name('pengawas.dashboard');
-        Route::get('/transaksi', PengawasLihatJurnal::class)->name('pengawas.transaksi');
         Route::get('/laporan', PengawasReport::class)->name('pengawas.laporan');
     });
 

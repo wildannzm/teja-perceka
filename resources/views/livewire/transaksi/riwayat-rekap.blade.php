@@ -1,10 +1,6 @@
 <div class="flex h-full w-full flex-col gap-4 sm:gap-6 max-w-full mx-auto pb-10 min-w-0">
 
-    {{-- Header --}}
-    <div class="flex flex-col gap-1">
-        <h1 class="text-xl sm:text-2xl font-semibold text-zinc-900">Riwayat & Rekap</h1>
-        <p class="text-sm text-zinc-500">Rincian pendapatan operasional dan riwayat jurnal transaksi.</p>
-    </div>
+    <x-page-header title="Riwayat & Rekap" description="Rincian pendapatan operasional dan riwayat jurnal transaksi." />
 
     {{-- Filter Section --}}
     <div class="bg-white p-4 sm:p-5 rounded-2xl border border-zinc-200 shadow-sm flex flex-col gap-5">
