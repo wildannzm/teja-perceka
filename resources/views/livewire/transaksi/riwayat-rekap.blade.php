@@ -101,6 +101,19 @@
                         class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                 @endif
             </div>
+
+            @if($tab === 'jurnal')
+                <div class="flex flex-col gap-1.5 w-full md:w-auto">
+                    <label class="text-sm font-medium text-zinc-700">Urutkan</label>
+                    <select wire:model.live="sortOption"
+                        class="w-full sm:min-w-48 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
+                        <option value="tanggal-asc">Tanggal · Terlama</option>
+                        <option value="tanggal-desc">Tanggal · Terbaru</option>
+                        <option value="nomor_bukti-asc">Bukti · A–Z</option>
+                        <option value="nomor_bukti-desc">Bukti · Z–A</option>
+                    </select>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -139,8 +152,10 @@
                 :bulan="$bulan"
                 :semester="$semester"
                 :semester-tahun="$semesterTahun"
-                :tahun="$tahun" 
-                wire:key="tab-jurnal-{{ $unit_id }}-{{ $mode }}-{{ $tanggal }}-{{ $minggu }}-{{ $bulan }}-{{ $semester }}-{{ $semesterTahun }}-{{ $tahun }}"
+                :tahun="$tahun"
+                :sort-field="$sortField"
+                :sort-direction="$sortDirection"
+                wire:key="tab-jurnal-{{ $unit_id }}-{{ $mode }}-{{ $tanggal }}-{{ $minggu }}-{{ $bulan }}-{{ $semester }}-{{ $semesterTahun }}-{{ $tahun }}-{{ $sortField }}-{{ $sortDirection }}"
             />
         @endif
     </div>

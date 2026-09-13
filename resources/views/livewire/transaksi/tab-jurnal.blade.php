@@ -33,15 +33,15 @@
                 <table class="w-full text-left border-collapse text-sm whitespace-nowrap">
                     <thead>
                         <tr class="bg-brand-50/80 text-brand-900 border-b border-brand-100">
-                            <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs">Tanggal</th>
-                            <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs">Bukti</th>
+                            <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Tanggal</th>
+                            <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Bukti</th>
                             @if(is_null($unitId))
                                 <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs">Unit</th>
                             @endif
                             <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs w-full min-w-[200px]">Keterangan</th>
                             <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs">Kode Akun</th>
-                            <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-right">Debit</th>
-                            <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-right">Kredit</th>
+                            <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Debit</th>
+                            <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Kredit</th>
                             @if($this->canEdit || $this->canDelete)
                                 <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Aksi</th>
                             @endif
@@ -59,9 +59,9 @@
                                         @endif
                                         <td rowspan="{{ $group->count() }}" class="py-3 px-4 text-wrap leading-relaxed align-top border-r border-zinc-100">{{ $jurnal->keterangan }}</td>
                                     @endif
-                                    <td class="py-3 px-4 font-mono text-xs">{{ $jurnal->kodeAkun?->kode ?? '-' }} - {{ $jurnal->kodeAkun?->nama ?? '?' }}</td>
-                                    <td class="py-3 px-4 text-right font-medium text-brand-700">{{ $jurnal->debet > 0 ? number_format($jurnal->debet, 0, ',', '.') : '-' }}</td>
-                                    <td class="py-3 px-4 text-right font-medium text-red-600">{{ $jurnal->kredit > 0 ? number_format($jurnal->kredit, 0, ',', '.') : '-' }}</td>
+                                    <td class="py-3 px-4 font-mono text-xs border-l border-zinc-100">{{ $jurnal->kodeAkun?->kode ?? '-' }} - {{ $jurnal->kodeAkun?->nama ?? '?' }}</td>
+                                    <td class="py-3 px-4 text-right font-medium text-brand-700 border-l border-zinc-100">{{ $jurnal->debet > 0 ? number_format($jurnal->debet, 0, ',', '.') : '-' }}</td>
+                                    <td class="py-3 px-4 text-right font-medium text-red-600 border-l border-zinc-100">{{ $jurnal->kredit > 0 ? number_format($jurnal->kredit, 0, ',', '.') : '-' }}</td>
                                     @if($this->canEdit || $this->canDelete)
                                         @if($loop->first)
                                             <td rowspan="{{ $group->count() }}" class="py-3 px-4 align-middle text-center border-l border-zinc-100">
@@ -188,21 +188,12 @@
             </div>
 
             @if($this->canExportPdf)
-                <button wire:click="exportPdf" wire:loading.attr="disabled" wire:target="exportPdf"
-                    class="w-full min-h-[56px] rounded-2xl text-base font-semibold shadow-md border border-transparent bg-brand-600 text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-wait">
-                    <span wire:loading.remove wire:target="exportPdf" class="flex items-center gap-2.5">
-                        <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                        </svg>
-                        Cetak / Unduh PDF
-                    </span>
-                    <span wire:loading wire:target="exportPdf" class="flex items-center gap-2.5">
-                        <svg class="animate-spin size-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Menyiapkan PDF...
-                    </span>
+                <button wire:click="exportPdf"
+                    class="w-full min-h-[56px] rounded-2xl text-base font-semibold shadow-md border border-transparent bg-brand-600 text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 cursor-pointer">
+                    <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Cetak / Unduh PDF
                 </button>
             @else
                 <div class="w-full min-h-[56px] rounded-2xl text-base font-semibold shadow-md border border-brand-200 bg-brand-50 text-brand-600/60 flex items-center justify-center gap-2.5 cursor-not-allowed select-none">

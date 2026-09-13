@@ -115,8 +115,8 @@
                 <th style="width:30%">KETERANGAN</th>
                 <th style="width:10%">KODE AKUN</th>
                 <th style="width:9%" class="text-center">KODE BANTU</th>
-                <th style="width:13%" class="text-right">DEBET</th>
-                <th style="width:13%" class="text-right">KREDIT</th>
+                <th style="width:13%" class="text-center">DEBET</th>
+                <th style="width:13%" class="text-center">KREDIT</th>
             </tr>
         </thead>
         <tbody>

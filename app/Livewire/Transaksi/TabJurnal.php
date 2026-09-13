@@ -42,6 +42,12 @@ class TabJurnal extends Component
     #[Reactive]
     public string $tahun = '';
 
+    #[Reactive]
+    public string $sortField = 'tanggal';
+
+    #[Reactive]
+    public string $sortDirection = 'asc';
+
     // ── Delete state ──────────────────────────────────────────────────────────
     public ?int $deleteId = null;
 
@@ -133,32 +139,29 @@ class TabJurnal extends Component
     {
         [$start, $end] = $this->dateRange;
 
+        $sortField = in_array($this->sortField, ['tanggal', 'nomor_bukti']) ? $this->sortField : 'tanggal';
+        $sortDirection = $this->sortDirection === 'desc' ? 'desc' : 'asc';
+
         $query = JurnalUmum::with(['unitWisata', 'kodeAkun'])
-            ->whereBetween('tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')])
-            ->orderBy('tanggal', 'asc')
-            ->orderBy('nomor_bukti', 'asc')
-            ->orderBy('id', 'asc');
+            ->whereDate('tanggal', '>=', $start->format('Y-m-d'))
+            ->whereDate('tanggal', '<=', $end->format('Y-m-d'))
+            ->orderBy($sortField, $sortDirection)
+            ->orderBy($sortField === 'tanggal' ? 'nomor_bukti' : 'tanggal', $sortDirection)
+            ->orderBy('id', $sortDirection);
 
         if ($this->unitId) {
             $query->where('unit_wisata_id', $this->unitId);
         }
 
-        $paginatedNomorBukti = (clone $query)->select('nomor_bukti')
-            ->groupBy('nomor_bukti')
-            ->paginate(20);
+        $paginated = (clone $query)
+            ->paginate(40);
 
-        $details = JurnalUmum::with(['unitWisata', 'kodeAkun'])
-            ->whereIn('nomor_bukti', $paginatedNomorBukti->pluck('nomor_bukti'))
-            ->orderBy('tanggal', 'asc')
-            ->orderBy('nomor_bukti', 'asc')
-            ->orderBy('id', 'asc')
-            ->get()
-            ->groupBy('nomor_bukti');
-            
+        $groups = $paginated->getCollection()->groupBy('nomor_bukti');
+
         // We need to return an object that contains both the grouped transactions and the paginator
         return [
-            'paginator' => $paginatedNomorBukti,
-            'groups' => $details,
+            'paginator' => $paginated,
+            'groups' => $groups,
         ];
     }
 
@@ -166,10 +169,12 @@ class TabJurnal extends Component
     public function totalDebet(): float
     {
         [$start, $end] = $this->dateRange;
-        $query = JurnalUmum::whereBetween('tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')]);
+        $query = JurnalUmum::whereDate('tanggal', '>=', $start->format('Y-m-d'))
+            ->whereDate('tanggal', '<=', $end->format('Y-m-d'));
         if ($this->unitId) {
             $query->where('unit_wisata_id', $this->unitId);
         }
+
         return (float) $query->sum('debet');
     }
 
@@ -177,10 +182,12 @@ class TabJurnal extends Component
     public function totalKredit(): float
     {
         [$start, $end] = $this->dateRange;
-        $query = JurnalUmum::whereBetween('tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')]);
+        $query = JurnalUmum::whereDate('tanggal', '>=', $start->format('Y-m-d'))
+            ->whereDate('tanggal', '<=', $end->format('Y-m-d'));
         if ($this->unitId) {
             $query->where('unit_wisata_id', $this->unitId);
         }
+
         return (float) $query->sum('kredit');
     }
 
@@ -380,11 +387,15 @@ class TabJurnal extends Component
 
         [$start, $end] = $this->dateRange;
 
+        $sortField = in_array($this->sortField, ['tanggal', 'nomor_bukti']) ? $this->sortField : 'tanggal';
+        $sortDirection = $this->sortDirection === 'desc' ? 'desc' : 'asc';
+
         $query = JurnalUmum::with(['unitWisata', 'kodeAkun'])
-            ->whereBetween('tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')])
-            ->orderBy('tanggal', 'asc')
-            ->orderBy('nomor_bukti', 'asc')
-            ->orderBy('id', 'asc');
+            ->whereDate('tanggal', '>=', $start->format('Y-m-d'))
+            ->whereDate('tanggal', '<=', $end->format('Y-m-d'))
+            ->orderBy($sortField, $sortDirection)
+            ->orderBy($sortField === 'tanggal' ? 'nomor_bukti' : 'tanggal', $sortDirection)
+            ->orderBy('id', $sortDirection);
 
         if ($this->unitId) {
             $query->where('unit_wisata_id', $this->unitId);

@@ -42,6 +42,41 @@ class RiwayatRekap extends Component
     #[Url]
     public string $tahun = '';
 
+    public string $sortField = 'tanggal';
+
+    public string $sortDirection = 'asc';
+
+    public string $sortOption = 'tanggal-asc';
+
+    public function updatedSortOption(): void
+    {
+        [$field, $direction] = array_pad(explode('-', $this->sortOption, 2), 2, 'asc');
+
+        if (! in_array($field, ['tanggal', 'nomor_bukti'])) {
+            $field = 'tanggal';
+        }
+
+        $this->sortField = $field;
+        $this->sortDirection = $direction === 'desc' ? 'desc' : 'asc';
+        $this->sortOption = $field.'-'.$this->sortDirection;
+    }
+
+    public function sortJurnalBy(string $field): void
+    {
+        if (! in_array($field, ['tanggal', 'nomor_bukti'])) {
+            return;
+        }
+
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc';
+        }
+
+        $this->sortOption = $this->sortField.'-'.$this->sortDirection;
+    }
+
     public function mount(): void
     {
         $user = Auth::user();

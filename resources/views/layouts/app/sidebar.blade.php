@@ -686,7 +686,7 @@
                 style="display: flex !important; flex-direction: column !important; text-align: left !important; line-height: 1.25 !important;">
                 <span
                     style="font-size: 9px !important; font-weight: 800 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; color: #d97706 !important;">Mode
-                    Penyamaran</span>
+                    Impersonate</span>
                 <span
                     style="font-size: 12px !important; font-weight: 700 !important; color: #18181b !important; max-width: 150px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important;"
                     title="{{ auth()->user()->name }} ({{ auth()->user()->email }})">
