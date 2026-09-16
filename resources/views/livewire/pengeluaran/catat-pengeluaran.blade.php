@@ -101,7 +101,7 @@
                                 </div>
                                 <div class="flex flex-col gap-1.5 w-full sm:w-auto">
                                     <label for="filterSemesterTahun" class="text-xs font-semibold text-zinc-600">Tahun</label>
-                                    <select wire:model.live="filterSemesterTahun"
+                                    <select wire:model.live.debounce.500ms="filterSemesterTahun"
                                         class="w-full sm:min-w-32 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                                         @for ($y = date('Y'); $y >= date('Y') - 5; $y--)
                                             <option value="{{ $y }}">{{ $y }}</option>
@@ -114,7 +114,7 @@
                         @elseif($filterMode === 'tahunan')
                             <div wire:key="picker-tahunan">
                                 <label for="filterTahun" class="text-xs font-semibold text-zinc-600">Tahun</label>
-                                <select wire:model.live="filterTahun"
+                                <select wire:model.live.debounce.500ms="filterTahun"
                                     class="w-full sm:min-w-40 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                                     @for ($y = date('Y'); $y >= date('Y') - 5; $y--)
                                         <option value="{{ $y }}">{{ $y }}</option>
@@ -408,7 +408,7 @@
                                         <label class="block text-sm font-medium text-zinc-700 mb-1.5">Nominal</label>
                                         <div class="relative">
                                             <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500 font-medium pointer-events-none">Rp</span>
-                                            <input type="number" id="nominal-{{ $index }}" wire:model.live="items.{{ $index }}.nominal" min="1" max="9999999999999" step="1" placeholder="0"
+                                            <input type="number" id="nominal-{{ $index }}" wire:model.live.debounce.300ms="items.{{ $index }}.nominal" min="1" max="9999999999999" step="1" placeholder="0"
                                                 class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 pl-10 pr-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors"
                                                 required />
                                         </div>
@@ -578,7 +578,7 @@
                             <label for="editNominal" class="block text-sm font-medium text-zinc-700 mb-1.5">Nominal</label>
                             <div class="relative">
                                 <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500 font-medium pointer-events-none">Rp</span>
-                                <input type="number" id="editNominal" wire:model.live="editNominal" min="1" max="9999999999999" step="1" placeholder="0"
+                                <input type="number" id="editNominal" wire:model.live.debounce.300ms="editNominal" min="1" max="9999999999999" step="1" placeholder="0"
                                     class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 pl-10 pr-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors"
                                     required />
                             </div>

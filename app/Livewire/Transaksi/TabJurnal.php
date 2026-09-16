@@ -12,11 +12,12 @@ use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Reactive;
 use Livewire\Component;
+use Livewire\Features\SupportPagination\WithoutUrlPagination;
 use Livewire\WithPagination;
 
 class TabJurnal extends Component
 {
-    use WithPagination;
+    use WithoutUrlPagination, WithPagination;
 
     #[Reactive]
     public $unitId = null;
@@ -47,6 +48,20 @@ class TabJurnal extends Component
 
     #[Reactive]
     public string $sortDirection = 'asc';
+
+    public function updating(string $name, mixed $value): void
+    {
+        if (in_array($name, ['unitId', 'mode', 'tanggal', 'minggu', 'bulan', 'semester', 'semesterTahun', 'tahun', 'sortField', 'sortDirection'], true)) {
+            $this->resetPage();
+        }
+    }
+
+    public function mount(): void
+    {
+        // Filter change remounts this tab via wire:key, but the page number
+        // lingers in the query string (?page=3) — always start from page 1.
+        $this->resetPage();
+    }
 
     // ── Delete state ──────────────────────────────────────────────────────────
     public ?int $deleteId = null;

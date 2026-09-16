@@ -12,6 +12,11 @@ class UserManager extends Component
 
     public $search = '';
 
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
     public $editingUserId = null;
 
     public $name = '';

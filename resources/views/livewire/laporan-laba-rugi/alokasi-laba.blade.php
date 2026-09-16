@@ -70,11 +70,11 @@
                         <option value="1">Sem 1 (Jan-Jun)</option>
                         <option value="2">Sem 2 (Jul-Des)</option>
                     </select>
-                    <input type="number" wire:model.live="semesterTahun" placeholder="Tahun"
+                    <input type="number" wire:model.live.debounce.500ms="semesterTahun" placeholder="Tahun"
                         class="w-24 rounded-xl border-2 border-zinc-200 px-3 py-2 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer">
                 </div>
             @else
-                <input type="number" wire:model.live="periode" placeholder="Pilih Tahun"
+                <input type="number" wire:model.live.debounce.500ms="periode" placeholder="Pilih Tahun"
                     class="w-full rounded-xl border-2 border-zinc-200 px-3 py-2 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer">
             @endif
         </div>

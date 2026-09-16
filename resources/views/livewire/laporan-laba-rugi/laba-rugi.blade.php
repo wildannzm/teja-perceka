@@ -91,12 +91,12 @@
                             <option value="1">Sem 1 (Jan-Jun)</option>
                             <option value="2">Sem 2 (Jul-Des)</option>
                         </select>
-                        <input type="number" wire:model.live="semesterTahun" min="2020" max="2099" placeholder="{{ date('Y') }}"
+                        <input type="number" wire:model.live.debounce.500ms="semesterTahun" min="2020" max="2099" placeholder="{{ date('Y') }}"
                             class="block w-24 max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none transition-colors">
                     </div>
                 @else
                     <label class="text-sm font-medium text-zinc-700">Tahun</label>
-                    <input type="number" wire:model.live="periode" min="2020" max="2099"
+                    <input type="number" wire:model.live.debounce.500ms="periode" min="2020" max="2099"
                         placeholder="{{ date('Y') }}"
                         class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none transition-colors">
                 @endif
