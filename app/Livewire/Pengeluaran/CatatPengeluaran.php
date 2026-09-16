@@ -4,8 +4,8 @@ namespace App\Livewire\Pengeluaran;
 
 use App\Models\JurnalUmum;
 use App\Models\KodeAkun;
-
 use App\Models\UnitWisata;
+use App\Support\VoucherNumber;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -48,9 +48,9 @@ class CatatPengeluaran extends Component
 
     public bool $showDeleteModal = false;
 
-    public ?string $editingNomorBukti = null;
+    public ?string $editingVoucherNumber = null;
 
-    public ?string $deletingNomorBukti = null;
+    public ?string $deletingVoucherNumber = null;
 
     public string $editTanggal = '';
 
@@ -127,14 +127,14 @@ class CatatPengeluaran extends Component
     public function closeEditModal(): void
     {
         $this->showEditModal = false;
-        $this->reset(['editingNomorBukti', 'editKodeAkunId', 'editKeterangan', 'editNominal', 'editTanggal']);
+        $this->reset(['editingVoucherNumber', 'editKodeAkunId', 'editKeterangan', 'editNominal', 'editTanggal']);
         $this->resetErrorBag();
     }
 
     public function closeDeleteModal(): void
     {
         $this->showDeleteModal = false;
-        $this->deletingNomorBukti = null;
+        $this->deletingVoucherNumber = null;
     }
 
     public function resetFilter(): void
@@ -188,31 +188,18 @@ class CatatPengeluaran extends Component
         DB::transaction(function () use ($date, $prefix, $validItems) {
             $akunKas = KodeAkun::where('kode', '1-1100')->firstOrFail();
 
-            $existingNumbers = JurnalUmum::where('nomor_bukti', 'like', $prefix.'%')
-                ->whereMonth('tanggal', $date->month)
-                ->whereYear('tanggal', $date->year)
-                ->lockForUpdate()
-                ->pluck('nomor_bukti')
-                ->map(fn ($nomor) => (int) substr($nomor, -3))
-                ->unique()
-                ->toArray();
-
-            $nextUrut = 1;
+            // Chronological batch reservation under a single lock.
+            $voucherBatch = VoucherNumber::nextBatch($prefix, $date->format('Y-m-d'), count($validItems), $this->unitId);
 
             $totalPengeluaranBaru = (float) $this->totalPengeluaran;
 
-            foreach ($validItems as $item) {
-                while (in_array($nextUrut, $existingNumbers)) {
-                    $nextUrut++;
-                }
-                $existingNumbers[] = $nextUrut;
-
+            foreach ($validItems as $index => $item) {
                 $nominalItem = (float) $item['nominal'];
-                $nomorBukti = $prefix.str_pad($nextUrut, 3, '0', STR_PAD_LEFT);
+                $voucherNumber = $voucherBatch[$index] ?? VoucherNumber::next($prefix, $date->format('Y-m-d'), $this->unitId)['number'];
                 $keterangan = $item['keterangan'];
 
                 JurnalUmum::create([
-                    'nomor_bukti' => $nomorBukti,
+                    'nomor_bukti' => $voucherNumber,
                     'tanggal' => $this->tanggal,
                     'keterangan' => $keterangan,
                     'kode_akun_id' => (int) $item['kode_akun_id'],
@@ -223,7 +210,7 @@ class CatatPengeluaran extends Component
                 ]);
 
                 JurnalUmum::create([
-                    'nomor_bukti' => $nomorBukti,
+                    'nomor_bukti' => $voucherNumber,
                     'tanggal' => $this->tanggal,
                     'keterangan' => $keterangan,
                     'kode_akun_id' => $akunKas->id,
@@ -232,10 +219,7 @@ class CatatPengeluaran extends Component
                     'transaksi_harian_id' => null,
                     'unit_wisata_id' => $this->unitId,
                 ]);
-
-                $nextUrut++;
             }
-
 
         });
 
@@ -247,9 +231,9 @@ class CatatPengeluaran extends Component
         $this->showCreateModal = false;
     }
 
-    public function editRiwayat($nomorBukti): void
+    public function editRiwayat($voucherNumber): void
     {
-        $jurnalDebet = JurnalUmum::where('nomor_bukti', $nomorBukti)
+        $jurnalDebet = JurnalUmum::where('nomor_bukti', $voucherNumber)
             ->where('unit_wisata_id', $this->unitId)
             ->where('debet', '>', 0)
             ->first();
@@ -258,7 +242,7 @@ class CatatPengeluaran extends Component
             return;
         }
 
-        $this->editingNomorBukti = $nomorBukti;
+        $this->editingVoucherNumber = $voucherNumber;
         $this->editTanggal = $jurnalDebet->tanggal
             ? Carbon::parse($jurnalDebet->tanggal)->format('Y-m-d')
             : Carbon::today()->format('Y-m-d');
@@ -277,14 +261,14 @@ class CatatPengeluaran extends Component
             'editNominal' => 'required|numeric|min:1|max:9999999999999',
         ]);
 
-        $jurnals = JurnalUmum::where('nomor_bukti', $this->editingNomorBukti)
+        $jurnals = JurnalUmum::where('nomor_bukti', $this->editingVoucherNumber)
             ->where('unit_wisata_id', $this->unitId)
             ->get();
 
         $oldTotal = $jurnals->sum('debet');
         $oldTotal = $jurnals->sum('debet');
 
-        DB::transaction(function () use ($jurnals, $oldTotal, $validated) {
+        DB::transaction(function () use ($jurnals, $validated) {
             $akunKas = KodeAkun::where('kode', '1-1100')->firstOrFail();
 
             foreach ($jurnals as $j) {
@@ -298,38 +282,37 @@ class CatatPengeluaran extends Component
                 ]);
             }
 
-
         });
 
         $this->showEditModal = false;
-        $this->reset(['editingNomorBukti', 'editKodeAkunId', 'editKeterangan', 'editNominal', 'editTanggal']);
+        $this->reset(['editingVoucherNumber', 'editKodeAkunId', 'editKeterangan', 'editNominal', 'editTanggal']);
 
         \Flux::toast(variant: 'success', text: 'Data pengeluaran berhasil diperbarui.');
     }
 
-    public function confirmDelete($nomorBukti): void
+    public function confirmDelete($voucherNumber): void
     {
-        $this->deletingNomorBukti = $nomorBukti;
+        $this->deletingVoucherNumber = $voucherNumber;
         $this->showDeleteModal = true;
     }
 
     public function executeDelete(): void
     {
-        if (! $this->deletingNomorBukti) {
+        if (! $this->deletingVoucherNumber) {
             return;
         }
 
-        $this->deleteRiwayat($this->deletingNomorBukti, false);
+        $this->deleteRiwayat($this->deletingVoucherNumber, false);
 
         $this->showDeleteModal = false;
-        $this->deletingNomorBukti = null;
+        $this->deletingVoucherNumber = null;
 
         \Flux::toast(variant: 'success', text: 'Data pengeluaran berhasil dihapus.');
     }
 
-    public function deleteRiwayat($nomorBukti, $showToast = true): void
+    public function deleteRiwayat($voucherNumber, $showToast = true): void
     {
-        $jurnals = JurnalUmum::where('nomor_bukti', $nomorBukti)->where('unit_wisata_id', $this->unitId)->get();
+        $jurnals = JurnalUmum::where('nomor_bukti', $voucherNumber)->where('unit_wisata_id', $this->unitId)->get();
         if ($jurnals->isEmpty()) {
             return;
         }
@@ -337,11 +320,10 @@ class CatatPengeluaran extends Component
         $totalDebet = $jurnals->sum('debet');
         $totalDebet = $jurnals->sum('debet');
 
-        DB::transaction(function () use ($jurnals, $totalDebet) {
+        DB::transaction(function () use ($jurnals) {
             foreach ($jurnals as $j) {
                 $j->delete();
             }
-
 
         });
 

@@ -1,0 +1,85 @@
+<?php
+
+namespace App\Support;
+
+use App\Models\JurnalUmum;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Single source of truth for voucher number sequencing.
+ *
+ * Scope: prefix + YYYY-MM(date) + unit_wisata_id.
+ * Insert-and-shift: a new voucher takes its chronological slot by date,
+ * later vouchers shift by +N so date and number order always agree.
+ */
+class VoucherNumber
+{
+    /**
+     * @return array{prefix: string, number: string, sequence: int}
+     */
+    public static function next(string $prefix, string $date, ?int $tourismUnitId = null): array
+    {
+        $number = self::nextBatch($prefix, $date, 1, $tourismUnitId)[0];
+
+        return [
+            'prefix' => $prefix,
+            'number' => $number,
+            'sequence' => (int) substr($number, -3),
+        ];
+    }
+
+    /**
+     * Reserve $count sequential numbers at the chronological position.
+     *
+     * @return string[]
+     */
+    public static function nextBatch(string $prefix, string $date, int $count, ?int $tourismUnitId = null): array
+    {
+        return DB::transaction(function () use ($prefix, $date, $count, $tourismUnitId) {
+            $day = Carbon::parse($date)->format('Y-m-d');
+
+            $query = JurnalUmum::where('nomor_bukti', 'like', $prefix.'%')
+                ->whereDate('tanggal', '>=', substr($day, 0, 7).'-01')
+                ->whereDate('tanggal', '<', Carbon::parse($day)->startOfMonth()->addMonth()->format('Y-m-d'))
+                ->lockForUpdate();
+
+            if ($tourismUnitId !== null) {
+                $query->where('unit_wisata_id', $tourismUnitId);
+            }
+
+            // One voucher = one nomor_bukti (possibly many debit/credit rows), ordered chronologically.
+            $vouchers = [];
+            foreach ((clone $query)->orderBy('tanggal')->orderBy('id')->get(['id', 'nomor_bukti', 'tanggal']) as $row) {
+                $key = $row->nomor_bukti;
+                $vouchers[$key]['date'] ??= Carbon::parse($row->tanggal)->format('Y-m-d');
+                $vouchers[$key]['ids'][] = $row->id;
+            }
+            $ordered = array_values($vouchers);
+
+            // Insertion rank: after the last voucher with an older date.
+            $rank = 0;
+            foreach ($ordered as $voucher) {
+                if ($voucher['date'] < $day) {
+                    $rank++;
+                } else {
+                    break;
+                }
+            }
+
+            // Shift backwards (largest first) to avoid name collisions.
+            for ($i = count($ordered) - 1; $i >= $rank; $i--) {
+                $old = (int) substr(array_keys($vouchers)[$i], -3);
+                JurnalUmum::whereIn('id', $ordered[$i]['ids'])
+                    ->update(['nomor_bukti' => $prefix.str_pad($old + $count, 3, '0', STR_PAD_LEFT)]);
+            }
+
+            $numbers = [];
+            for ($i = 1; $i <= $count; $i++) {
+                $numbers[] = $prefix.str_pad($rank + $i, 3, '0', STR_PAD_LEFT);
+            }
+
+            return $numbers;
+        });
+    }
+}

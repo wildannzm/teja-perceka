@@ -56,7 +56,7 @@ class TabJurnal extends Component
     // ── Edit state ────────────────────────────────────────────────────────────
     public ?int $editJurnalId = null;
 
-    public string $editNomorBukti = '';
+    public string $editVoucherNumber = '';
 
     public bool $showEditModal = false;
 
@@ -246,7 +246,15 @@ class TabJurnal extends Component
             if ($jurnal->transaksi_harian_id) {
                 TransaksiHarian::where('id', $jurnal->transaksi_harian_id)->delete();
             }
-            JurnalUmum::where('nomor_bukti', $jurnal->nomor_bukti)->delete();
+            // Same voucher scope as openEdit: number + month + unit.
+            $monthStart = $jurnal->tanggal->copy()->startOfMonth()->format('Y-m-d');
+            $monthEnd = $jurnal->tanggal->copy()->endOfMonth()->format('Y-m-d');
+            JurnalUmum::where('nomor_bukti', $jurnal->nomor_bukti)
+                ->whereBetween('tanggal', [$monthStart, $monthEnd])
+                ->when($jurnal->unit_wisata_id !== null,
+                    fn ($query) => $query->where('unit_wisata_id', $jurnal->unit_wisata_id),
+                    fn ($query) => $query->whereNull('unit_wisata_id'))
+                ->delete();
         });
 
         $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Satu set jurnal (debet & kredit) berhasil dihapus.');
@@ -272,14 +280,21 @@ class TabJurnal extends Component
             }
         }
 
-        // Load the whole group by nomor_bukti
+        // Load the voucher group: same number + same month + same unit
+        // (numbers reset monthly, so the number alone is not unique).
+        $monthStart = $jurnal->tanggal->copy()->startOfMonth()->format('Y-m-d');
+        $monthEnd = $jurnal->tanggal->copy()->endOfMonth()->format('Y-m-d');
         $group = JurnalUmum::with('kodeAkun')
             ->where('nomor_bukti', $jurnal->nomor_bukti)
+            ->whereBetween('tanggal', [$monthStart, $monthEnd])
+            ->when($jurnal->unit_wisata_id !== null,
+                fn ($query) => $query->where('unit_wisata_id', $jurnal->unit_wisata_id),
+                fn ($query) => $query->whereNull('unit_wisata_id'))
             ->orderBy('id', 'asc')
             ->get();
 
         $this->editJurnalId = $jurnalId;
-        $this->editNomorBukti = $jurnal->nomor_bukti;
+        $this->editVoucherNumber = $jurnal->nomor_bukti;
         $this->editTanggal = $jurnal->tanggal->format('Y-m-d');
         $this->editKeterangan = $jurnal->keterangan;
 
@@ -296,7 +311,7 @@ class TabJurnal extends Component
 
     public function executeEdit(): void
     {
-        if (! $this->canEdit || ! $this->editNomorBukti) {
+        if (! $this->canEdit || ! $this->editVoucherNumber) {
             abort(403);
         }
 
@@ -331,10 +346,12 @@ class TabJurnal extends Component
                     ]);
                 }
 
-                // Also sync the tanggal on the linked TransaksiHarian if present
-                $firstJurnal = JurnalUmum::where('nomor_bukti', $this->editNomorBukti)->first();
+                // Sync the linked TransaksiHarian from the edited rows only
+                // (the voucher number alone is not unique across months).
+                $editedIds = collect($this->editRows)->pluck('id')->all();
+                $firstJurnal = JurnalUmum::whereIn('id', $editedIds)->first();
                 if ($firstJurnal && $firstJurnal->transaksi_harian_id) {
-                    $totalDebet = JurnalUmum::where('nomor_bukti', $this->editNomorBukti)->sum('debet');
+                    $totalDebet = JurnalUmum::whereIn('id', $editedIds)->sum('debet');
                     TransaksiHarian::where('id', $firstJurnal->transaksi_harian_id)->update([
                         'tanggal' => $this->editTanggal,
                         'total_pemasukan' => $totalDebet,
@@ -361,7 +378,7 @@ class TabJurnal extends Component
     private function resetEditState(): void
     {
         $this->editJurnalId = null;
-        $this->editNomorBukti = '';
+        $this->editVoucherNumber = '';
         $this->editTanggal = '';
         $this->editKeterangan = '';
         $this->editRows = [];

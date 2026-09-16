@@ -10,6 +10,7 @@ use App\Models\KodeAkun;
 use App\Models\TransaksiDetail;
 use App\Models\TransaksiHarian;
 use App\Models\UnitWisata;
+use App\Support\VoucherNumber;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -384,26 +385,13 @@ class InputTransaksiHarian extends Component
         $kodeUnit = strtoupper($this->unit->kode ?? 'XX');
         $prefixNomor = 'D'.$kodeUnit;
 
-        $existingNumbers = JurnalUmum::where('nomor_bukti', 'like', $prefixNomor.'%')
-            ->whereMonth('tanggal', $date->month)
-            ->whereYear('tanggal', $date->year)
-            ->lockForUpdate()
-            ->pluck('nomor_bukti')
-            ->map(fn($nomor) => (int) substr($nomor, -3))
-            ->unique()
-            ->toArray();
-
-        $nextUrut = 1;
-        while (in_array($nextUrut, $existingNumbers)) {
-            $nextUrut++;
-        }
-
-        $nomorBukti = $prefixNomor.str_pad($nextUrut, 3, '0', STR_PAD_LEFT);
+        // Chronological insert-and-shift within the prefix+month+unit scope.
+        $voucherNumber = VoucherNumber::next($prefixNomor, $date->format('Y-m-d'), $this->unitId)['number'];
         $keteranganJurnal = 'Pemasukan Harian - '.$this->unit->nama;
 
         // 1. Catat Debet ke Kas
         JurnalUmum::create([
-            'nomor_bukti' => $nomorBukti,
+            'nomor_bukti' => $voucherNumber,
             'tanggal' => $this->tanggal,
             'keterangan' => $keteranganJurnal,
             'kode_akun_id' => $akunKas->id,
@@ -434,7 +422,7 @@ class InputTransaksiHarian extends Component
         // 3. Catat Kredit untuk masing-masing akun pendapatan
         foreach ($kreditGroup as $akunId => $jumlahKredit) {
             JurnalUmum::create([
-                'nomor_bukti' => $nomorBukti,
+                'nomor_bukti' => $voucherNumber,
                 'tanggal' => $this->tanggal,
                 'keterangan' => $keteranganJurnal,
                 'kode_akun_id' => $akunId,

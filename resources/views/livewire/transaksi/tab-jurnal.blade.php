@@ -248,7 +248,7 @@
                         </div>
                         <div>
                             <h2 class="text-base font-semibold text-zinc-900">Edit Jurnal Umum</h2>
-                            <p class="text-xs text-zinc-500 font-mono mt-0.5">{{ $editNomorBukti }}</p>
+                            <p class="text-xs text-zinc-500 font-mono mt-0.5">{{ $editVoucherNumber }}</p>
                         </div>
                     </div>
                     <button wire:click="cancelEdit" class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 transition-colors">
