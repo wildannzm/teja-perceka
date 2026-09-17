@@ -17,7 +17,7 @@ use Livewire\Component;
 class RiwayatRekap extends Component
 {
     #[Url]
-    public string $tab = 'pendapatan'; // pendapatan, jurnal
+    public string $tab = 'pendapatan'; // 'pendapatan' or 'jurnal'
 
     public $unit_id = null;
 
@@ -83,6 +83,8 @@ class RiwayatRekap extends Component
 
         if ($user->hasRole('kepala_unit')) {
             $this->unit_id = $user->unit_wisata_id;
+        } elseif (empty($this->unit_id)) {
+            $this->unit_id = 'bumdes';
         }
 
         // Default all modes to current period
@@ -113,7 +115,7 @@ class RiwayatRekap extends Component
     #[Computed]
     public function selectedUnit(): ?UnitWisata
     {
-        return $this->unit_id ? UnitWisata::find($this->unit_id) : null;
+        return ($this->unit_id && is_numeric($this->unit_id)) ? UnitWisata::find($this->unit_id) : null;
     }
 
     #[Computed]

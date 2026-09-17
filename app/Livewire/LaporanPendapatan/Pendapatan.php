@@ -20,36 +20,36 @@ class Pendapatan extends Component
 {
     public $unit_id = null;
 
-    /** harian|mingguan|bulanan|tahunan */
+    /** 'harian' | 'mingguan' | 'bulanan' | 'semester' | 'tahunan' */
     public string $mode = 'harian';
 
-    /** Mode harian: tanggal spesifik, format Y-m-d */
+    /** Daily mode: specific date, format Y-m-d */
     public string $tanggal = '';
 
-    /** Mode mingguan: tanggal Senin dari minggu yang dipilih, format Y-m-d (ISO week start) */
+    /** Weekly mode: Monday of the selected ISO week, format Y-m-d */
     public string $minggu = '';
 
-    /** Mode bulanan: format Y-m */
+    /** Monthly mode: format Y-m */
     public string $bulan = '';
 
-    /** Mode semester */
+    /** Semester mode */
     public string $semester = '1';
 
     public string $semesterTahun = '';
 
-    /** Mode tahunan: format Y */
+    /** Annual mode: format Y */
     public string $tahun = '';
 
     public function mount(): void
     {
         $user = Auth::user();
 
-        // Kepala unit: kunci ke unit sendiri
+        // Unit head: lock to assigned unit
         if ($user->hasRole('kepala_unit')) {
             $this->unit_id = $user->unit_wisata_id;
         }
 
-        // Default semua mode ke periode berjalan
+        // Default all modes to current period
         $now = Carbon::now();
         $this->tanggal = $now->format('Y-m-d');
         $this->minggu = $now->startOfWeek()->format('Y-m-d');
@@ -62,7 +62,7 @@ class Pendapatan extends Component
     // ─── Helpers ─────────────────────────────────────────────────────────
 
     /**
-     * Apakah unit yang sedang dipilih adalah TPS (frekuensi mingguan)?
+     * Check if currently selected unit is TPS (weekly input frequency).
      */
     private function isUnitMingguan(?UnitWisata $unit): bool
     {
@@ -70,8 +70,8 @@ class Pendapatan extends Component
     }
 
     /**
-     * Kembalikan range [start, end] Carbon berdasarkan mode dan nilai periode aktif.
-     * Untuk TPS dengan mode harian → return null (tidak relevan).
+     * Return [start, end] Carbon range based on mode and active period values.
+     * Returns null for weekly TPS units under daily mode (not applicable).
      */
     private function periodeRange(?UnitWisata $unit): ?array
     {
@@ -79,7 +79,7 @@ class Pendapatan extends Component
 
         switch ($this->mode) {
             case 'harian':
-                // Mode harian tidak berlaku untuk unit mingguan (TPS)
+                // Daily mode does not apply to weekly units (TPS)
                 if ($isTps) {
                     return null;
                 }
@@ -88,8 +88,8 @@ class Pendapatan extends Component
                 return [$date->startOfDay(), $date->copy()->endOfDay()];
 
             case 'mingguan':
-                // Untuk TPS: ambil tepat 1 record dengan tanggal = startOfWeek (ISO)
-                // Untuk unit harian: WHERE tanggal BETWEEN startOfWeek AND endOfWeek
+                // For TPS: match exact single record with tanggal = startOfWeek (ISO)
+                // For daily units: WHERE tanggal BETWEEN startOfWeek AND endOfWeek
                 $weekStart = Carbon::parse($this->minggu ?: Carbon::now()->startOfWeek()->format('Y-m-d'));
                 $weekEnd = $weekStart->copy()->endOfWeek();
 
@@ -128,33 +128,33 @@ class Pendapatan extends Component
     }
 
     /**
-     * Bangun query transaksi_harian berdasarkan mode, range, dan unit.
-     * TPS mingguan: query berdasarkan tanggal exact (tanggal = start of week).
-     * Unit harian: query berdasarkan range tanggal.
+     * Build TransaksiHarian query based on mode, range, and unit.
+     * TPS (weekly): query based on exact date (tanggal = start of week).
+     * Daily units: query based on date range.
      */
     private function buildTransaksiHarianQuery(?UnitWisata $unit, ?array $range)
     {
         if ($range === null) {
-            // Tidak ada data yang relevan (mis. mode harian untuk TPS)
+            // No relevant data (e.g. daily mode for weekly units)
             return TransaksiHarian::query()->whereRaw('1 = 0');
         }
 
         [$start, $end] = $range;
         $q = TransaksiHarian::query();
 
-        // Filter unit
+        // Unit filter
         if ($this->unit_id) {
             $q->where('unit_wisata_id', $this->unit_id);
         }
 
-        // TPS (mingguan): cari tepat record yang periodenya = minggu ini
-        // Kolom tanggal = awal minggu, tanggal_akhir = akhir minggu
+        // TPS (weekly): find exact record whose period matches current week
+        // Column tanggal = week start, tanggal_akhir = week end
         if ($this->mode === 'mingguan' && $this->isUnitMingguan($unit) && $this->unit_id) {
             $q->where('tanggal', $start->format('Y-m-d'))
                 ->where('tanggal_akhir', $end->format('Y-m-d'));
         } else {
-            // Unit harian: WHERE tanggal BETWEEN start AND end
-            // Untuk konsolidasi, ikutkan semua unit termasuk TPS berdasar tanggal
+            // Daily unit: WHERE tanggal BETWEEN start AND end
+            // For consolidated view, include all units including TPS by date
             $q->whereBetween('tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')]);
         }
 
@@ -176,13 +176,13 @@ class Pendapatan extends Component
     }
 
     /**
-     * Apakah mode harian sedang aktif untuk unit yang dipilih dan unit tersebut mingguan?
-     * Digunakan untuk menyembunyikan input mode harian di view TPS.
+     * Is daily mode active while selected unit is weekly?
+     * Used to hide/disable daily mode picker in weekly views.
      */
     #[Computed]
     public function isHarianDisabled(): bool
     {
-        // Mode harian disembunyikan/dinonaktifkan jika unit yang dipilih adalah mingguan (TPS)
+        // Daily mode is disabled/hidden when selected unit is weekly (TPS)
         return $this->isUnitMingguan($this->selectedUnit);
     }
 
@@ -245,13 +245,13 @@ class Pendapatan extends Component
     #[Computed]
     public function reportData(): array
     {
-        // Fresh lookup – jangan andalkan $this->selectedUnit yang sudah di-cache
+        // Fresh lookup – do not rely on cached $this->selectedUnit
         $unit = $this->unit_id ? UnitWisata::find($this->unit_id) : null;
         $range = $this->periodeRange($unit);
 
         $namaUnit = $unit ? $unit->nama : 'Semua Unit (Konsolidasi)';
 
-        // Jika mode harian untuk unit mingguan (TPS), return kosong
+        // Return empty if daily mode is selected for weekly unit (TPS)
         if ($range === null) {
             return [
                 'unit' => $namaUnit,
@@ -262,7 +262,7 @@ class Pendapatan extends Component
             ];
         }
 
-        // Ambil ID transaksi_harian yang sesuai filter
+        // Fetch matching TransaksiHarian IDs
         $transaksiIds = $this->buildTransaksiHarianQuery($unit, $range)->pluck('id');
 
         if ($transaksiIds->isEmpty()) {

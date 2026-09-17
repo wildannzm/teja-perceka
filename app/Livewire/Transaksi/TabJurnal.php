@@ -5,7 +5,9 @@ namespace App\Livewire\Transaksi;
 use App\Models\JurnalUmum;
 use App\Models\TransaksiHarian;
 use App\Models\UnitWisata;
+use App\Support\SaldoKasBumdes;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -61,6 +63,51 @@ class TabJurnal extends Component
         // Filter change remounts this tab via wire:key, but the page number
         // lingers in the query string (?page=3) — always start from page 1.
         $this->resetPage();
+    }
+
+    /**
+     * Check whether current view is within BUMDes scope.
+     */
+    public function isBumdesScope(): bool
+    {
+        return ! Auth::user()?->hasRole('kepala_unit') && ($this->unitId === 'bumdes' || empty($this->unitId));
+    }
+
+    /**
+     * Apply query scope based on user role and selected unit:
+     * - kepala_unit: restricted to their assigned unit
+     * - non-kepala-unit:
+     *   - 'bumdes' or default: BUMDes expenses (KBM) and direct BUMDes journals (DBM)
+     *   - 'semua': all business unit journals (where unit_wisata_id is not null)
+     *   - numeric ID: specific business unit journal
+     */
+    private function applyRoleScope($query)
+    {
+        if (Auth::user()?->hasRole('kepala_unit')) {
+            if ($this->unitId && is_numeric($this->unitId)) {
+                $query->where('unit_wisata_id', (int) $this->unitId);
+            }
+
+            return $query;
+        }
+
+        if ($this->unitId === 'semua') {
+            $query->whereNotNull('unit_wisata_id');
+        } elseif ($this->unitId && is_numeric($this->unitId)) {
+            $query->where('unit_wisata_id', (int) $this->unitId);
+        } else {
+            // 'bumdes' or default: BUMDes expenses and direct BUMDes journals
+            $query->where(function ($q) {
+                $q->where('nomor_bukti', 'like', 'KBM%')
+                    ->orWhere(function ($sub) {
+                        $sub->where('nomor_bukti', 'like', 'DBM%')
+                            ->whereNull('transaksi_harian_id')
+                            ->whereNull('unit_wisata_id');
+                    });
+            });
+        }
+
+        return $query;
     }
 
     // ── Delete state ──────────────────────────────────────────────────────────
@@ -164,8 +211,36 @@ class TabJurnal extends Component
             ->orderBy($sortField === 'tanggal' ? 'nomor_bukti' : 'tanggal', $sortDirection)
             ->orderBy('id', $sortDirection);
 
-        if ($this->unitId) {
-            $query->where('unit_wisata_id', $this->unitId);
+        $this->applyRoleScope($query);
+
+        if ($this->isBumdesScope()) {
+            $dbTransactions = $query->get();
+            $allTransactions = SaldoKasBumdes::attachToTransactions(
+                $dbTransactions,
+                $start,
+                $end,
+                $this->mode,
+                $sortField,
+                $sortDirection
+            );
+
+            $page = LengthAwarePaginator::resolveCurrentPage();
+            $perPage = 40;
+            $items = $allTransactions->slice(($page - 1) * $perPage, $perPage)->values();
+            $paginated = new LengthAwarePaginator(
+                $items,
+                $allTransactions->count(),
+                $perPage,
+                $page,
+                ['path' => LengthAwarePaginator::resolveCurrentPath()]
+            );
+
+            $groups = $items->groupBy('nomor_bukti');
+
+            return [
+                'paginator' => $paginated,
+                'groups' => $groups,
+            ];
         }
 
         $paginated = (clone $query)
@@ -186,11 +261,17 @@ class TabJurnal extends Component
         [$start, $end] = $this->dateRange;
         $query = JurnalUmum::whereDate('tanggal', '>=', $start->format('Y-m-d'))
             ->whereDate('tanggal', '<=', $end->format('Y-m-d'));
-        if ($this->unitId) {
-            $query->where('unit_wisata_id', $this->unitId);
+        $this->applyRoleScope($query);
+
+        $total = (float) $query->sum('debet');
+        if ($this->isBumdesScope()) {
+            if (in_array($this->mode, ['bulanan', 'semester', 'tahunan'], true)) {
+                $total += SaldoKasBumdes::getOpeningBalance($start);
+            }
+            $total += SaldoKasBumdes::getTotalNetUnitIncome($start, $end);
         }
 
-        return (float) $query->sum('debet');
+        return $total;
     }
 
     #[Computed]
@@ -199,11 +280,17 @@ class TabJurnal extends Component
         [$start, $end] = $this->dateRange;
         $query = JurnalUmum::whereDate('tanggal', '>=', $start->format('Y-m-d'))
             ->whereDate('tanggal', '<=', $end->format('Y-m-d'));
-        if ($this->unitId) {
-            $query->where('unit_wisata_id', $this->unitId);
+        $this->applyRoleScope($query);
+
+        $total = (float) $query->sum('kredit');
+        if ($this->isBumdesScope()) {
+            if (in_array($this->mode, ['bulanan', 'semester', 'tahunan'], true)) {
+                $total += SaldoKasBumdes::getOpeningBalance($start);
+            }
+            $total += SaldoKasBumdes::getTotalNetUnitIncome($start, $end);
         }
 
-        return (float) $query->sum('kredit');
+        return $total;
     }
 
     #[Computed]
@@ -213,8 +300,8 @@ class TabJurnal extends Component
     }
 
     /**
-     * Boleh hapus: sekretaris, bendahara, direktur_bumdes, kepala_unit (own unit only)
-     * Tidak boleh hapus: kepala_desa, pengawas
+     * Authorized to delete: sekretaris, bendahara, direktur_bumdes, kepala_unit (own unit only).
+     * Disallowed from deleting: kepala_desa, pengawas.
      */
     #[Computed]
     public function canDelete(): bool
@@ -413,7 +500,7 @@ class TabJurnal extends Component
             return;
         }
 
-        // Fix OOM & timeout untuk data besar (ribuan baris) saat cetak PDF
+        // Prevent OOM & timeout for large datasets (thousands of rows) during PDF export
         ini_set('memory_limit', '-1');
         set_time_limit(300);
 
@@ -429,14 +516,22 @@ class TabJurnal extends Component
             ->orderBy($sortField === 'tanggal' ? 'nomor_bukti' : 'tanggal', $sortDirection)
             ->orderBy('id', $sortDirection);
 
-        if ($this->unitId) {
-            $query->where('unit_wisata_id', $this->unitId);
-        }
+        $this->applyRoleScope($query);
 
         $transactions = $query->get();
+        if ($this->isBumdesScope()) {
+            $transactions = SaldoKasBumdes::attachToTransactions(
+                $transactions,
+                $start,
+                $end,
+                $this->mode,
+                $sortField,
+                $sortDirection
+            );
+        }
         $totalDebet = $transactions->sum('debet');
         $totalKredit = $transactions->sum('kredit');
-        $unit = $this->unitId ? UnitWisata::find($this->unitId) : null;
+        $unit = ($this->unitId && is_numeric($this->unitId)) ? UnitWisata::find($this->unitId) : null;
         $periode = $this->periodeLabel;
 
         $pdf = Pdf::loadView('pdf.riwayat-transaksi', compact(
@@ -447,7 +542,7 @@ class TabJurnal extends Component
             'totalKredit'
         ))->setPaper('a4', 'landscape');
 
-        $unitName = $unit ? str_replace(' ', '_', $unit->nama) : 'Semua_Unit';
+        $unitName = $unit ? str_replace(' ', '_', $unit->nama) : ($this->isBumdesScope() ? 'BUMDes' : 'Semua_Unit');
         $filename = 'JurnalUmum_'.$unitName.'_'.str_replace([' ', '-', '/'], '_', $periode).'.pdf';
 
         return response()->streamDownload(function () use ($pdf) {

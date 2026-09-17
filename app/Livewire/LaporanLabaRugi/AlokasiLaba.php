@@ -5,7 +5,7 @@ namespace App\Livewire\LaporanLabaRugi;
 use App\Models\AlokasiLabaRiwayat;
 use App\Models\JurnalUmum;
 use App\Models\KodeAkun;
-use App\Models\UnitWisata;
+use App\Support\SaldoKasBumdes;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -19,8 +19,6 @@ use Livewire\Component;
 #[Title('Alokasi Laba')]
 class AlokasiLaba extends Component
 {
-    public $unit_id = null;
-
     /** 'bulanan' | 'semester' | 'tahunan' */
     public string $mode = 'bulanan';
 
@@ -30,7 +28,7 @@ class AlokasiLaba extends Component
 
     public string $semesterTahun = '';
 
-    // Form Tambah Baris
+    // Add Row Form
     public bool $showForm = false;
 
     public string $formKeterangan = '';
@@ -47,8 +45,8 @@ class AlokasiLaba extends Component
     {
         $user = Auth::user();
 
-        // Kepala unit tidak bisa akses halaman ini via routing/middleware,
-        // tapi kita pastikan aman.
+        // Unit heads cannot access this page via routing/middleware;
+        // ensure access is denied defensively.
         if ($user->hasRole('kepala_unit')) {
             abort(403);
         }
@@ -123,27 +121,19 @@ class AlokasiLaba extends Component
         return Carbon::parse($this->periode ?: Carbon::now()->format('Y-m'))->translatedFormat('F Y');
     }
 
-    // ─── Data Perhitungan ────────────────────────────────────────────────
-
-    #[Computed]
-    public function units(): \Illuminate\Database\Eloquent\Collection
-    {
-        return UnitWisata::orderBy('nama')->get();
-    }
-
-    #[Computed]
-    public function selectedUnit(): ?UnitWisata
-    {
-        return $this->unit_id ? UnitWisata::find($this->unit_id) : null;
-    }
+    // ─── Calculation Data ────────────────────────────────────────────────
 
     private function sumAkunSaldo(string $tipe, string $arahNormal, array $range): float
     {
         [$start, $end] = $range;
-        $q = JurnalUmum::query()->whereBetween('tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')]);
-        if ($this->unit_id) {
-            $q->where('unit_wisata_id', $this->unit_id);
-        }
+        // Only calculate BUMDes transaction journals (vouchers DBM & KBM or unit_wisata_id IS NULL)
+        $q = JurnalUmum::query()
+            ->whereBetween('tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')])
+            ->where(function ($query) {
+                $query->where('nomor_bukti', 'like', 'DBM%')
+                    ->orWhere('nomor_bukti', 'like', 'KBM%')
+                    ->orWhereNull('unit_wisata_id');
+            });
 
         $akunIds = KodeAkun::where('tipe', $tipe)->pluck('id');
         if ($akunIds->isEmpty()) {
@@ -162,13 +152,13 @@ class AlokasiLaba extends Component
     #[Computed]
     public function labaBersih(): float
     {
-        $range = $this->periodeRange();
+        [$start, $end] = $this->periodeRange();
 
-        $pendapatan = $this->sumAkunSaldo('pendapatan', 'kredit', $range);
-        $hpp = $this->sumAkunSaldo('hpp', 'debet', $range);
-        $beban = $this->sumAkunSaldo('beban', 'debet', $range);
-        $pendapatanLain = $this->sumAkunSaldo('pendapatan_lain', 'kredit', $range);
-        $bebanLain = $this->sumAkunSaldo('beban_lain', 'debet', $range);
+        $pendapatan = $this->sumAkunSaldo('pendapatan', 'kredit', [$start, $end]) + SaldoKasBumdes::getTotalNetUnitIncome($start, $end);
+        $hpp = $this->sumAkunSaldo('hpp', 'debet', [$start, $end]);
+        $beban = $this->sumAkunSaldo('beban', 'debet', [$start, $end]);
+        $pendapatanLain = $this->sumAkunSaldo('pendapatan_lain', 'kredit', [$start, $end]);
+        $bebanLain = $this->sumAkunSaldo('beban_lain', 'debet', [$start, $end]);
 
         $labaKotor = $pendapatan - $hpp;
 
@@ -176,8 +166,8 @@ class AlokasiLaba extends Component
     }
 
     /**
-     * Ambil semua baris alokasi aktif (terbaru per keterangan) pada periode.
-     * Mengembalikan collection mentah dengan kolom kelompok.
+     * Get all active allocation rows (latest per description) within period.
+     * Returns raw collection with category grouping column.
      */
     #[Computed]
     public function alokasiRows(): Collection
@@ -190,12 +180,12 @@ class AlokasiLaba extends Component
             ->get()
             ->unique('keterangan');
 
-        // Hapus yang persentasenya 0 (artinya dihapus)
+        // Exclude rows with 0 percentage (marked as deleted)
         return $latestRecords->filter(fn ($r) => (float) $r->persentase > 0)->values();
     }
 
     /**
-     * Baris kelompok "Pengurang" — dihitung dari Laba Bersih asli.
+     * Deduction group rows — calculated from raw net profit.
      */
     #[Computed]
     public function pengurangRows(): Collection
@@ -216,7 +206,7 @@ class AlokasiLaba extends Component
     }
 
     /**
-     * Total nominal dari semua baris Pengurang.
+     * Total amount of all deduction rows.
      */
     #[Computed]
     public function totalPengurang(): float
@@ -225,7 +215,7 @@ class AlokasiLaba extends Component
     }
 
     /**
-     * Laba Bersih setelah dikurangi semua baris Pengurang.
+     * Net profit after subtracting all deductions.
      */
     #[Computed]
     public function labaSetelahPengurang(): float
@@ -234,7 +224,7 @@ class AlokasiLaba extends Component
     }
 
     /**
-     * Baris kelompok "AD/ART" — dihitung dari Laba Bersih setelah Pengurang.
+     * AD/ART group rows — calculated from net profit after deductions.
      */
     #[Computed]
     public function adArtRows(): Collection
@@ -255,7 +245,7 @@ class AlokasiLaba extends Component
     }
 
     /**
-     * Total persentase semua baris AD/ART.
+     * Total percentage of all AD/ART rows.
      */
     #[Computed]
     public function totalAdArtPersen(): float
@@ -264,7 +254,7 @@ class AlokasiLaba extends Component
     }
 
     /**
-     * Total nominal semua baris AD/ART.
+     * Total amount of all AD/ART rows.
      */
     #[Computed]
     public function totalAdArt(): float
@@ -279,7 +269,7 @@ class AlokasiLaba extends Component
         return Auth::user()->hasAnyRole(['direktur_bumdes', 'sekretaris', 'bendahara']);
     }
 
-    // ─── Aksi ────────────────────────────────────────────────────────────
+    // ─── Actions ─────────────────────────────────────────────────────────
 
     public function simpanBaris(): void
     {
@@ -304,7 +294,7 @@ class AlokasiLaba extends Component
         ]);
 
         $this->reset(['formKeterangan', 'formKelompok', 'formPersentase', 'showForm']);
-        $this->formKelompok = 'pengurang'; // reset ke default
+        $this->formKelompok = 'pengurang'; // Reset to default
         \Flux::toast(variant: 'success', text: 'Baris alokasi berhasil ditambahkan.');
     }
 
@@ -322,11 +312,11 @@ class AlokasiLaba extends Component
 
         [$start, $end] = $this->periodeRange();
 
-        // Set persentase = 0 untuk menandakan dihapus (immutable history)
+        // Set percentage = 0 to mark as deleted (immutable audit history)
         AlokasiLabaRiwayat::create([
             'keterangan' => $this->deleteKeterangan,
             'persentase' => 0,
-            'kelompok' => 'pengurang', // kelompok tidak relevan saat hapus
+            'kelompok' => 'pengurang', // Category is irrelevant on deletion
             'berlaku_dari' => $start->format('Y-m-d'),
             'unit_wisata_id' => null,
         ]);
@@ -341,8 +331,7 @@ class AlokasiLaba extends Component
 
     public function exportPdf()
     {
-        $unit = $this->selectedUnit;
-        $namaEntitas = $unit ? 'WISATA '.strtoupper($unit->nama) : 'BUMDESA TEJA PERCEKA';
+        $namaEntitas = 'BUMDESA TEJA PERCEKA';
 
         [$start, $end] = $this->periodeRange();
         $tanggalCetak = strtoupper($end->translatedFormat('d F Y'));
@@ -374,8 +363,7 @@ class AlokasiLaba extends Component
             'adArtRows', 'totalAdArtPersen', 'totalAdArt'
         ))->setPaper('a4', 'portrait');
 
-        $unitSlug = $unit ? str_replace(' ', '_', $unit->nama) : 'Konsolidasi';
-        $filename = 'AlokasiLaba_'.$unitSlug.'_'.str_replace(' ', '_', $periodeLabel).'.pdf';
+        $filename = 'AlokasiLaba_BUMDes_'.str_replace(' ', '_', $periodeLabel).'.pdf';
 
         return response()->streamDownload(fn () => print ($pdf->output()), $filename);
     }

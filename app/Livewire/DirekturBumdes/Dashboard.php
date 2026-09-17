@@ -12,7 +12,7 @@ class Dashboard extends Component
 
     public function render()
     {
-        // Akun pendapatan: prefix 4- (menggunakan kolom kredit)
+        // Income accounts: 4- and 7- prefixes (credit column)
         $pemasukan = JurnalUmum::whereHas('kodeAkun', function ($q) {
             $q->where('kode', 'like', '4-%')->orWhere('kode', 'like', '7-%');
         })->sum('kredit');

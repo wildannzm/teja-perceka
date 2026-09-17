@@ -4,21 +4,26 @@
 
     {{-- Filter section --}}
     <div class="bg-white p-4 sm:p-5 rounded-2xl border border-zinc-200 shadow-sm flex flex-col gap-5">
-        
-        @unless(auth()->user()->hasRole('kepala_unit'))
-            <div class="flex flex-col gap-1.5">
-                <label class="text-sm font-medium text-zinc-700">Unit Usaha</label>
-                <select wire:model.live="unit_id"
-                    class="w-full sm:max-w-xs rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
-                    <option value="">Semua Unit</option>
-                    @foreach($this->units as $u)
-                        <option value="{{ $u->id }}">{{ $u->nama }}</option>
-                    @endforeach
-                </select>
-            </div>
-        @endunless
 
-        <div class="flex flex-col md:flex-row gap-5 md:items-end">
+
+        <div class="flex flex-col md:flex-row gap-5 md:items-end flex-wrap">
+            {{-- Entity / Unit selector (for non-unit-heads only) --}}
+            @unless(auth()->user()->hasRole('kepala_unit'))
+                <div class="flex flex-col gap-1.5 w-full md:w-auto md:min-w-48">
+                    <label class="text-sm font-medium text-zinc-700">Entitas / Unit Usaha</label>
+                    <select wire:model.live="unit_id"
+                        class="w-full sm:min-w-48 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors font-medium">
+                        <option value="bumdes">BUMDes</option>
+                        <option value="semua">Semua Unit Usaha</option>
+                        <optgroup label="Per Unit Usaha">
+                            @foreach($this->units as $u)
+                                <option value="{{ $u->id }}">{{ $u->nama }}</option>
+                            @endforeach
+                        </optgroup>
+                    </select>
+                </div>
+            @endunless
+
             {{-- Mode selector --}}
             <div class="flex flex-col gap-1.5 w-full md:w-auto">
                 <label class="text-sm font-medium text-zinc-700">Periode</label>

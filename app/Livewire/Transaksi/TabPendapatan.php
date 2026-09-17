@@ -100,8 +100,8 @@ class TabPendapatan extends Component
         [$start, $end] = $range;
         $q = TransaksiHarian::query();
 
-        if ($this->unitId) {
-            $q->where('unit_wisata_id', $this->unitId);
+        if ($this->unitId && is_numeric($this->unitId)) {
+            $q->where('unit_wisata_id', (int) $this->unitId);
         }
 
         $q->whereBetween('tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')]);
@@ -112,7 +112,7 @@ class TabPendapatan extends Component
     #[Computed]
     public function selectedUnit(): ?UnitWisata
     {
-        return $this->unitId ? UnitWisata::find($this->unitId) : null;
+        return ($this->unitId && is_numeric($this->unitId)) ? UnitWisata::find($this->unitId) : null;
     }
 
     #[Computed]
@@ -157,9 +157,9 @@ class TabPendapatan extends Component
     #[Computed]
     public function reportData(): array
     {
-        $unit = $this->unitId ? UnitWisata::find($this->unitId) : null;
+        $unit = ($this->unitId && is_numeric($this->unitId)) ? UnitWisata::find($this->unitId) : null;
         $range = $this->periodeRange($unit);
-        $namaUnit = $unit ? $unit->nama : 'Semua Unit (Konsolidasi)';
+        $namaUnit = $unit ? $unit->nama : ($this->unitId === 'bumdes' ? 'BUMDes' : 'Semua Unit Usaha');
 
         if ($range === null) {
             return [

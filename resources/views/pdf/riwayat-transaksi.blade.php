@@ -13,7 +13,7 @@
         }
 
         body {
-            font-family: 'Times New Roman', Times, serif; /* Sering dipakai di Excel/Laporan formal */
+            font-family: 'Times New Roman', Times, serif; /* Standard font for formal financial reports */
             font-size: 11px;
             color: #000000;
             line-height: 1.5;
@@ -21,7 +21,7 @@
             margin: 40px;
         }
 
-        /* === HEADER DOKUMEN === */
+        /* === DOCUMENT HEADER === */
         .doc-header {
             text-align: center;
             margin-bottom: 20px;
@@ -46,7 +46,7 @@
             text-transform: uppercase;
         }
 
-        /* === TABEL DATA JURNAL UMUM === */
+        /* === GENERAL JOURNAL TABLE === */
         .data-table {
             width: 100%;
             border-collapse: collapse;
@@ -56,7 +56,7 @@
         .data-table th,
         .data-table td {
             border: 1px solid #000000;
-            padding: 4px 6px; /* Padding lebih mirip Excel */
+            padding: 4px 6px; /* Compact padding matching spreadsheet format */
             font-size: 11px;
             vertical-align: middle;
         }
@@ -65,7 +65,7 @@
             text-align: center;
             font-weight: bold;
             text-transform: uppercase;
-            /* Header tabel di Excel biasanya ada background atau bold */
+            /* Table header styling */
         }
 
         .data-table td {

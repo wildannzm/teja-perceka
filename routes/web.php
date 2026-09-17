@@ -3,12 +3,9 @@
 use App\Http\Controllers\ImpersonationController;
 use App\Livewire\Asset\KelolaAsset;
 use App\Livewire\Bendahara\Dashboard as BendaharaDashboard;
-use App\Livewire\Bendahara\Report as BendaharaReport;
 use App\Livewire\DirekturBumdes\Dashboard as DirekturBumdesDashboard;
 use App\Livewire\DirekturBumdes\KelolaAkunUnit;
-use App\Livewire\DirekturBumdes\Report as DirekturBumdesReport;
 use App\Livewire\KepalaDesa\Dashboard as KepalaDesaDashboard;
-use App\Livewire\KepalaDesa\Report as KepalaDesaReport;
 use App\Livewire\KepalaDesa\UserManager as KepalaDesaUserManager;
 use App\Livewire\KepalaUnit\CatatPengeluaran as KepalaUnitCatatPengeluaran;
 use App\Livewire\KepalaUnit\Dashboard as KepalaUnitDashboard;
@@ -17,12 +14,9 @@ use App\Livewire\Laporan\BukuBesar;
 use App\Livewire\Laporan\NeracaSaldo;
 use App\Livewire\LaporanLabaRugi\AlokasiLaba;
 use App\Livewire\LaporanLabaRugi\LabaRugi;
-use App\Livewire\LaporanPendapatan\Pendapatan;
 use App\Livewire\Pengawas\Dashboard as PengawasDashboard;
-use App\Livewire\Pengawas\Report as PengawasReport;
 use App\Livewire\Pengeluaran\CatatPengeluaran;
 use App\Livewire\Sekretaris\Dashboard as SekretarisDashboard;
-use App\Livewire\Sekretaris\Report as SekretarisReport;
 use App\Livewire\SuperAdmin\ActivityLogs as SuperAdminActivityLogs;
 use App\Livewire\SuperAdmin\Dashboard as SuperAdminDashboard;
 use App\Livewire\SuperAdmin\UserManager as SuperAdminUserManager;
@@ -91,15 +85,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ===== Secretary =====
     Route::middleware(['role:sekretaris'])->prefix('sekretaris')->group(function () {
         Route::get('/dashboard', SekretarisDashboard::class)->name('sekretaris.dashboard');
-
-        Route::get('/laporan', SekretarisReport::class)->name('sekretaris.laporan');
     });
 
     // ===== Treasurer =====
     Route::middleware(['role:bendahara'])->prefix('bendahara')->group(function () {
         Route::get('/dashboard', BendaharaDashboard::class)->name('bendahara.dashboard');
-
-        Route::get('/laporan', BendaharaReport::class)->name('bendahara.laporan');
     });
 
     // Joint Secretary & Treasurer dashboard (shared placeholder page)
@@ -110,7 +100,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ===== Village head =====
     Route::middleware(['role:kepala_desa'])->prefix('kepala-desa')->group(function () {
         Route::get('/dashboard', KepalaDesaDashboard::class)->name('kepala-desa.dashboard');
-        Route::get('/report', KepalaDesaReport::class)->name('kepala-desa.report');
         Route::get('/users', KepalaDesaUserManager::class)->name('kepala-desa.users');
     });
 
@@ -118,14 +107,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:direktur_bumdes'])->prefix('direktur-bumdes')->group(function () {
         Route::get('/dashboard', DirekturBumdesDashboard::class)->name('direktur-bumdes.dashboard');
 
-        Route::get('/laporan', DirekturBumdesReport::class)->name('direktur-bumdes.laporan');
         Route::get('/kelola-akun', KelolaAkunUnit::class)->name('direktur-bumdes.kelola-akun');
     });
 
     // ===== Supervisor =====
     Route::middleware(['role:pengawas'])->prefix('pengawas')->group(function () {
         Route::get('/dashboard', PengawasDashboard::class)->name('pengawas.dashboard');
-        Route::get('/laporan', PengawasReport::class)->name('pengawas.laporan');
     });
 
     // ===== Expenses (shared: direktur_bumdes, sekretaris, bendahara) =====

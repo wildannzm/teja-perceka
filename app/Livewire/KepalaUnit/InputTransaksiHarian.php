@@ -298,7 +298,7 @@ class InputTransaksiHarian extends Component
 
             session()->flash('status', 'Transaksi berhasil disimpan!');
 
-            // Redirect ke halaman yang sama untuk merender ulang state yang bersih
+            // Redirect to the same page to re-render a clean state
             return $this->redirect(route('unit.input-transaksi'), navigate: true);
 
         } catch (\Exception $e) {
@@ -381,7 +381,7 @@ class InputTransaksiHarian extends Component
             throw new \Exception('Akun Kas (1-1100) tidak ditemukan di sistem. Harap hubungi administrator.');
         }
 
-        // Prefix: 'D' (Pemasukan) + Kode Unit Wisata
+        // Prefix: 'D' (Income) + business unit code
         $kodeUnit = strtoupper($this->unit->kode ?? 'XX');
         $prefixNomor = 'D'.$kodeUnit;
 
@@ -389,7 +389,7 @@ class InputTransaksiHarian extends Component
         $voucherNumber = VoucherNumber::next($prefixNomor, $date->format('Y-m-d'), $this->unitId)['number'];
         $keteranganJurnal = 'Pemasukan Harian - '.$this->unit->nama;
 
-        // 1. Catat Debet ke Kas
+        // 1. Record Debit to Cash account
         JurnalUmum::create([
             'nomor_bukti' => $voucherNumber,
             'tanggal' => $this->tanggal,
@@ -401,7 +401,7 @@ class InputTransaksiHarian extends Component
             'unit_wisata_id' => $this->unitId,
         ]);
 
-        // 2. Kelompokkan Kredit per kode_akun_id dari input yang ada
+        // 2. Group Credits per kode_akun_id from submitted inputs
         $kreditGroup = [];
         foreach ($this->inputs as $id => $input) {
             $subtotal = $input['subtotal'];
@@ -419,7 +419,7 @@ class InputTransaksiHarian extends Component
             }
         }
 
-        // 3. Catat Kredit untuk masing-masing akun pendapatan
+        // 3. Record Credit for each corresponding revenue account
         foreach ($kreditGroup as $akunId => $jumlahKredit) {
             JurnalUmum::create([
                 'nomor_bukti' => $voucherNumber,

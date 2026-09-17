@@ -3,7 +3,7 @@
 
     @php
         $data = $this->reportData;
-        $isKonsolidasi = is_null($unitId);
+        $isConsolidated = in_array($unitId, ['bumdes', 'semua'], true) || empty($unitId);
         $canEdit = $this->isKepalaUnit && $mode === 'harian' && isset($data['transaksiHarianId']) && $data['transaksiHarianId'];
     @endphp
 
@@ -79,7 +79,7 @@
 
             @foreach($groupedRows as $unitName => $rows)
                 <div class="mb-8 min-w-0">
-                    @if($isKonsolidasi)
+                    @if($isConsolidated)
                         <div class="flex items-center gap-2 mb-4 px-1 min-w-0">
                             <flux:icon.building-storefront class="w-5 h-5 text-zinc-400 shrink-0" />
                             <h3 class="text-base font-bold text-zinc-800 uppercase tracking-wide truncate">{{ $unitName }}</h3>
@@ -93,7 +93,14 @@
                         @foreach($rows as $row)
                             <div class="bg-white rounded-xl border border-zinc-200 p-4 sm:p-5 shadow-sm flex flex-row items-center justify-between hover:border-brand-300 hover:shadow-md transition-all gap-4 min-w-0">
                                 <div class="flex flex-col gap-1 flex-1 min-w-0">
-                                    <p class="font-bold text-zinc-900 text-base break-words">{{ $row['kategori'] }}</p>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <p class="font-bold text-zinc-900 text-base break-words">{{ $row['kategori'] }}</p>
+                                        @if($isConsolidated)
+                                            <span class="text-[11px] font-semibold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-md border border-brand-200 shrink-0">
+                                                {{ $row['unit_nama'] }}
+                                            </span>
+                                        @endif
+                                    </div>
                                     @if($row['tipe'] === 'harga_x_qty')
                                         <div class="flex flex-wrap items-center gap-1.5 text-sm text-zinc-500 font-medium min-w-0">
                                             <span class="bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-md border border-zinc-200 shrink-0">{{ number_format($row['jumlah_qty'], 0, ',', '.') }}</span>

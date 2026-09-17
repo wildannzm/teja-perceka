@@ -57,18 +57,27 @@ class VoucherNumber
             }
             $ordered = array_values($vouchers);
 
+            // Base offset: if BUMDes has prior cash balance, reserve DBM001 for Saldo Kas
+            $baseOffset = 0;
+            if ($prefix === 'DBM') {
+                $monthStart = substr($day, 0, 7).'-01';
+                if (SaldoKasBumdes::getOpeningBalance($monthStart) > 0) {
+                    $baseOffset = 1;
+                }
+            }
+
             // Insertion rank: after the last voucher with an older date.
-            $rank = 0;
+            $k = 0;
             foreach ($ordered as $voucher) {
                 if ($voucher['date'] < $day) {
-                    $rank++;
+                    $k++;
                 } else {
                     break;
                 }
             }
 
             // Shift backwards (largest first) to avoid name collisions.
-            for ($i = count($ordered) - 1; $i >= $rank; $i--) {
+            for ($i = count($ordered) - 1; $i >= $k; $i--) {
                 $old = (int) substr(array_keys($vouchers)[$i], -3);
                 JurnalUmum::whereIn('id', $ordered[$i]['ids'])
                     ->update(['nomor_bukti' => $prefix.str_pad($old + $count, 3, '0', STR_PAD_LEFT)]);
@@ -76,7 +85,7 @@ class VoucherNumber
 
             $numbers = [];
             for ($i = 1; $i <= $count; $i++) {
-                $numbers[] = $prefix.str_pad($rank + $i, 3, '0', STR_PAD_LEFT);
+                $numbers[] = $prefix.str_pad($baseOffset + $k + $i, 3, '0', STR_PAD_LEFT);
             }
 
             return $numbers;

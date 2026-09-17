@@ -35,8 +35,8 @@
                         <tr class="bg-brand-50/80 text-brand-900 border-b border-brand-100">
                             <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Tanggal</th>
                             <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Bukti</th>
-                            @if(is_null($unitId))
-                                <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs">Unit</th>
+                            @if($unitId === 'semua')
+                                <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Unit</th>
                             @endif
                             <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs w-full min-w-[200px]">Keterangan</th>
                             <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs">Kode Akun</th>
@@ -54,8 +54,8 @@
                                     @if($loop->first)
                                         <td rowspan="{{ $group->count() }}" class="py-3 px-4 align-top border-r border-zinc-100">{{ $jurnal->tanggal->translatedFormat('d F Y') }}</td>
                                         <td rowspan="{{ $group->count() }}" class="py-3 px-4 font-mono text-xs text-zinc-500 align-top border-r border-zinc-100">{{ $jurnal->nomor_bukti }}</td>
-                                        @if(is_null($unitId))
-                                            <td rowspan="{{ $group->count() }}" class="py-3 px-4 align-top border-r border-zinc-100">{{ $jurnal->unitWisata?->nama ?? '-' }}</td>
+                                        @if($unitId === 'semua')
+                                            <td rowspan="{{ $group->count() }}" class="py-3 px-4 text-xs font-semibold text-zinc-600 align-top border-r border-zinc-100">{{ $jurnal->unitWisata?->nama ?? 'BUMDes' }}</td>
                                         @endif
                                         <td rowspan="{{ $group->count() }}" class="py-3 px-4 text-wrap leading-relaxed align-top border-r border-zinc-100">{{ $jurnal->keterangan }}</td>
                                     @endif
@@ -66,7 +66,7 @@
                                         @if($loop->first)
                                             <td rowspan="{{ $group->count() }}" class="py-3 px-4 align-middle text-center border-l border-zinc-100">
                                                 <div class="flex flex-row justify-center gap-1.5 items-center">
-                                                    @if($this->canEdit)
+                                                    @if($this->canEdit && $jurnal->id)
                                                         <button wire:click="openEdit({{ $jurnal->id }})"
                                                             type="button"
                                                             style="background-color:#fbbf24;color:#1c1917;"
@@ -78,7 +78,7 @@
                                                             </svg>
                                                         </button>
                                                     @endif
-                                                    @if($this->canDelete)
+                                                    @if($this->canDelete && $jurnal->id)
                                                         <flux:button wire:click="confirmDelete({{ $jurnal->id }})"
                                                             variant="danger" size="xs" icon="trash" title="Hapus" />
                                                     @endif
@@ -104,12 +104,14 @@
                         <div>
                             <p class="text-xs font-mono text-zinc-500">{{ $firstJurnal->nomor_bukti }}</p>
                             <p class="text-sm font-semibold text-zinc-800 mt-0.5">{{ $firstJurnal->tanggal->translatedFormat('d F Y') }}</p>
-                            @if(is_null($unitId))
-                                <p class="text-xs text-zinc-500 mt-0.5">{{ $firstJurnal->unitWisata?->nama ?? '-' }}</p>
+                            @if($unitId === 'semua')
+                                <span class="inline-block mt-1 text-[11px] font-medium bg-brand-100 text-brand-800 px-2 py-0.5 rounded-md">
+                                    {{ $firstJurnal->unitWisata?->nama ?? 'BUMDes' }}
+                                </span>
                             @endif
                         </div>
                         <div class="flex gap-1.5 shrink-0 mt-0.5">
-                            @if($this->canEdit)
+                            @if($this->canEdit && $firstJurnal->id)
                                 <button wire:click="openEdit({{ $firstJurnal->id }})"
                                     type="button"
                                     style="background-color:#fbbf24;color:#1c1917;"
@@ -120,7 +122,7 @@
                                     </svg>
                                 </button>
                             @endif
-                            @if($this->canDelete)
+                            @if($this->canDelete && $firstJurnal->id)
                                 <flux:button wire:click="confirmDelete({{ $firstJurnal->id }})"
                                     variant="danger" size="xs" icon="trash" />
                             @endif
