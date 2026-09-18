@@ -3,7 +3,7 @@
 
         <x-page-header title="Edit Transaksi Harian" description="Ubah data pemasukan yang sudah diinput sebelumnya" accent="bg-amber-400" />
 
-        <livewire:kepala-unit.input-transaksi-harian :editId="$editId" />
+        <livewire:unit-head.record-daily-transaction :editId="$editId" />
 
     </div>
 </x-layouts::app>

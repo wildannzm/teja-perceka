@@ -1,0 +1,755 @@
+<?php
+
+namespace App\Livewire\Transactions;
+
+use App\Models\JournalEntry;
+use App\Models\DailyTransaction;
+use App\Models\BusinessUnit;
+use App\Support\SaldoKasBumdes;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Reactive;
+use Livewire\Component;
+use Livewire\Features\SupportPagination\WithoutUrlPagination;
+use Livewire\WithPagination;
+
+class JournalTab extends Component
+{
+    use WithoutUrlPagination, WithPagination;
+
+    #[Reactive]
+    public $unitId = null;
+
+    #[Reactive]
+    public string $mode = 'daily';
+
+    #[Reactive]
+    public string $transactionDate = '';
+
+    #[Reactive]
+    public string $week = '';
+
+    #[Reactive]
+    public string $month = '';
+
+    #[Reactive]
+    public string $semester = '1';
+
+    #[Reactive]
+    public string $semesterYear = '';
+
+    #[Reactive]
+    public string $year = '';
+
+    #[Reactive]
+    public string $sortField = 'transaction_date';
+
+    #[Reactive]
+    public string $sortDirection = 'asc';
+
+    /** Journal view: 'summary' (aggregated per description) or 'detailed' (per voucher). Set from the parent filter. */
+    #[Reactive]
+    public string $viewMode = 'summary';
+
+    public function updating(string $name, mixed $value): void
+    {
+        if (in_array($name, ['unitId', 'mode', 'transactionDate', 'week', 'month', 'semester', 'semesterYear', 'year', 'sortField', 'sortDirection', 'viewMode'], true)) {
+            $this->resetPage();
+        }
+    }
+
+    public function mount(): void
+    {
+        // Filter change remounts this tab via wire:key, but the page number
+        // lingers in the query string (?page=3) — always start from page 1.
+        $this->resetPage();
+    }
+
+    /**
+     * Check whether current view is within BUMDes scope.
+     */
+    public function isBumdesScope(): bool
+    {
+        return ! Auth::user()?->hasRole('kepala_unit') && ($this->unitId === 'bumdes' || empty($this->unitId));
+    }
+
+    /**
+     * Apply query scope based on user role and selected unit:
+     * - kepala_unit: restricted to their assigned unit
+     * - non-kepala-unit:
+     *   - 'bumdes' or default: BUMDes expenses (KBM) and direct BUMDes journals (DBM)
+     *   - 'semua': all business unit journals (where business_unit_id is not null)
+     *   - numeric ID: specific business unit journal
+     */
+    private function applyRoleScope($query)
+    {
+        if (Auth::user()?->hasRole('kepala_unit')) {
+            if ($this->unitId && is_numeric($this->unitId)) {
+                $query->where('business_unit_id', (int) $this->unitId);
+            }
+
+            return $query;
+        }
+
+        if ($this->unitId === 'semua') {
+            $query->whereNotNull('business_unit_id');
+        } elseif ($this->unitId && is_numeric($this->unitId)) {
+            $query->where('business_unit_id', (int) $this->unitId);
+        } else {
+            // 'bumdes' or default: BUMDes expenses and direct BUMDes journals
+            $query->where(function ($q) {
+                $q->where('voucher_number', 'like', 'KBM%')
+                    ->orWhere(function ($sub) {
+                        $sub->where('voucher_number', 'like', 'DBM%')
+                            ->whereNull('daily_transaction_id')
+                            ->whereNull('business_unit_id');
+                    });
+            });
+        }
+
+        return $query;
+    }
+
+    // ── Delete state ──────────────────────────────────────────────────────────
+    public ?int $deleteId = null;
+
+    public bool $showDeleteModal = false;
+
+    // ── Edit state ────────────────────────────────────────────────────────────
+    public ?int $editJournalId = null;
+
+    public string $editVoucherNumber = '';
+
+    public bool $showEditModal = false;
+
+    /** Editable header fields */
+    public string $editDate = '';
+
+    public string $editDescription = '';
+
+    /**
+     * Editable rows per journal entry within the voucher group.
+     * Each row: ['id' => int, 'account_id' => int, 'account_label' => string, 'debit' => string, 'credit' => string]
+     *
+     * @var array<int, array{id: int, account_id: int, account_label: string, debit: string, credit: string}>
+     */
+    public array $editRows = [];
+
+    #[Computed]
+    public function dateRange(): array
+    {
+        switch ($this->mode) {
+            case 'daily':
+                $date = Carbon::parse($this->transactionDate ?: Carbon::today()->format('Y-m-d'));
+
+                return [$date->copy()->startOfDay(), $date->copy()->endOfDay()];
+
+            case 'weekly':
+                $start = Carbon::parse($this->week ?: Carbon::now()->startOfWeek()->format('Y-m-d'));
+
+                return [$start->copy()->startOfWeek(), $start->copy()->endOfWeek()];
+
+            case 'monthly':
+                $date = Carbon::parse(($this->month ?: Carbon::now()->format('Y-m')).'-01');
+
+                return [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()];
+
+            case 'semester':
+                $year = (int) ($this->semesterYear ?: Carbon::now()->format('Y'));
+                if ($this->semester === '1') {
+                    return [
+                        Carbon::create($year, 1, 1)->startOfDay(),
+                        Carbon::create($year, 6, 30)->endOfDay(),
+                    ];
+                } else {
+                    return [
+                        Carbon::create($year, 7, 1)->startOfDay(),
+                        Carbon::create($year, 12, 31)->endOfDay(),
+                    ];
+                }
+
+            case 'yearly':
+                $year = (int) ($this->year ?: Carbon::now()->format('Y'));
+
+                return [Carbon::create($year, 1, 1)->startOfDay(), Carbon::create($year, 12, 31)->endOfDay()];
+        }
+
+        $today = Carbon::today();
+
+        return [$today->copy()->startOfDay(), $today->copy()->endOfDay()];
+    }
+
+    #[Computed]
+    public function periodLabel(): string
+    {
+        [$start, $end] = $this->dateRange;
+
+        return match ($this->mode) {
+            'daily' => $start->translatedFormat('d F Y'),
+            'weekly' => $start->month === $end->month
+                ? $start->format('d').' - '.$end->translatedFormat('d F Y')
+                : $start->translatedFormat('d M').' - '.$end->translatedFormat('d M Y'),
+            'monthly' => $start->translatedFormat('F Y'),
+            'semester' => 'Semester '.$this->semester.' Tahun '.($this->semesterYear ?: Carbon::now()->format('Y')),
+            'yearly' => $start->format('Y'),
+            default => '-',
+        };
+    }
+
+    /**
+     * Voucher group key: number + month + unit. Voucher numbers reset every
+     * month per unit, so the number alone is not unique across months
+     * (groups would merge in semester/yearly filters).
+     */
+    private function voucherGroupKey($journal): string
+    {
+        return $journal->voucher_number.'|'.Carbon::parse($journal->transaction_date)->format('Y-m').'|'.($journal->business_unit_id ?? 'null');
+    }
+
+    #[Computed]
+    public function transactions()
+    {
+        [$start, $end] = $this->dateRange;
+
+        $sortField = in_array($this->sortField, ['transaction_date', 'voucher_number']) ? $this->sortField : 'transaction_date';
+        $sortDirection = $this->sortDirection === 'desc' ? 'desc' : 'asc';
+
+        $query = JournalEntry::with(['businessUnit', 'account'])
+            ->whereDate('transaction_date', '>=', $start->format('Y-m-d'))
+            ->whereDate('transaction_date', '<=', $end->format('Y-m-d'))
+            ->orderBy($sortField, $sortDirection)
+            ->orderBy($sortField === 'transaction_date' ? 'voucher_number' : 'transaction_date', $sortDirection)
+            ->orderBy('id', $sortDirection);
+
+        $this->applyRoleScope($query);
+
+        if ($this->isBumdesScope()) {
+            $dbTransactions = $query->get();
+            $allTransactions = SaldoKasBumdes::attachToTransactions(
+                $dbTransactions,
+                $start,
+                $end,
+                $this->mode,
+                $sortField,
+                $sortDirection
+            );
+
+            $page = LengthAwarePaginator::resolveCurrentPage();
+            $perPage = 40;
+            $items = $allTransactions->slice(($page - 1) * $perPage, $perPage)->values();
+            $paginated = new LengthAwarePaginator(
+                $items,
+                $allTransactions->count(),
+                $perPage,
+                $page,
+                ['path' => LengthAwarePaginator::resolveCurrentPath()]
+            );
+
+            $groups = $items->groupBy(fn ($journal) => $this->voucherGroupKey($journal));
+
+            return [
+                'paginator' => $paginated,
+                'groups' => $groups,
+            ];
+        }
+
+        $paginated = (clone $query)
+            ->paginate(40);
+
+        $groups = $paginated->getCollection()->groupBy(fn ($journal) => $this->voucherGroupKey($journal));
+
+        // We need to return an object that contains both the grouped transactions and the paginator
+        return [
+            'paginator' => $paginated,
+            'groups' => $groups,
+        ];
+    }
+
+    /**
+     * Excel-style summary view: DB aggregation per (description + account + unit)
+     * within the period. Stored rows stay detailed, saved numbers untouched.
+     * Display date = period end date for every row.
+     * Rows sharing (description + first voucher + unit) merge into one group
+     * (rowspan like the detailed view), groups ordered by voucher number.
+     *
+     * @return array{paginator: LengthAwarePaginator, groups: Collection, displayDate: string}
+     */
+    #[Computed]
+    public function summaryRows(): array
+    {
+        ['groups' => $groups, 'displayDate' => $displayDate] = $this->buildSummaryGroups();
+
+        $page = LengthAwarePaginator::resolveCurrentPage();
+        $perPage = 20;
+        $items = $groups->slice(($page - 1) * $perPage, $perPage)->values();
+        $paginated = new LengthAwarePaginator(
+            $items,
+            $groups->count(),
+            $perPage,
+            $page,
+            ['path' => LengthAwarePaginator::resolveCurrentPath()]
+        );
+
+        return [
+            'paginator' => $paginated,
+            'groups' => $items,
+            'displayDate' => $displayDate,
+        ];
+    }
+
+    /**
+     * Full summary groups without pagination (one screen page + PDF).
+     *
+     * @return array{groups: Collection, displayDate: string}
+     */
+    private function buildSummaryGroups(): array
+    {
+        [$start, $end] = $this->dateRange;
+
+        $key = DB::raw('TRIM(journal_entries.description)');
+
+        $query = JournalEntry::query()
+            ->leftJoin('accounts', 'accounts.id', '=', 'journal_entries.account_id')
+            ->leftJoin('business_units', 'business_units.id', '=', 'journal_entries.business_unit_id')
+            ->selectRaw('MIN(journal_entries.id) as id, TRIM(journal_entries.description) as description, journal_entries.account_id, journal_entries.business_unit_id, accounts.code as code, accounts.name as accountName, business_units.name as unitName, SUM(journal_entries.debit) as totalDebit, SUM(journal_entries.credit) as totalCredit, COUNT(*) as rowCount, COUNT(DISTINCT journal_entries.voucher_number) as voucherCount, MIN(journal_entries.voucher_number) as firstVoucher, MAX(journal_entries.voucher_number) as lastVoucher')
+            ->whereBetween('journal_entries.transaction_date', [$start->format('Y-m-d'), $end->format('Y-m-d')])
+            ->groupBy($key, 'journal_entries.account_id', 'journal_entries.business_unit_id', 'accounts.code', 'accounts.name', 'business_units.name', DB::raw('SUBSTR(journal_entries.transaction_date, 1, 7)'));
+
+        $this->applyRoleScope($query);
+
+        $rows = $query->get();
+
+        // Voucher numbers reset every month: collapse monthly rows so the
+        // voucher count spans months (per-month DISTINCT counts summed).
+        $rows = $rows
+            ->groupBy(fn ($row) => mb_strtolower(trim((string) $row->description)).'|'.$row->account_id.'|'.($row->business_unit_id ?? 'null'))
+            ->map(function ($monthRows) {
+                $first = $monthRows->first();
+                $first->totalDebit = (float) $monthRows->sum('totalDebit');
+                $first->totalCredit = (float) $monthRows->sum('totalCredit');
+                $first->rowCount = (int) $monthRows->sum('rowCount');
+                $first->voucherCount = (int) $monthRows->sum('voucherCount');
+                $first->firstVoucher = $monthRows->min('firstVoucher');
+                $first->lastVoucher = $monthRows->max('lastVoucher');
+
+                return $first;
+            })
+            ->values();
+
+        if ($this->isBumdesScope()) {
+            $rows = $this->mergeVirtualSummary($rows, $start, $end);
+        }
+
+        $desc = $this->sortDirection === 'desc';
+
+        $groups = $rows
+            ->groupBy(fn ($row) => mb_strtolower(trim((string) $row->description)).'|'.($row->firstVoucher ?? '').'|'.($row->business_unit_id ?? 'null'))
+            ->map(fn ($group) => $group->sortByDesc(fn ($row) => (float) $row->totalDebit > 0)->values())
+            ->sortBy(fn ($group) => ($group->first()->firstVoucher ?? '').'|'.mb_strtolower(trim((string) $group->first()->description)), SORT_STRING, $desc)
+            ->values();
+
+        return [
+            'groups' => $groups,
+            'displayDate' => $end->format('Y-m-d'),
+        ];
+    }
+
+    /**
+     * Merge BUMDes virtual entries (opening balance + unit revenue) into summary rows.
+     *
+     * @param  Collection<int, object>  $rows
+     * @return Collection<int, object>
+     */
+    private function mergeVirtualSummary($rows, Carbon $start, Carbon $end)
+    {
+        $virtuals = SaldoKasBumdes::getBumdesVirtualEntries($start, $end, $this->mode);
+        if ($virtuals->isEmpty()) {
+            return $rows->values();
+        }
+
+        $grouped = [];
+        foreach ($virtuals as $entry) {
+            $description = trim((string) $entry->description);
+            $mapKey = mb_strtolower($description).'|'.$entry->account_id.'|'.($entry->business_unit_id ?? 'null');
+            if (! isset($grouped[$mapKey])) {
+                $grouped[$mapKey] = (object) [
+                    'id' => 0,
+                    'description' => $description,
+                    'account_id' => $entry->account_id,
+                    'business_unit_id' => $entry->business_unit_id,
+                    'code' => $entry->account?->code,
+                    'accountName' => $entry->account?->name,
+                    'unitName' => $entry->businessUnit?->name,
+                    'totalDebit' => 0.0,
+                    'totalCredit' => 0.0,
+                    'rowCount' => 0,
+                    'voucherCount' => 0,
+                    'firstVoucher' => $entry->voucher_number,
+                    'lastVoucher' => $entry->voucher_number,
+                ];
+            }
+            $row = $grouped[$mapKey];
+            $row->totalDebit += (float) $entry->debit;
+            $row->totalCredit += (float) $entry->credit;
+            $row->rowCount++;
+            $row->firstVoucher = min($row->firstVoucher, $entry->voucher_number);
+            $row->lastVoucher = max($row->lastVoucher, $entry->voucher_number);
+        }
+
+        $merged = $rows->all();
+        foreach ($grouped as $mapKey => $virtual) {
+            $found = false;
+            foreach ($merged as $row) {
+                if (mb_strtolower(trim((string) $row->description)).'|'.$row->account_id.'|'.($row->business_unit_id ?? 'null') === $mapKey) {
+                    $row->totalDebit += $virtual->totalDebit;
+                    $row->totalCredit += $virtual->totalCredit;
+                    $row->rowCount += $virtual->rowCount;
+                    $row->voucherCount += 1;
+                    $found = true;
+                    break;
+                }
+            }
+            if (! $found) {
+                $virtual->voucherCount = 1;
+                $merged[] = $virtual;
+            }
+        }
+
+        return collect($merged)->sort(function ($a, $b) {
+            $cmp = strcmp((string) ($a->firstVoucher ?? ''), (string) ($b->firstVoucher ?? ''));
+            if ($cmp !== 0) {
+                return $this->sortDirection === 'desc' ? -$cmp : $cmp;
+            }
+            $cmp = strcmp(mb_strtolower((string) $a->description), mb_strtolower((string) $b->description));
+
+            return $this->sortDirection === 'desc' ? -$cmp : $cmp;
+        })->values();
+    }
+
+    #[Computed]
+    public function totalDebit(): float
+    {
+        [$start, $end] = $this->dateRange;
+        $query = JournalEntry::whereDate('transaction_date', '>=', $start->format('Y-m-d'))
+            ->whereDate('transaction_date', '<=', $end->format('Y-m-d'));
+        $this->applyRoleScope($query);
+
+        $total = (float) $query->sum('debit');
+        if ($this->isBumdesScope()) {
+            if (in_array($this->mode, ['monthly', 'semester', 'yearly'], true)) {
+                $total += SaldoKasBumdes::getOpeningBalance($start);
+            }
+            $total += SaldoKasBumdes::getTotalNetUnitIncome($start, $end);
+        }
+
+        return $total;
+    }
+
+    #[Computed]
+    public function totalCredit(): float
+    {
+        [$start, $end] = $this->dateRange;
+        $query = JournalEntry::whereDate('transaction_date', '>=', $start->format('Y-m-d'))
+            ->whereDate('transaction_date', '<=', $end->format('Y-m-d'));
+        $this->applyRoleScope($query);
+
+        $total = (float) $query->sum('credit');
+        if ($this->isBumdesScope()) {
+            if (in_array($this->mode, ['monthly', 'semester', 'yearly'], true)) {
+                $total += SaldoKasBumdes::getOpeningBalance($start);
+            }
+            $total += SaldoKasBumdes::getTotalNetUnitIncome($start, $end);
+        }
+
+        return $total;
+    }
+
+    #[Computed]
+    public function canExportPdf(): bool
+    {
+        return in_array($this->mode, ['monthly', 'semester', 'yearly']);
+    }
+
+    /**
+     * Authorized to delete: sekretaris, bendahara, direktur_bumdes, kepala_unit (own unit only).
+     * Disallowed from deleting: kepala_desa, pengawas.
+     */
+    #[Computed]
+    public function canDelete(): bool
+    {
+        return Auth::user()->hasAnyRole(['sekretaris', 'bendahara', 'direktur_bumdes', 'kepala_unit']);
+    }
+
+    /**
+     * Same authorization as canDelete.
+     */
+    #[Computed]
+    public function canEdit(): bool
+    {
+        return Auth::user()->hasAnyRole(['sekretaris', 'bendahara', 'direktur_bumdes', 'kepala_unit']);
+    }
+
+    // ── Delete ────────────────────────────────────────────────────────────────
+
+    public function confirmDelete(int $id): void
+    {
+        $this->deleteId = $id;
+        $this->showDeleteModal = true;
+    }
+
+    public function executeDelete(): void
+    {
+        if (! $this->canDelete || ! $this->deleteId) {
+            abort(403);
+        }
+
+        $journal = JournalEntry::find($this->deleteId);
+        if (! $journal) {
+            return;
+        }
+
+        // Unit heads: only delete own unit's journals
+        if (Auth::user()->hasRole('kepala_unit')) {
+            if ($journal->business_unit_id !== Auth::user()->business_unit_id) {
+                abort(403);
+            }
+        }
+
+        DB::transaction(function () use ($journal) {
+            if ($journal->daily_transaction_id) {
+                DailyTransaction::where('id', $journal->daily_transaction_id)->delete();
+            }
+            // Same voucher scope as openEdit: number + month + unit.
+            $monthStart = $journal->transaction_date->copy()->startOfMonth()->format('Y-m-d');
+            $monthEnd = $journal->transaction_date->copy()->endOfMonth()->format('Y-m-d');
+            JournalEntry::where('voucher_number', $journal->voucher_number)
+                ->whereBetween('transaction_date', [$monthStart, $monthEnd])
+                ->when($journal->business_unit_id !== null,
+                    fn ($query) => $query->where('business_unit_id', $journal->business_unit_id),
+                    fn ($query) => $query->whereNull('business_unit_id'))
+                ->delete();
+        });
+
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Satu set jurnal (debet & kredit) berhasil dihapus.');
+
+        $this->showDeleteModal = false;
+        $this->deleteId = null;
+    }
+
+    // ── Edit ──────────────────────────────────────────────────────────────────
+
+    public function openEdit(int $jurnalId): void
+    {
+        if (! $this->canEdit) {
+            abort(403);
+        }
+
+        $journal = JournalEntry::findOrFail($jurnalId);
+
+        // Unit heads: only edit own unit's journals
+        if (Auth::user()->hasRole('kepala_unit')) {
+            if ($journal->business_unit_id !== Auth::user()->business_unit_id) {
+                abort(403);
+            }
+        }
+
+        // Load the voucher group: same number + same month + same unit
+        // (numbers reset monthly, so the number alone is not unique).
+        $monthStart = $journal->transaction_date->copy()->startOfMonth()->format('Y-m-d');
+        $monthEnd = $journal->transaction_date->copy()->endOfMonth()->format('Y-m-d');
+        $group = JournalEntry::with('account')
+            ->where('voucher_number', $journal->voucher_number)
+            ->whereBetween('transaction_date', [$monthStart, $monthEnd])
+            ->when($journal->business_unit_id !== null,
+                fn ($query) => $query->where('business_unit_id', $journal->business_unit_id),
+                fn ($query) => $query->whereNull('business_unit_id'))
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $this->editJournalId = $jurnalId;
+        $this->editVoucherNumber = $journal->voucher_number;
+        $this->editDate = $journal->transaction_date->format('Y-m-d');
+        $this->editDescription = $journal->description;
+
+        $this->editRows = $group->map(fn ($row) => [
+            'id' => $row->id,
+            'account_id' => $row->account_id,
+            'account_label' => ($row->account?->code ?? '-').' - '.($row->account?->name ?? '?'),
+            'debit' => $row->debit > 0 ? (string) (int) $row->debit : '',
+            'credit' => $row->credit > 0 ? (string) (int) $row->credit : '',
+        ])->toArray();
+
+        $this->showEditModal = true;
+    }
+
+    public function executeEdit(): void
+    {
+        if (! $this->canEdit || ! $this->editVoucherNumber) {
+            abort(403);
+        }
+
+        $this->validate([
+            'editDate' => 'required|date',
+            'editDescription' => 'required|string|max:500',
+            'editRows' => 'required|array|min:1',
+            'editRows.*.debit' => 'nullable|numeric|min:0',
+            'editRows.*.credit' => 'nullable|numeric|min:0',
+        ]);
+
+        try {
+            DB::transaction(function () {
+                foreach ($this->editRows as $row) {
+                    $journal = JournalEntry::findOrFail($row['id']);
+
+                    // Authorization check per-row
+                    if (Auth::user()->hasRole('kepala_unit')) {
+                        if ($journal->business_unit_id !== Auth::user()->business_unit_id) {
+                            abort(403);
+                        }
+                    }
+
+                    $debit = (float) ($row['debit'] ?: 0);
+                    $credit = (float) ($row['credit'] ?: 0);
+
+                    $journal->update([
+                        'transaction_date' => $this->editDate,
+                        'description' => $this->editDescription,
+                        'debit' => $debit,
+                        'credit' => $credit,
+                    ]);
+                }
+
+                // Sync the linked DailyTransaction from the edited rows only
+                // (the voucher number alone is not unique across months).
+                $editedIds = collect($this->editRows)->pluck('id')->all();
+                $firstJournal = JournalEntry::whereIn('id', $editedIds)->first();
+                if ($firstJournal && $firstJournal->daily_transaction_id) {
+                    $totalDebit = JournalEntry::whereIn('id', $editedIds)->sum('debit');
+                    DailyTransaction::where('id', $firstJournal->daily_transaction_id)->update([
+                        'transaction_date' => $this->editDate,
+                        'total_income' => $totalDebit,
+                    ]);
+                }
+            });
+
+            $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Jurnal berhasil diperbarui.');
+
+            $this->showEditModal = false;
+            $this->resetEditState();
+            unset($this->transactions);
+        } catch (\Exception $e) {
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan: '.$e->getMessage());
+        }
+    }
+
+    public function cancelEdit(): void
+    {
+        $this->showEditModal = false;
+        $this->resetEditState();
+    }
+
+    private function resetEditState(): void
+    {
+        $this->editJournalId = null;
+        $this->editVoucherNumber = '';
+        $this->editDate = '';
+        $this->editDescription = '';
+        $this->editRows = [];
+    }
+
+    public function exportPdf()
+    {
+        if (! $this->canExportPdf) {
+            $this->dispatch('swal-alert', icon: 'warning', title: 'Perhatian', text: 'Cetak PDF hanya tersedia untuk mode Bulanan, Semester, dan Tahunan.');
+
+            return;
+        }
+
+        if (! class_exists(Pdf::class)) {
+            $this->dispatch('swal-alert', icon: 'error', title: 'Error', text: 'Package PDF belum terinstall.');
+
+            return;
+        }
+
+        // Prevent OOM & timeout for large datasets (thousands of rows) during PDF export
+        ini_set('memory_limit', '-1');
+        set_time_limit(300);
+
+        $unit = ($this->unitId && is_numeric($this->unitId)) ? BusinessUnit::find($this->unitId) : null;
+        $period = $this->periodLabel;
+        $unitLabel = $unit ? str_replace(' ', '_', $unit->name) : ($this->isBumdesScope() ? 'BUMDes' : 'Semua_Unit');
+
+        if ($this->viewMode === 'summary') {
+            ['groups' => $groups, 'displayDate' => $displayDate] = $this->buildSummaryGroups();
+            $totalDebit = (float) $groups->flatten()->sum('totalDebit');
+            $totalCredit = (float) $groups->flatten()->sum('totalCredit');
+
+            $pdf = Pdf::loadView('pdf.transaction-history-summary', compact(
+                'groups',
+                'displayDate',
+                'period',
+                'unit',
+                'totalDebit',
+                'totalCredit'
+            ))->setPaper('a4', 'landscape');
+
+            $filename = 'JurnalUmum_Summary_'.$unitLabel.'_'.str_replace([' ', '-', '/'], '_', $period).'.pdf';
+
+            return response()->streamDownload(function () use ($pdf) {
+                echo $pdf->output();
+            }, $filename);
+        }
+
+        [$start, $end] = $this->dateRange;
+
+        $sortField = in_array($this->sortField, ['transaction_date', 'voucher_number']) ? $this->sortField : 'transaction_date';
+        $sortDirection = $this->sortDirection === 'desc' ? 'desc' : 'asc';
+
+        $query = JournalEntry::with(['businessUnit', 'account'])
+            ->whereDate('transaction_date', '>=', $start->format('Y-m-d'))
+            ->whereDate('transaction_date', '<=', $end->format('Y-m-d'))
+            ->orderBy($sortField, $sortDirection)
+            ->orderBy($sortField === 'transaction_date' ? 'voucher_number' : 'transaction_date', $sortDirection)
+            ->orderBy('id', $sortDirection);
+
+        $this->applyRoleScope($query);
+
+        $transactions = $query->get();
+        if ($this->isBumdesScope()) {
+            $transactions = SaldoKasBumdes::attachToTransactions(
+                $transactions,
+                $start,
+                $end,
+                $this->mode,
+                $sortField,
+                $sortDirection
+            );
+        }
+        $totalDebit = $transactions->sum('debit');
+        $totalCredit = $transactions->sum('credit');
+
+        $pdf = Pdf::loadView('pdf.transaction-history', compact(
+            'transactions',
+            'period',
+            'unit',
+            'totalDebit',
+            'totalCredit'
+        ))->setPaper('a4', 'landscape');
+
+        $filename = 'JurnalUmum_Detailed_'.$unitLabel.'_'.str_replace([' ', '-', '/'], '_', $period).'.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $filename);
+    }
+
+    public function render()
+    {
+        return view('livewire.transactions.journal-tab');
+    }
+}

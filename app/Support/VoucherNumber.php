@@ -2,14 +2,14 @@
 
 namespace App\Support;
 
-use App\Models\JurnalUmum;
+use App\Models\JournalEntry;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Single source of truth for voucher number sequencing.
  *
- * Scope: prefix + YYYY-MM(date) + unit_wisata_id.
+ * Scope: prefix + YYYY-MM(date) + business_unit_id.
  * Insert-and-shift: a new voucher takes its chronological slot by date,
  * later vouchers shift by +N so date and number order always agree.
  */
@@ -39,20 +39,20 @@ class VoucherNumber
         return DB::transaction(function () use ($prefix, $date, $count, $tourismUnitId) {
             $day = Carbon::parse($date)->format('Y-m-d');
 
-            $query = JurnalUmum::where('nomor_bukti', 'like', $prefix.'%')
-                ->whereDate('tanggal', '>=', substr($day, 0, 7).'-01')
-                ->whereDate('tanggal', '<', Carbon::parse($day)->startOfMonth()->addMonth()->format('Y-m-d'))
+            $query = JournalEntry::where('voucher_number', 'like', $prefix.'%')
+                ->whereDate('transaction_date', '>=', substr($day, 0, 7).'-01')
+                ->whereDate('transaction_date', '<', Carbon::parse($day)->startOfMonth()->addMonth()->format('Y-m-d'))
                 ->lockForUpdate();
 
             if ($tourismUnitId !== null) {
-                $query->where('unit_wisata_id', $tourismUnitId);
+                $query->where('business_unit_id', $tourismUnitId);
             }
 
             // One voucher = one nomor_bukti (possibly many debit/credit rows), ordered chronologically.
             $vouchers = [];
-            foreach ((clone $query)->orderBy('tanggal')->orderBy('id')->get(['id', 'nomor_bukti', 'tanggal']) as $row) {
-                $key = $row->nomor_bukti;
-                $vouchers[$key]['date'] ??= Carbon::parse($row->tanggal)->format('Y-m-d');
+            foreach ((clone $query)->orderBy('transaction_date')->orderBy('id')->get(['id', 'voucher_number', 'transaction_date']) as $row) {
+                $key = $row->voucher_number;
+                $vouchers[$key]['date'] ??= Carbon::parse($row->transaction_date)->format('Y-m-d');
                 $vouchers[$key]['ids'][] = $row->id;
             }
             $ordered = array_values($vouchers);
@@ -79,8 +79,8 @@ class VoucherNumber
             // Shift backwards (largest first) to avoid name collisions.
             for ($i = count($ordered) - 1; $i >= $k; $i--) {
                 $old = (int) substr(array_keys($vouchers)[$i], -3);
-                JurnalUmum::whereIn('id', $ordered[$i]['ids'])
-                    ->update(['nomor_bukti' => $prefix.str_pad($old + $count, 3, '0', STR_PAD_LEFT)]);
+                JournalEntry::whereIn('id', $ordered[$i]['ids'])
+                    ->update(['voucher_number' => $prefix.str_pad($old + $count, 3, '0', STR_PAD_LEFT)]);
             }
 
             $numbers = [];

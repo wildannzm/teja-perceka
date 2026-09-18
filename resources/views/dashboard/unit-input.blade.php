@@ -3,6 +3,6 @@
 
         <x-page-header title="Input Transaksi Harian" description="Catat pemasukan harian unit usaha Anda" />
 
-        <livewire:kepala-unit.input-transaksi-harian />
+        <livewire:unit-head.record-daily-transaction />
     </div>
 </x-layouts::app>

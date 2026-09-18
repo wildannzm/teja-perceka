@@ -60,7 +60,7 @@
                             </td>
                             <td class="px-5 py-4">
                                 <span class="text-xs text-zinc-600">
-                                    {{ $user->unitWisata ? $user->unitWisata->nama : '-' }}
+                                    {{ $user->businessUnit ? $user->businessUnit->name : '-' }}
                                 </span>
                             </td>
                             <td class="px-5 py-4 text-center">

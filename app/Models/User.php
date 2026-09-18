@@ -27,9 +27,9 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property int|null $unit_wisata_id
+ * @property int|null $business_unit_id
  */
-#[Fillable(['name', 'email', 'password', 'unit_wisata_id', 'is_active'])]
+#[Fillable(['name', 'email', 'password', 'business_unit_id', 'is_active'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -65,10 +65,10 @@ class User extends Authenticatable
     /**
      * Get the unit wisata associated with the user.
      *
-     * @return BelongsTo<UnitWisata, $this>
+     * @return BelongsTo<BusinessUnit, $this>
      */
-    public function unitWisata(): BelongsTo
+    public function businessUnit(): BelongsTo
     {
-        return $this->belongsTo(UnitWisata::class, 'unit_wisata_id');
+        return $this->belongsTo(BusinessUnit::class, 'business_unit_id');
     }
 }

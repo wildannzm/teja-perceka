@@ -394,7 +394,7 @@
 
                 @role('kepala_unit')
                     <p class="px-3 pt-2 pb-1 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                        {{ auth()->user()->unitWisata ? auth()->user()->unitWisata->nama : 'Unit Usaha' }}
+                        {{ auth()->user()->businessUnit ? auth()->user()->businessUnit->name : 'Unit Usaha' }}
                     </p>
                     <a href="{{ route('dashboard.unit') }}" wire:navigate
                         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('dashboard.unit') ? 'bg-brand-100 text-brand-800' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900' }}">

@@ -27,7 +27,7 @@ class UserManager extends Component
 
     public function render()
     {
-        $users = User::with(['roles', 'unitWisata'])
+        $users = User::with(['roles', 'businessUnit'])
             ->when($this->search !== '', function ($query) {
                 $query->where(function ($q) {
                     $q->where('name', 'like', '%'.$this->search.'%')

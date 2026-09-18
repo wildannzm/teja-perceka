@@ -3,7 +3,7 @@
 namespace App\Livewire\SuperAdmin;
 
 use App\Models\ActivityLog;
-use App\Models\UnitWisata;
+use App\Models\BusinessUnit;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Livewire\Component;
@@ -14,7 +14,7 @@ class Dashboard extends Component
     public function render()
     {
         $totalUsers = User::count();
-        $totalUnits = UnitWisata::count();
+        $totalUnits = BusinessUnit::count();
         $totalRoles = Role::count();
         $todayActivities = ActivityLog::whereDate('created_at', today())->count();
 

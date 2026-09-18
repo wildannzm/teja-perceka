@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\UnitWisata;
+use App\Models\BusinessUnit;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -28,113 +28,113 @@ class UserSeeder extends Seeder
         $superAdmin->assignRole('super_admin');
 
         // 1. Sawah Bengkok unit head
-        $sawahBengkok = UnitWisata::where('kode', 'SB')->first();
-        $kepalaUnit = User::firstOrCreate(
+        $sawahBengkok = BusinessUnit::where('code', 'SB')->first();
+        $unitHead = User::firstOrCreate(
             ['email' => 'kepala.sawahbengkok@tejaperceka.com'],
             [
                 'name' => 'Kepala Unit Sawah Bengkok',
                 'password' => $password,
-                'unit_wisata_id' => $sawahBengkok ? $sawahBengkok->id : null,
+                'business_unit_id' => $sawahBengkok ? $sawahBengkok->id : null,
             ]
         );
-        $kepalaUnit->assignRole('kepala_unit');
+        $unitHead->assignRole('kepala_unit');
 
         // 2. Situ Ciranca unit head
-        $situCiranca = UnitWisata::where('kode', 'SC')->first();
-        $kepalaUnitSC = User::firstOrCreate(
+        $situCiranca = BusinessUnit::where('code', 'SC')->first();
+        $unitHeadSC = User::firstOrCreate(
             ['email' => 'kepala.situciranca@tejaperceka.com'],
             [
                 'name' => 'Kepala Unit Situ Ciranca',
                 'password' => $password,
-                'unit_wisata_id' => $situCiranca ? $situCiranca->id : null,
+                'business_unit_id' => $situCiranca ? $situCiranca->id : null,
             ]
         );
-        $kepalaUnitSC->assignRole('kepala_unit');
+        $unitHeadSC->assignRole('kepala_unit');
 
         // 3. Bukit Sampora unit head
-        $bukitSampora = UnitWisata::where('kode', 'BS')->first();
-        $kepalaUnitBS = User::firstOrCreate(
+        $bukitSampora = BusinessUnit::where('code', 'BS')->first();
+        $unitHeadBS = User::firstOrCreate(
             ['email' => 'kepala.bukitsampora@tejaperceka.com'],
             [
                 'name' => 'Kepala Unit Bukit Sampora',
                 'password' => $password,
-                'unit_wisata_id' => $bukitSampora ? $bukitSampora->id : null,
+                'business_unit_id' => $bukitSampora ? $bukitSampora->id : null,
             ]
         );
-        $kepalaUnitBS->assignRole('kepala_unit');
+        $unitHeadBS->assignRole('kepala_unit');
 
         // 4. Buper Ciranca unit head
-        $buperCiranca = UnitWisata::where('kode', 'BC')->first();
-        $kepalaUnitBC = User::firstOrCreate(
+        $buperCiranca = BusinessUnit::where('code', 'BC')->first();
+        $unitHeadBC = User::firstOrCreate(
             ['email' => 'kepala.buperciranca@tejaperceka.com'],
             [
                 'name' => 'Kepala Unit Buper Ciranca',
                 'password' => $password,
-                'unit_wisata_id' => $buperCiranca ? $buperCiranca->id : null,
+                'business_unit_id' => $buperCiranca ? $buperCiranca->id : null,
             ]
         );
-        $kepalaUnitBC->assignRole('kepala_unit');
+        $unitHeadBC->assignRole('kepala_unit');
 
         // 5. TPS unit head
-        $tps = UnitWisata::where('kode', 'TPS')->first();
-        $kepalaUnitTPS = User::firstOrCreate(
+        $tps = BusinessUnit::where('code', 'TPS')->first();
+        $unitHeadTPS = User::firstOrCreate(
             ['email' => 'kepala.tps@tejaperceka.com'],
             [
                 'name' => 'Kepala Unit TPS',
                 'password' => $password,
-                'unit_wisata_id' => $tps ? $tps->id : null,
+                'business_unit_id' => $tps ? $tps->id : null,
             ]
         );
-        $kepalaUnitTPS->assignRole('kepala_unit');
+        $unitHeadTPS->assignRole('kepala_unit');
 
         // 6. Secretary
-        $sekretaris = User::firstOrCreate(
+        $secretary = User::firstOrCreate(
             ['email' => 'sekretaris@tejaperceka.com'],
             [
                 'name' => 'Sekretaris BUMDes',
                 'password' => $password,
             ]
         );
-        $sekretaris->assignRole('sekretaris');
+        $secretary->assignRole('sekretaris');
 
         // 7. Treasurer
-        $bendahara = User::firstOrCreate(
+        $treasurer = User::firstOrCreate(
             ['email' => 'bendahara@tejaperceka.com'],
             [
                 'name' => 'Bendahara BUMDes',
                 'password' => $password,
             ]
         );
-        $bendahara->assignRole('bendahara');
+        $treasurer->assignRole('bendahara');
 
         // 8. BUMDes director
-        $direktur = User::firstOrCreate(
+        $director = User::firstOrCreate(
             ['email' => 'direktur@tejaperceka.com'],
             [
                 'name' => 'Direktur BUMDes',
                 'password' => $password,
             ]
         );
-        $direktur->assignRole('direktur_bumdes');
+        $director->assignRole('direktur_bumdes');
 
         // 9. Village head
-        $kepalaDesa = User::firstOrCreate(
+        $villageHead = User::firstOrCreate(
             ['email' => 'kepaladesa@tejaperceka.com'],
             [
                 'name' => 'Kepala Desa Teja',
                 'password' => $password,
             ]
         );
-        $kepalaDesa->assignRole('kepala_desa');
+        $villageHead->assignRole('kepala_desa');
 
         // 10. Supervisor
-        $pengawas = User::firstOrCreate(
+        $supervisor = User::firstOrCreate(
             ['email' => 'pengawas@tejaperceka.com'],
             [
                 'name' => 'Pengawas BUMDes',
                 'password' => $password,
             ]
         );
-        $pengawas->assignRole('pengawas');
+        $supervisor->assignRole('pengawas');
     }
 }

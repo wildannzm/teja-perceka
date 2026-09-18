@@ -1,27 +1,27 @@
 <?php
 
 use App\Http\Controllers\ImpersonationController;
-use App\Livewire\Asset\KelolaAsset;
-use App\Livewire\Bendahara\Dashboard as BendaharaDashboard;
-use App\Livewire\DirekturBumdes\Dashboard as DirekturBumdesDashboard;
-use App\Livewire\DirekturBumdes\KelolaAkunUnit;
-use App\Livewire\KepalaDesa\Dashboard as KepalaDesaDashboard;
-use App\Livewire\KepalaDesa\UserManager as KepalaDesaUserManager;
-use App\Livewire\KepalaUnit\CatatPengeluaran as KepalaUnitCatatPengeluaran;
-use App\Livewire\KepalaUnit\Dashboard as KepalaUnitDashboard;
-use App\Livewire\KepalaUnit\KelolaPendapatan;
-use App\Livewire\Laporan\BukuBesar;
-use App\Livewire\Laporan\NeracaSaldo;
-use App\Livewire\LaporanLabaRugi\AlokasiLaba;
-use App\Livewire\LaporanLabaRugi\LabaRugi;
-use App\Livewire\Pengawas\Dashboard as PengawasDashboard;
-use App\Livewire\Pengeluaran\CatatPengeluaran;
-use App\Livewire\Sekretaris\Dashboard as SekretarisDashboard;
+use App\Livewire\Assets\ManageAssets;
+use App\Livewire\BumdesDirector\Dashboard as DirekturBumdesDashboard;
+use App\Livewire\BumdesDirector\ManageUnitAccounts;
+use App\Livewire\Expenses\RecordExpense;
+use App\Livewire\ProfitLoss\ProfitAllocation;
+use App\Livewire\ProfitLoss\ProfitLoss;
+use App\Livewire\Reports\GeneralLedger;
+use App\Livewire\Reports\TrialBalance;
+use App\Livewire\Secretary\Dashboard as SekretarisDashboard;
 use App\Livewire\SuperAdmin\ActivityLogs as SuperAdminActivityLogs;
 use App\Livewire\SuperAdmin\Dashboard as SuperAdminDashboard;
 use App\Livewire\SuperAdmin\UserManager as SuperAdminUserManager;
-use App\Livewire\Transaksi\RiwayatRekap;
-use App\Models\TransaksiHarian;
+use App\Livewire\Supervisor\Dashboard as PengawasDashboard;
+use App\Livewire\Transactions\HistoryRecap;
+use App\Livewire\Treasurer\Dashboard as BendaharaDashboard;
+use App\Livewire\UnitHead\Dashboard as KepalaUnitDashboard;
+use App\Livewire\UnitHead\ManageRevenue;
+use App\Livewire\UnitHead\RecordExpense as UnitHeadRecordExpense;
+use App\Livewire\VillageHead\Dashboard as KepalaDesaDashboard;
+use App\Livewire\VillageHead\UserManager as KepalaDesaUserManager;
+use App\Models\DailyTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -71,14 +71,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('unit/riwayat-transaksi', fn () => redirect()->route('riwayat-rekap'))
             ->name('unit.riwayat-transaksi');
 
-        Route::get('unit/kelola-harga', KelolaPendapatan::class)
+        Route::get('unit/kelola-harga', ManageRevenue::class)
             ->name('unit.kelola-harga');
 
-        Route::get('unit/catat-pengeluaran', KepalaUnitCatatPengeluaran::class)
+        Route::get('unit/catat-pengeluaran', UnitHeadRecordExpense::class)
             ->name('unit.catat-pengeluaran');
 
-        Route::get('unit/edit-transaksi/{transaksiHarian}', function (TransaksiHarian $transaksiHarian) {
-            return view('dashboard.unit-edit', ['editId' => $transaksiHarian->id]);
+        Route::get('unit/edit-transaksi/{dailyTransaction}', function (DailyTransaction $dailyTransaction) {
+            return view('dashboard.unit-edit', ['editId' => $dailyTransaction->id]);
         })->name('unit.edit-transaksi');
     });
 
@@ -94,7 +94,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Joint Secretary & Treasurer dashboard (shared placeholder page)
     Route::middleware(['role:sekretaris|bendahara'])->get('dashboard/keuangan', function () {
-        return view('dashboard.keuangan');
+        return view('dashboard.finance');
     })->name('dashboard.keuangan');
 
     // ===== Village head =====
@@ -107,7 +107,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:direktur_bumdes'])->prefix('direktur-bumdes')->group(function () {
         Route::get('/dashboard', DirekturBumdesDashboard::class)->name('direktur-bumdes.dashboard');
 
-        Route::get('/kelola-akun', KelolaAkunUnit::class)->name('direktur-bumdes.kelola-akun');
+        Route::get('/kelola-akun', ManageUnitAccounts::class)->name('direktur-bumdes.kelola-akun');
     });
 
     // ===== Supervisor =====
@@ -117,34 +117,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // ===== Expenses (shared: direktur_bumdes, sekretaris, bendahara) =====
     Route::middleware(['role:direktur_bumdes|sekretaris|bendahara'])
-        ->get('pengeluaran/catat', CatatPengeluaran::class)
+        ->get('pengeluaran/catat', RecordExpense::class)
         ->name('pengeluaran.catat');
 
     // ===== Centralized financial reports =====
     Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])->group(function () {
-        Route::get('laporan/laba-rugi', LabaRugi::class)->name('laporan.laba-rugi');
-        Route::get('laporan/buku-besar', BukuBesar::class)->name('laporan.buku-besar');
-        Route::get('laporan/neraca-saldo', NeracaSaldo::class)->name('laporan.neraca-saldo');
+        Route::get('laporan/laba-rugi', ProfitLoss::class)->name('laporan.laba-rugi');
+        Route::get('laporan/buku-besar', GeneralLedger::class)->name('laporan.buku-besar');
+        Route::get('laporan/neraca-saldo', TrialBalance::class)->name('laporan.neraca-saldo');
     });
 
     // ===== Profit allocation (excluding unit heads) =====
     Route::middleware(['role:sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])->group(function () {
-        Route::get('laporan/alokasi-laba', AlokasiLaba::class)->name('laporan.alokasi-laba');
+        Route::get('laporan/alokasi-laba', ProfitAllocation::class)->name('laporan.alokasi-laba');
     });
 
     // ===== Assets (Direktur, Secretary, Treasurer can CRUD; others read-only via policy) =====
     Route::middleware(['role:direktur_bumdes|sekretaris|bendahara|kepala_desa|pengawas|kepala_unit'])
-        ->get('asset', KelolaAsset::class)
+        ->get('asset', ManageAssets::class)
         ->name('asset.kelola');
 
     // ===== Income (all roles) — redirect to History & Recap =====
     Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])
-        ->get('pendapatan', fn () => redirect()->route('riwayat-rekap', ['tab' => 'pendapatan']))
+        ->get('pendapatan', fn () => redirect()->route('riwayat-rekap', ['tab' => 'revenue']))
         ->name('pendapatan');
 
     // ===== History & Recap (combined Income + General Journal) =====
     Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])
-        ->get('riwayat-rekap', RiwayatRekap::class)
+        ->get('riwayat-rekap', HistoryRecap::class)
         ->name('riwayat-rekap');
 
     // Legacy redirect: unit/riwayat-transaksi → riwayat-rekap

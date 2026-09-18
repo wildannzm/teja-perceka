@@ -10,7 +10,7 @@
             </x-slot:actions>
         </x-page-header>
 
-        <livewire:kepala-unit.input-transaksi-harian />
+        <livewire:unit-head.record-daily-transaction />
 
     </div>
 </x-layouts::app>

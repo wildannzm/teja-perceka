@@ -8,11 +8,11 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
- * @property string $nama_aset
- * @property int $jumlah
- * @property string $satuan
- * @property float $harga
- * @property string|null $keterangan
+ * @property string $name
+ * @property int $quantity
+ * @property string $unit
+ * @property float $price
+ * @property string|null $description
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -23,18 +23,18 @@ class Asset extends Model
     protected $table = 'assets';
 
     protected $fillable = [
-        'nama_aset',
-        'jumlah',
-        'satuan',
-        'harga',
-        'keterangan',
+        'name',
+        'quantity',
+        'unit',
+        'price',
+        'description',
     ];
 
     protected function casts(): array
     {
         return [
-            'jumlah' => 'integer',
-            'harga' => 'float',
+            'quantity' => 'integer',
+            'price' => 'float',
         ];
     }
 }

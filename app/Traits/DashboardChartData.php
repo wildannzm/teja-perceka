@@ -2,64 +2,64 @@
 
 namespace App\Traits;
 
-use App\Models\JurnalUmum;
+use App\Models\JournalEntry;
 use Illuminate\Support\Facades\DB;
 
 trait DashboardChartData
 {
     /**
-     * Get chart data for monthly Pemasukan and Pengeluaran for the current year.
+     * Get chart data for monthly income and expenses for the current year.
      *
-     * @return array{pemasukan: array<int, float>, pengeluaran: array<int, float>}
+     * @return array{income: array<int, float>, expenses: array<int, float>}
      */
     protected function getChartData(?int $unitId = null): array
     {
         $currentYear = date('Y');
 
         $driver = DB::connection()->getDriverName();
-        $monthSelect = $driver === 'sqlite' ? "CAST(strftime('%m', tanggal) AS INTEGER)" : 'MONTH(tanggal)';
+        $monthSelect = $driver === 'sqlite' ? "CAST(strftime('%m', transaction_date) AS INTEGER)" : 'MONTH(transaction_date)';
 
-        $pemasukanQuery = JurnalUmum::select(
+        $incomeQuery = JournalEntry::select(
             DB::raw("$monthSelect as month"),
-            DB::raw('SUM(kredit) as total')
+            DB::raw('SUM(credit) as total')
         )
-            ->whereYear('tanggal', $currentYear)
-            ->whereHas('kodeAkun', function ($q) {
-                $q->where('kode', 'like', '4-%')->orWhere('kode', 'like', '7-%');
+            ->whereYear('transaction_date', $currentYear)
+            ->whereHas('account', function ($q) {
+                $q->where('code', 'like', '4-%')->orWhere('code', 'like', '7-%');
             });
 
         if ($unitId) {
-            $pemasukanQuery->where('unit_wisata_id', $unitId);
+            $incomeQuery->where('business_unit_id', $unitId);
         }
 
-        $pemasukanPerBulan = $pemasukanQuery->groupBy('month')->pluck('total', 'month')->toArray();
+        $monthlyIncome = $incomeQuery->groupBy('month')->pluck('total', 'month')->toArray();
 
-        $pengeluaranQuery = JurnalUmum::select(
+        $expenseQuery = JournalEntry::select(
             DB::raw("$monthSelect as month"),
-            DB::raw('SUM(debet) as total')
+            DB::raw('SUM(debit) as total')
         )
-            ->whereYear('tanggal', $currentYear)
-            ->whereHas('kodeAkun', function ($q) {
-                $q->where('kode', 'like', '5-%')->orWhere('kode', 'like', '6-%');
+            ->whereYear('transaction_date', $currentYear)
+            ->whereHas('account', function ($q) {
+                $q->where('code', 'like', '5-%')->orWhere('code', 'like', '6-%');
             });
 
         if ($unitId) {
-            $pengeluaranQuery->where('unit_wisata_id', $unitId);
+            $expenseQuery->where('business_unit_id', $unitId);
         }
 
-        $pengeluaranPerBulan = $pengeluaranQuery->groupBy('month')->pluck('total', 'month')->toArray();
+        $monthlyExpenses = $expenseQuery->groupBy('month')->pluck('total', 'month')->toArray();
 
-        $chartPemasukan = [];
-        $chartPengeluaran = [];
+        $incomeChart = [];
+        $expenseChart = [];
 
         for ($i = 1; $i <= 12; $i++) {
-            $chartPemasukan[] = (float) ($pemasukanPerBulan[$i] ?? 0);
-            $chartPengeluaran[] = (float) ($pengeluaranPerBulan[$i] ?? 0);
+            $incomeChart[] = (float) ($monthlyIncome[$i] ?? 0);
+            $expenseChart[] = (float) ($monthlyExpenses[$i] ?? 0);
         }
 
         return [
-            'pemasukan' => $chartPemasukan,
-            'pengeluaran' => $chartPengeluaran,
+            'income' => $incomeChart,
+            'expenses' => $expenseChart,
         ];
     }
 }
