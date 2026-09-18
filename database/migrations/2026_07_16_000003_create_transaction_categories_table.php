@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('assets', function (Blueprint $table) {
+        Schema::create('transaction_categories', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('business_unit_id')->constrained('business_units')->cascadeOnDelete();
+            $table->foreignId('account_id')->nullable()->constrained('accounts')->nullOnDelete();
             $table->string('name');
-            $table->integer('quantity')->default(1);
-            $table->string('unit')->default('unit')->comment('e.g. unit, pieces, set, meter');
-            $table->text('description')->nullable();
+            $table->string('type');
+            $table->string('direction');
             $table->timestamps();
         });
     }
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('assets');
+        Schema::dropIfExists('transaction_categories');
     }
 };

@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('transaksi_harian', function (Blueprint $table) {
+        Schema::create('daily_transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('unit_wisata_id')->constrained('unit_wisata')->cascadeOnDelete();
+            $table->foreignId('business_unit_id')->constrained('business_units')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->date('tanggal');
-            $table->date('tanggal_akhir')->nullable()->comment('Untuk unit mingguan');
-            $table->decimal('total_pemasukan', 15, 2)->default(0);
-            $table->string('catatan')->nullable();
+            $table->date('transaction_date');
+            $table->date('end_date')->nullable()->comment('For weekly units');
+            $table->decimal('total_income', 15, 2)->default(0);
+            $table->string('notes')->nullable();
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('transaksi_harian');
+        Schema::dropIfExists('daily_transactions');
     }
 };

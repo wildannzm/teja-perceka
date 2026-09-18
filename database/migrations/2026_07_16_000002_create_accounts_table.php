@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('jurnal_umum', function (Blueprint $table) {
-            $table->unsignedBigInteger('unit_wisata_id')->nullable()->change();
+        Schema::create('accounts', function (Blueprint $table) {
+            $table->id();
+            $table->string('code')->unique();
+            $table->string('name');
+            $table->string('type');
+            $table->timestamps();
         });
     }
 
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('jurnal_umum', function (Blueprint $table) {
-            $table->unsignedBigInteger('unit_wisata_id')->nullable(false)->change();
-        });
+        Schema::dropIfExists('accounts');
     }
 };

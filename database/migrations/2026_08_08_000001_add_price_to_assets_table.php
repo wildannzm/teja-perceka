@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('unit_wisata_id')->nullable()->constrained('unit_wisata')->nullOnDelete();
+        Schema::table('assets', function (Blueprint $table) {
+            $table->decimal('price', 15, 2)->default(0)->after('unit')->comment('Asset acquisition cost in rupiah');
         });
     }
 
@@ -21,9 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['unit_wisata_id']);
-            $table->dropColumn('unit_wisata_id');
+        Schema::table('assets', function (Blueprint $table) {
+            $table->dropColumn('price');
         });
     }
 };

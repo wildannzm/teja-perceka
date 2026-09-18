@@ -11,12 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('unit_wisata', function (Blueprint $table) {
-            $table->id();
-            $table->string('nama');
-            $table->string('kode')->unique();
-            $table->string('frekuensi_input')->default('harian');
-            $table->timestamps();
+        Schema::table('accounts', function (Blueprint $table) {
+            $table->integer('sort_order')->nullable()->after('type');
+            $table->boolean('is_header')->default(false)->after('sort_order');
         });
     }
 
@@ -25,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('unit_wisata');
+        Schema::table('accounts', function (Blueprint $table) {
+            $table->dropColumn(['sort_order', 'is_header']);
+        });
     }
 };

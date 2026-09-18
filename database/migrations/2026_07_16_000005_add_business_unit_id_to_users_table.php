@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('kode_akun', function (Blueprint $table) {
-            $table->id();
-            $table->string('kode')->unique();
-            $table->string('nama');
-            $table->string('tipe');
-            $table->timestamps();
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreignId('business_unit_id')->nullable()->constrained('business_units')->nullOnDelete();
         });
     }
 
@@ -25,6 +21,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('kode_akun');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropForeign(['business_unit_id']);
+            $table->dropColumn('business_unit_id');
+        });
     }
 };

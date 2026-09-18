@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('assets', function (Blueprint $table) {
-            $table->decimal('harga', 15, 2)->default(0)->after('satuan')->comment('Harga perolehan aset dalam rupiah');
+        Schema::table('daily_transactions', function (Blueprint $table) {
+            $table->decimal('total_expense', 15, 2)->default(0)->after('total_income');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('assets', function (Blueprint $table) {
-            $table->dropColumn('harga');
+        Schema::table('daily_transactions', function (Blueprint $table) {
+            $table->dropColumn('total_expense');
         });
     }
 };

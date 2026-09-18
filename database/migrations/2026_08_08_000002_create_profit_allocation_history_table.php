@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('alokasi_laba_riwayat', function (Blueprint $table) {
+        Schema::create('profit_allocation_history', function (Blueprint $table) {
             $table->id();
-            $table->string('keterangan');
-            $table->decimal('persentase', 5, 2);
-            $table->date('berlaku_dari');
-            $table->foreignId('unit_wisata_id')->nullable()->constrained('unit_wisata')->onDelete('cascade');
+            $table->string('description');
+            $table->decimal('percentage', 5, 2);
+            $table->date('effective_from');
+            $table->foreignId('business_unit_id')->nullable()->constrained('business_units')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('alokasi_laba_riwayat');
+        Schema::dropIfExists('profit_allocation_history');
     }
 };

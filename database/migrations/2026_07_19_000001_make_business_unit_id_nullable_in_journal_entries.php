@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('transaksi_harian', function (Blueprint $table) {
-            $table->decimal('total_pengeluaran', 15, 2)->default(0)->after('total_pemasukan');
+        Schema::table('journal_entries', function (Blueprint $table) {
+            $table->unsignedBigInteger('business_unit_id')->nullable()->change();
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('transaksi_harian', function (Blueprint $table) {
-            $table->dropColumn('total_pengeluaran');
+        Schema::table('journal_entries', function (Blueprint $table) {
+            $table->unsignedBigInteger('business_unit_id')->nullable(false)->change();
         });
     }
 };

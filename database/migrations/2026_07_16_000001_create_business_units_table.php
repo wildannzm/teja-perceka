@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('kode_akun', function (Blueprint $table) {
-            $table->integer('urutan')->nullable()->after('tipe');
-            $table->boolean('is_header')->default(false)->after('urutan');
+        Schema::create('business_units', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('code')->unique();
+            $table->string('input_frequency')->default('daily');
+            $table->timestamps();
         });
     }
 
@@ -22,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('kode_akun', function (Blueprint $table) {
-            $table->dropColumn(['urutan', 'is_header']);
-        });
+        Schema::dropIfExists('business_units');
     }
 };
