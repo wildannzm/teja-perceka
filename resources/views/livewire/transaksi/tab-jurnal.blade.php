@@ -12,11 +12,17 @@
 
     {{-- Journal list --}}
     @php
+        $isSummary = ($viewMode ?? 'summary') === 'summary';
         $groups = $this->transactions['groups'] ?? collect();
         $paginator = $this->transactions['paginator'] ?? null;
+        $summaryData = $isSummary ? $this->summaryRows : null;
+        $summaryGroups = $summaryData['groups'] ?? collect();
+        $summaryPaginator = $summaryData['paginator'] ?? null;
+        $displayDate = $summaryData['displayDate'] ?? null;
+        $listEmpty = $isSummary ? $summaryGroups->isEmpty() : $groups->isEmpty();
     @endphp
 
-    @if($groups->isEmpty())
+    @if($listEmpty)
         <div class="bg-white rounded-2xl border-2 border-dashed border-zinc-200 p-8 sm:p-12 text-center flex flex-col items-center justify-center min-h-[300px]">
             <div class="bg-zinc-100 text-zinc-400 p-4 rounded-full mb-4 inline-block">
                 <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -27,6 +33,98 @@
             <p class="text-zinc-500 text-sm max-w-md mx-auto">Belum ada catatan jurnal umum untuk periode ini.</p>
         </div>
     @else
+        @if($isSummary)
+            {{-- Summary: same columns as detailed + voucher count column. No actions (edit/delete via Detailed). --}}
+            <div class="hidden sm:block bg-white rounded-2xl shadow-sm border border-brand-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm whitespace-nowrap">
+                        <thead>
+                            <tr class="bg-brand-50/80 text-brand-900 border-b border-brand-100">
+                                <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Tanggal</th>
+                                <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Bukti</th>
+                                @if($unitId === 'semua')
+                                    <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Unit</th>
+                                @endif
+                                <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs w-full min-w-[200px]">Keterangan</th>
+                                <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs">Kode Akun</th>
+                                <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Debit</th>
+                                <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Kredit</th>
+                                <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Jml Bukti</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-100 text-zinc-700">
+                            @foreach($summaryGroups as $groupKey => $groupRows)
+                                @php $groupFirst = $groupRows->first(); @endphp
+                                @foreach($groupRows as $row)
+                                    <tr class="hover:bg-zinc-50 transition-colors" wire:key="summary-{{ $row->id }}-{{ $row->kode_akun_id }}">
+                                        @if($loop->first)
+                                            <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 align-top border-r border-zinc-100">{{ \Carbon\Carbon::parse($displayDate)->translatedFormat('d F Y') }}</td>
+                                            <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 font-mono text-xs text-zinc-500 align-top border-r border-zinc-100">{{ $groupFirst->firstVoucher }}</td>
+                                            @if($unitId === 'semua')
+                                                <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 text-xs font-semibold text-zinc-600 align-top border-r border-zinc-100">{{ $groupFirst->unitName ?? 'BUMDes' }}</td>
+                                            @endif
+                                            <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 text-wrap leading-relaxed align-top border-r border-zinc-100">{{ $groupFirst->keterangan }}</td>
+                                        @endif
+                                        <td class="py-3 px-4 font-mono text-xs border-l border-zinc-100">{{ $row->kode ?? '-' }} - {{ $row->accountName ?? '?' }}</td>
+                                        <td class="py-3 px-4 text-right font-medium text-brand-700 border-l border-zinc-100">{{ $row->totalDebit > 0 ? number_format($row->totalDebit, 0, ',', '.') : '-' }}</td>
+                                        <td class="py-3 px-4 text-right font-medium text-red-600 border-l border-zinc-100">{{ $row->totalCredit > 0 ? number_format($row->totalCredit, 0, ',', '.') : '-' }}</td>
+                                        @if($loop->first)
+                                            <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 text-center text-zinc-500 align-middle border-l border-zinc-100">{{ $groupRows->max('voucherCount') }} bukti</td>
+                                        @endif
+                                    </tr>
+                                @endforeach
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Mobile summary: one card per merged group --}}
+            <div class="flex flex-col gap-3 sm:hidden">
+                @foreach($summaryGroups as $groupKey => $groupRows)
+                    @php $groupFirst = $groupRows->first(); @endphp
+                    <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden" wire:key="summary-m-{{ $groupFirst->firstVoucher }}-{{ $loop->index }}">
+                        <div class="bg-brand-50/60 border-b border-brand-100 px-4 py-3 flex items-start justify-between gap-2">
+                            <div>
+                                <p class="text-xs font-mono text-zinc-500">{{ $groupFirst->firstVoucher }}</p>
+                                <p class="text-sm font-semibold text-zinc-800 mt-0.5">{{ \Carbon\Carbon::parse($displayDate)->translatedFormat('d F Y') }}</p>
+                                @if($unitId === 'semua')
+                                    <span class="inline-block mt-1 text-[11px] font-medium bg-brand-100 text-brand-800 px-2 py-0.5 rounded-md">
+                                        {{ $groupFirst->unitName ?? 'BUMDes' }}
+                                    </span>
+                                @endif
+                                <span class="inline-block mt-1 ml-1 text-[11px] font-medium bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-md">
+                                    {{ $groupRows->max('voucherCount') }} bukti
+                                </span>
+                            </div>
+                        </div>
+                        <div class="px-4 py-3 border-b border-zinc-100">
+                            <p class="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-0.5">Keterangan</p>
+                            <p class="text-sm text-zinc-800 leading-relaxed">{{ $groupFirst->keterangan }}</p>
+                        </div>
+                        <div class="divide-y divide-zinc-100">
+                            @foreach($groupRows as $row)
+                                <div class="px-4 py-3 flex items-center justify-between gap-3">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-mono text-zinc-500 truncate">{{ $row->kode ?? '-' }}</p>
+                                        <p class="text-sm text-zinc-700 font-medium truncate">{{ $row->accountName ?? '?' }}</p>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        @if($row->totalDebit > 0)
+                                            <p class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Debit</p>
+                                            <p class="text-sm font-bold text-brand-700">Rp {{ number_format($row->totalDebit, 0, ',', '.') }}</p>
+                                        @else
+                                            <p class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Kredit</p>
+                                            <p class="text-sm font-bold text-red-600">Rp {{ number_format($row->totalCredit, 0, ',', '.') }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
         {{-- Desktop: table view (hidden on mobile) --}}
         <div class="hidden sm:block bg-white rounded-2xl shadow-sm border border-brand-100 overflow-hidden">
             <div class="overflow-x-auto">
@@ -158,10 +256,17 @@
                 </div>
             @endforeach
         </div>
+        @endif
     @endif
 
     {{-- Pagination links --}}
-    @if($paginator && $paginator->hasPages())
+    @if($isSummary)
+        @if($summaryPaginator && $summaryPaginator->hasPages())
+            <div class="mt-6 px-4">
+                {{ $summaryPaginator->links() }}
+            </div>
+        @endif
+    @elseif($paginator && $paginator->hasPages())
         <div class="mt-6 px-4">
             {{ $paginator->links() }}
         </div>

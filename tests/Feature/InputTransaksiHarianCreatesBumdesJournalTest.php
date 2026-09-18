@@ -88,9 +88,10 @@ test('submitting income creates unit journal and shows calculated DBM in BUMDes 
         ]);
 
     $groups = $tabJurnal->transactions['groups'];
-    expect($groups->has('DBM001'))->toBeTrue();
+    $dbmKey = 'DBM001|'.now()->format('Y-m').'|'.$this->unit->id;
+    expect($groups->has($dbmKey))->toBeTrue();
 
-    $dbmGroup = $groups->get('DBM001');
+    $dbmGroup = $groups->get($dbmKey);
     expect($dbmGroup->first()->keterangan)->toBe('Pendapatan Unit Wisata Alam');
     expect($dbmGroup->where('debet', '>', 0)->first()->debet)->toBe(50000.0);
     expect($dbmGroup->where('kredit', '>', 0)->first()->kredit)->toBe(50000.0);
@@ -129,7 +130,7 @@ test('editing income updates unit journal and recalculates BUMDes DBM entry', fu
         ]);
 
     $groups = $tabJurnal->transactions['groups'];
-    $dbmGroup = $groups->get('DBM001');
+    $dbmGroup = $groups->get('DBM001|'.now()->format('Y-m').'|'.$this->unit->id);
     expect($dbmGroup->where('debet', '>', 0)->first()->debet)->toBe(100000.0);
 });
 
@@ -205,16 +206,17 @@ test('tab jurnal shows saldo kas bulan sebelumnya when prior cash balance exists
         ]);
 
     $groups = $tabJurnal->transactions['groups'];
-    expect($groups->has('DBM001'))->toBeTrue();
-    expect($groups->has('DBM002'))->toBeTrue();
+    $ym = now()->format('Y-m');
+    expect($groups->has('DBM001|'.$ym.'|null'))->toBeTrue();
+    expect($groups->has('DBM002|'.$ym.'|'.$this->unit->id))->toBeTrue();
 
-    $openingBalanceGroup = $groups->get('DBM001');
+    $openingBalanceGroup = $groups->get('DBM001|'.$ym.'|null');
     $priorMonthName = now()->startOfMonth()->subMonth()->translatedFormat('F');
     expect($openingBalanceGroup->first()->keterangan)->toBe('Saldo Kas '.$priorMonthName);
     expect($openingBalanceGroup->where('debet', '>', 0)->first()->debet)->toBe(1000000.0);
     expect($openingBalanceGroup->where('kredit', '>', 0)->first()->kredit)->toBe(1000000.0);
 
-    $unitGroup = $groups->get('DBM002');
+    $unitGroup = $groups->get('DBM002|'.now()->format('Y-m').'|'.$this->unit->id);
     expect($unitGroup->first()->keterangan)->toBe('Pendapatan Unit Wisata Alam');
     expect($unitGroup->where('debet', '>', 0)->first()->debet)->toBe(20000.0);
 
@@ -319,10 +321,11 @@ test('daily filter does not create saldo kas bulan lalu even if prior transactio
         ]);
 
     $groups = $tabJurnal->transactions['groups'];
-    expect($groups->has('DBM001'))->toBeTrue();
+    $dbmKey = 'DBM001|'.now()->format('Y-m').'|'.$this->unit->id;
+    expect($groups->has($dbmKey))->toBeTrue();
 
     // DBM001 must be today's revenue, NOT "Saldo Kas"
-    $firstGroup = $groups->get('DBM001');
+    $firstGroup = $groups->get($dbmKey);
     expect($firstGroup->first()->keterangan)->toBe('Pendapatan Unit Wisata Alam');
     expect($firstGroup->where('debet', '>', 0)->first()->debet)->toBe(50000.0);
     expect($tabJurnal->totalDebet)->toBe(50000.0);
@@ -350,7 +353,7 @@ test('bumdes journal unit revenue calculates net income (pemasukan minus pengelu
         ]);
 
     $groups = $tabJurnal->transactions['groups'];
-    $firstGroup = $groups->get('DBM001');
+    $firstGroup = $groups->get('DBM001|'.now()->format('Y-m').'|'.$this->unit->id);
     expect($firstGroup->first()->keterangan)->toBe('Pendapatan Unit Wisata Alam');
     // Net: 50,000 - 15,000 = 35,000
     expect($firstGroup->where('debet', '>', 0)->first()->debet)->toBe(35000.0);

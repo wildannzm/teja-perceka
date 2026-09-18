@@ -9,6 +9,7 @@ use App\Support\SaldoKasBumdes;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
@@ -51,9 +52,13 @@ class TabJurnal extends Component
     #[Reactive]
     public string $sortDirection = 'asc';
 
+    /** Journal view: 'summary' (aggregated per description) or 'detailed' (per voucher). Set from the parent filter. */
+    #[Reactive]
+    public string $viewMode = 'summary';
+
     public function updating(string $name, mixed $value): void
     {
-        if (in_array($name, ['unitId', 'mode', 'tanggal', 'minggu', 'bulan', 'semester', 'semesterTahun', 'tahun', 'sortField', 'sortDirection'], true)) {
+        if (in_array($name, ['unitId', 'mode', 'tanggal', 'minggu', 'bulan', 'semester', 'semesterTahun', 'tahun', 'sortField', 'sortDirection', 'viewMode'], true)) {
             $this->resetPage();
         }
     }
@@ -196,6 +201,16 @@ class TabJurnal extends Component
         };
     }
 
+    /**
+     * Voucher group key: number + month + unit. Voucher numbers reset every
+     * month per unit, so the number alone is not unique across months
+     * (groups would merge in semester/yearly filters).
+     */
+    private function voucherGroupKey($jurnal): string
+    {
+        return $jurnal->nomor_bukti.'|'.Carbon::parse($jurnal->tanggal)->format('Y-m').'|'.($jurnal->unit_wisata_id ?? 'null');
+    }
+
     #[Computed]
     public function transactions()
     {
@@ -235,7 +250,7 @@ class TabJurnal extends Component
                 ['path' => LengthAwarePaginator::resolveCurrentPath()]
             );
 
-            $groups = $items->groupBy('nomor_bukti');
+            $groups = $items->groupBy(fn ($jurnal) => $this->voucherGroupKey($jurnal));
 
             return [
                 'paginator' => $paginated,
@@ -246,13 +261,174 @@ class TabJurnal extends Component
         $paginated = (clone $query)
             ->paginate(40);
 
-        $groups = $paginated->getCollection()->groupBy('nomor_bukti');
+        $groups = $paginated->getCollection()->groupBy(fn ($jurnal) => $this->voucherGroupKey($jurnal));
 
         // We need to return an object that contains both the grouped transactions and the paginator
         return [
             'paginator' => $paginated,
             'groups' => $groups,
         ];
+    }
+
+    /**
+     * Excel-style summary view: DB aggregation per (description + account + unit)
+     * within the period. Stored rows stay detailed, saved numbers untouched.
+     * Display date = period end date for every row.
+     * Rows sharing (description + first voucher + unit) merge into one group
+     * (rowspan like the detailed view), groups ordered by voucher number.
+     *
+     * @return array{paginator: LengthAwarePaginator, groups: Collection, displayDate: string}
+     */
+    #[Computed]
+    public function summaryRows(): array
+    {
+        ['groups' => $groups, 'displayDate' => $displayDate] = $this->buildSummaryGroups();
+
+        $page = LengthAwarePaginator::resolveCurrentPage();
+        $perPage = 20;
+        $items = $groups->slice(($page - 1) * $perPage, $perPage)->values();
+        $paginated = new LengthAwarePaginator(
+            $items,
+            $groups->count(),
+            $perPage,
+            $page,
+            ['path' => LengthAwarePaginator::resolveCurrentPath()]
+        );
+
+        return [
+            'paginator' => $paginated,
+            'groups' => $items,
+            'displayDate' => $displayDate,
+        ];
+    }
+
+    /**
+     * Full summary groups without pagination (one screen page + PDF).
+     *
+     * @return array{groups: Collection, displayDate: string}
+     */
+    private function buildSummaryGroups(): array
+    {
+        [$start, $end] = $this->dateRange;
+
+        $key = DB::raw('TRIM(jurnal_umum.keterangan)');
+
+        $query = JurnalUmum::query()
+            ->leftJoin('kode_akun', 'kode_akun.id', '=', 'jurnal_umum.kode_akun_id')
+            ->leftJoin('unit_wisata', 'unit_wisata.id', '=', 'jurnal_umum.unit_wisata_id')
+            ->selectRaw('MIN(jurnal_umum.id) as id, TRIM(jurnal_umum.keterangan) as keterangan, jurnal_umum.kode_akun_id, jurnal_umum.unit_wisata_id, kode_akun.kode as kode, kode_akun.nama as accountName, unit_wisata.nama as unitName, SUM(jurnal_umum.debet) as totalDebit, SUM(jurnal_umum.kredit) as totalCredit, COUNT(*) as rowCount, COUNT(DISTINCT jurnal_umum.nomor_bukti) as voucherCount, MIN(jurnal_umum.nomor_bukti) as firstVoucher, MAX(jurnal_umum.nomor_bukti) as lastVoucher')
+            ->whereBetween('jurnal_umum.tanggal', [$start->format('Y-m-d'), $end->format('Y-m-d')])
+            ->groupBy($key, 'jurnal_umum.kode_akun_id', 'jurnal_umum.unit_wisata_id', 'kode_akun.kode', 'kode_akun.nama', 'unit_wisata.nama', DB::raw('SUBSTR(jurnal_umum.tanggal, 1, 7)'));
+
+        $this->applyRoleScope($query);
+
+        $rows = $query->get();
+
+        // Voucher numbers reset every month: collapse monthly rows so the
+        // voucher count spans months (per-month DISTINCT counts summed).
+        $rows = $rows
+            ->groupBy(fn ($row) => mb_strtolower(trim((string) $row->keterangan)).'|'.$row->kode_akun_id.'|'.($row->unit_wisata_id ?? 'null'))
+            ->map(function ($monthRows) {
+                $first = $monthRows->first();
+                $first->totalDebit = (float) $monthRows->sum('totalDebit');
+                $first->totalCredit = (float) $monthRows->sum('totalCredit');
+                $first->rowCount = (int) $monthRows->sum('rowCount');
+                $first->voucherCount = (int) $monthRows->sum('voucherCount');
+                $first->firstVoucher = $monthRows->min('firstVoucher');
+                $first->lastVoucher = $monthRows->max('lastVoucher');
+
+                return $first;
+            })
+            ->values();
+
+        if ($this->isBumdesScope()) {
+            $rows = $this->mergeVirtualSummary($rows, $start, $end);
+        }
+
+        $desc = $this->sortDirection === 'desc';
+
+        $groups = $rows
+            ->groupBy(fn ($row) => mb_strtolower(trim((string) $row->keterangan)).'|'.($row->firstVoucher ?? '').'|'.($row->unit_wisata_id ?? 'null'))
+            ->map(fn ($group) => $group->sortByDesc(fn ($row) => (float) $row->totalDebit > 0)->values())
+            ->sortBy(fn ($group) => ($group->first()->firstVoucher ?? '').'|'.mb_strtolower(trim((string) $group->first()->keterangan)), SORT_STRING, $desc)
+            ->values();
+
+        return [
+            'groups' => $groups,
+            'displayDate' => $end->format('Y-m-d'),
+        ];
+    }
+
+    /**
+     * Merge BUMDes virtual entries (opening balance + unit revenue) into summary rows.
+     *
+     * @param  Collection<int, object>  $rows
+     * @return Collection<int, object>
+     */
+    private function mergeVirtualSummary($rows, Carbon $start, Carbon $end)
+    {
+        $virtuals = SaldoKasBumdes::getBumdesVirtualEntries($start, $end, $this->mode);
+        if ($virtuals->isEmpty()) {
+            return $rows->values();
+        }
+
+        $grouped = [];
+        foreach ($virtuals as $entry) {
+            $keterangan = trim((string) $entry->keterangan);
+            $mapKey = mb_strtolower($keterangan).'|'.$entry->kode_akun_id.'|'.($entry->unit_wisata_id ?? 'null');
+            if (! isset($grouped[$mapKey])) {
+                $grouped[$mapKey] = (object) [
+                    'id' => 0,
+                    'keterangan' => $keterangan,
+                    'kode_akun_id' => $entry->kode_akun_id,
+                    'unit_wisata_id' => $entry->unit_wisata_id,
+                    'kode' => $entry->kodeAkun?->kode,
+                    'accountName' => $entry->kodeAkun?->nama,
+                    'unitName' => $entry->unitWisata?->nama,
+                    'totalDebit' => 0.0,
+                    'totalCredit' => 0.0,
+                    'rowCount' => 0,
+                    'voucherCount' => 0,
+                    'firstVoucher' => $entry->nomor_bukti,
+                    'lastVoucher' => $entry->nomor_bukti,
+                ];
+            }
+            $row = $grouped[$mapKey];
+            $row->totalDebit += (float) $entry->debet;
+            $row->totalCredit += (float) $entry->kredit;
+            $row->rowCount++;
+            $row->firstVoucher = min($row->firstVoucher, $entry->nomor_bukti);
+            $row->lastVoucher = max($row->lastVoucher, $entry->nomor_bukti);
+        }
+
+        $merged = $rows->all();
+        foreach ($grouped as $mapKey => $virtual) {
+            $found = false;
+            foreach ($merged as $row) {
+                if (mb_strtolower(trim((string) $row->keterangan)).'|'.$row->kode_akun_id.'|'.($row->unit_wisata_id ?? 'null') === $mapKey) {
+                    $row->totalDebit += $virtual->totalDebit;
+                    $row->totalCredit += $virtual->totalCredit;
+                    $row->rowCount += $virtual->rowCount;
+                    $row->voucherCount += 1;
+                    $found = true;
+                    break;
+                }
+            }
+            if (! $found) {
+                $virtual->voucherCount = 1;
+                $merged[] = $virtual;
+            }
+        }
+
+        return collect($merged)->sort(function ($a, $b) {
+            $cmp = strcmp((string) ($a->firstVoucher ?? ''), (string) ($b->firstVoucher ?? ''));
+            if ($cmp !== 0) {
+                return $this->sortDirection === 'desc' ? -$cmp : $cmp;
+            }
+            $cmp = strcmp(mb_strtolower((string) $a->keterangan), mb_strtolower((string) $b->keterangan));
+
+            return $this->sortDirection === 'desc' ? -$cmp : $cmp;
+        })->values();
     }
 
     #[Computed]
@@ -504,6 +680,31 @@ class TabJurnal extends Component
         ini_set('memory_limit', '-1');
         set_time_limit(300);
 
+        $unit = ($this->unitId && is_numeric($this->unitId)) ? UnitWisata::find($this->unitId) : null;
+        $periode = $this->periodeLabel;
+        $unitLabel = $unit ? str_replace(' ', '_', $unit->nama) : ($this->isBumdesScope() ? 'BUMDes' : 'Semua_Unit');
+
+        if ($this->viewMode === 'summary') {
+            ['groups' => $groups, 'displayDate' => $displayDate] = $this->buildSummaryGroups();
+            $totalDebit = (float) $groups->flatten()->sum('totalDebit');
+            $totalCredit = (float) $groups->flatten()->sum('totalCredit');
+
+            $pdf = Pdf::loadView('pdf.riwayat-transaksi-ringkas', compact(
+                'groups',
+                'displayDate',
+                'periode',
+                'unit',
+                'totalDebit',
+                'totalCredit'
+            ))->setPaper('a4', 'landscape');
+
+            $filename = 'JurnalUmum_Summary_'.$unitLabel.'_'.str_replace([' ', '-', '/'], '_', $periode).'.pdf';
+
+            return response()->streamDownload(function () use ($pdf) {
+                echo $pdf->output();
+            }, $filename);
+        }
+
         [$start, $end] = $this->dateRange;
 
         $sortField = in_array($this->sortField, ['tanggal', 'nomor_bukti']) ? $this->sortField : 'tanggal';
@@ -531,8 +732,6 @@ class TabJurnal extends Component
         }
         $totalDebet = $transactions->sum('debet');
         $totalKredit = $transactions->sum('kredit');
-        $unit = ($this->unitId && is_numeric($this->unitId)) ? UnitWisata::find($this->unitId) : null;
-        $periode = $this->periodeLabel;
 
         $pdf = Pdf::loadView('pdf.riwayat-transaksi', compact(
             'transactions',
@@ -542,8 +741,7 @@ class TabJurnal extends Component
             'totalKredit'
         ))->setPaper('a4', 'landscape');
 
-        $unitName = $unit ? str_replace(' ', '_', $unit->nama) : ($this->isBumdesScope() ? 'BUMDes' : 'Semua_Unit');
-        $filename = 'JurnalUmum_'.$unitName.'_'.str_replace([' ', '-', '/'], '_', $periode).'.pdf';
+        $filename = 'JurnalUmum_Detailed_'.$unitLabel.'_'.str_replace([' ', '-', '/'], '_', $periode).'.pdf';
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();

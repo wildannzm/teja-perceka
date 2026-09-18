@@ -48,6 +48,9 @@ class RiwayatRekap extends Component
 
     public string $sortOption = 'tanggal-asc';
 
+    /** Journal tab view: 'summary' (aggregated) or 'detailed' (per voucher). */
+    public string $viewMode = 'summary';
+
     public function updatedSortOption(): void
     {
         [$field, $direction] = array_pad(explode('-', $this->sortOption, 2), 2, 'asc');

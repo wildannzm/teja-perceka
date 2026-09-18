@@ -118,6 +118,14 @@
                         <option value="nomor_bukti-desc">Bukti · Z–A</option>
                     </select>
                 </div>
+                <div class="flex flex-col gap-1.5 w-full md:w-auto">
+                    <label class="text-sm font-medium text-zinc-700">Tampilan</label>
+                    <select wire:model.live="viewMode"
+                        class="w-full sm:min-w-40 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
+                        <option value="summary">Ringkas</option>
+                        <option value="detailed">Rinci</option>
+                    </select>
+                </div>
             @endif
         </div>
     </div>
@@ -160,7 +168,8 @@
                 :tahun="$tahun"
                 :sort-field="$sortField"
                 :sort-direction="$sortDirection"
-                wire:key="tab-jurnal-{{ $unit_id }}-{{ $mode }}-{{ $tanggal }}-{{ $minggu }}-{{ $bulan }}-{{ $semester }}-{{ $semesterTahun }}-{{ $tahun }}-{{ $sortField }}-{{ $sortDirection }}"
+                :viewMode="$viewMode"
+                wire:key="tab-jurnal-{{ $unit_id }}-{{ $mode }}-{{ $tanggal }}-{{ $minggu }}-{{ $bulan }}-{{ $semester }}-{{ $semesterTahun }}-{{ $tahun }}-{{ $sortField }}-{{ $sortDirection }}-{{ $viewMode }}"
             />
         @endif
     </div>
