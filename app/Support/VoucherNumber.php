@@ -50,10 +50,26 @@ class VoucherNumber
 
             // One voucher = one nomor_bukti (possibly many debit/credit rows), ordered chronologically.
             $vouchers = [];
-            foreach ((clone $query)->orderBy('transaction_date')->orderBy('id')->get(['id', 'voucher_number', 'transaction_date']) as $row) {
+            foreach ((clone $query)->orderBy('transaction_date')->orderBy('id')->get(['id', 'voucher_number', 'transaction_date', 'daily_transaction_id']) as $row) {
                 $key = $row->voucher_number;
                 $vouchers[$key]['date'] ??= Carbon::parse($row->transaction_date)->format('Y-m-d');
                 $vouchers[$key]['ids'][] = $row->id;
+                if ($row->daily_transaction_id !== null) {
+                    $vouchers[$key]['dailies'][$row->daily_transaction_id] = true;
+                }
+            }
+
+            // Never silently grow a corruption: one voucher shared by several
+            // daily transactions means numbering already broke (repair with
+            // `voucher:repair-duplicates` instead of reusing the number).
+            foreach ($vouchers as $number => $voucher) {
+                if (count($voucher['dailies'] ?? []) > 1) {
+                    throw new \RuntimeException(
+                        "Duplicate voucher {$number} shared by daily transactions "
+                        .implode(',', array_keys($voucher['dailies']))
+                        .'. Run `php artisan voucher:repair-duplicates` first.'
+                    );
+                }
             }
             $ordered = array_values($vouchers);
 

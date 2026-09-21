@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Expenses;
 
-use App\Models\JournalEntry;
 use App\Models\Account;
 use App\Models\BusinessUnit;
+use App\Models\JournalEntry;
 use App\Support\VoucherNumber;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -174,7 +174,7 @@ class RecordExpense extends Component
             'items.*.amount.max' => 'Nominal terlalu besar.',
         ]);
 
-        $validItems = array_filter($this->items, fn ($item) => (float) ($item['amount'] ?? 0) > 0 && ! empty($item['account_id']));
+        $validItems = array_values(array_filter($this->items, fn ($item) => (float) ($item['amount'] ?? 0) > 0 && ! empty($item['account_id'])));
 
         if (empty($validItems)) {
             $this->addError('items', 'Minimal satu item pengeluaran dengan nominal valid harus diisi.');
@@ -195,7 +195,7 @@ class RecordExpense extends Component
 
             foreach ($validItems as $index => $item) {
                 $itemAmount = (float) $item['amount'];
-                $voucherNumber = $voucherBatch[$index] ?? VoucherNumber::next($prefix, $date->format('Y-m-d'), $this->unitId)['number'];
+                $voucherNumber = $voucherBatch[$index];
                 $description = $item['description'];
 
                 JournalEntry::create([
