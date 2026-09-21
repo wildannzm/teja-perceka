@@ -187,7 +187,9 @@ class RecordExpense extends Component
         $unitCode = strtoupper($this->unit->code ?? 'XX');
         $prefix = 'K'.$unitCode;
 
-        DB::transaction(function () use ($date, $prefix, $validItems) {
+        DB::beginTransaction();
+
+        try {
             $cashAccount = Account::where('code', '1-1100')->firstOrFail();
 
             // Chronological batch reservation under a single lock.
@@ -230,7 +232,15 @@ class RecordExpense extends Component
             if ($dailyTransaction) {
                 $dailyTransaction->increment('total_expense', $newTotalExpense);
             }
-        });
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: $e->getMessage());
+
+            return;
+        }
 
         \Flux::toast(variant: 'success', text: 'Pengeluaran unit berhasil dicatat!');
 

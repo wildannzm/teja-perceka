@@ -100,32 +100,46 @@ class RepairDuplicateVouchers extends Command
             return;
         }
 
-        $dailies = $rows
-            ->groupBy('daily_transaction_id')
-            ->map(fn ($group) => ['date' => $group->min('transaction_date'), 'firstId' => $group->min('id')])
+        // One logical voucher = one (voucher number, daily transaction) pair.
+        // An expense daily may own several vouchers, so renumber per pair —
+        // never merge a daily's vouchers into one number.
+        $pairs = $rows
+            ->groupBy(fn ($row) => $row->voucher_number.'|'.$row->daily_transaction_id)
+            ->map(fn ($group) => [
+                'old' => $group->first()->voucher_number,
+                'daily' => $group->first()->daily_transaction_id,
+                'date' => $group->min('transaction_date'),
+                'firstId' => $group->min('id'),
+            ])
             ->sortBy([['date', 'asc'], ['firstId', 'asc']])
-            ->keys()
             ->values();
 
         $plan = [];
-        foreach ($dailies as $index => $dailyId) {
-            $newNumber = $prefix.str_pad($index + 1, 3, '0', STR_PAD_LEFT);
-            $oldNumbers = $rows->where('daily_transaction_id', $dailyId)->pluck('voucher_number')->unique()->values()->all();
-            $plan[] = ['daily' => $dailyId, 'old' => implode(',', $oldNumbers), 'new' => $newNumber];
+        foreach ($pairs as $index => $pair) {
+            $plan[] = [
+                'old' => $pair['old'],
+                'daily' => $pair['daily'],
+                'new' => $prefix.str_pad($index + 1, 3, '0', STR_PAD_LEFT),
+            ];
         }
 
         $label = "Scope {$prefix} {$scope['month']} unit ".($scope['unit'] ?? 'null');
-        $this->line("<comment>{$label}</comment> — {$dailies->count()} vouchers:");
-        $this->table(['daily_transaction_id', 'old', 'new'], $plan);
+        $this->line("<comment>{$label}</comment> — {$pairs->count()} vouchers:");
+        $this->table(['old', 'daily_transaction_id', 'new'], $plan);
 
         if ($this->option('dry-run')) {
             return;
         }
 
-        DB::transaction(function () use ($plan, $prefix) {
+        DB::transaction(function () use ($plan, $monthStart, $monthEnd, $scope) {
             foreach ($plan as $item) {
                 JournalEntry::where('daily_transaction_id', $item['daily'])
-                    ->where('voucher_number', 'like', $prefix.'%')
+                    ->where('voucher_number', $item['old'])
+                    ->whereDate('transaction_date', '>=', $monthStart)
+                    ->whereDate('transaction_date', '<=', $monthEnd)
+                    ->when($scope['unit'] !== null,
+                        fn ($query) => $query->where('business_unit_id', $scope['unit']),
+                        fn ($query) => $query->whereNull('business_unit_id'))
                     ->update(['voucher_number' => $item['new']]);
             }
         });

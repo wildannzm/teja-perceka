@@ -185,7 +185,9 @@ class RecordExpense extends Component
         $date = Carbon::parse($this->transactionDate);
         $prefix = 'KBM';
 
-        DB::transaction(function () use ($date, $prefix, $validItems) {
+        DB::beginTransaction();
+
+        try {
             $cashAccount = Account::where('code', '1-1100')->firstOrFail();
 
             // Chronological batch reservation under a single lock.
@@ -221,7 +223,14 @@ class RecordExpense extends Component
                 ]);
             }
 
-        });
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: $e->getMessage());
+
+            return;
+        }
 
         \Flux::toast(variant: 'success', text: 'Pengeluaran unit berhasil dicatat!');
 

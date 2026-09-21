@@ -96,3 +96,44 @@ test('repair command dry-run changes nothing', function () {
 
     expect(JournalEntry::where('daily_transaction_id', $d2->id)->first()->voucher_number)->toBe('DSB001');
 });
+
+function seedExpenseVoucher(int $dailyId, string $voucher, string $date, int $unitId, int $expenseAccountId, int $cashId, string $description, float $amount): void
+{
+    JournalEntry::create([
+        'voucher_number' => $voucher, 'transaction_date' => $date, 'description' => $description,
+        'account_id' => $expenseAccountId, 'debit' => $amount, 'credit' => 0,
+        'daily_transaction_id' => $dailyId, 'business_unit_id' => $unitId,
+    ]);
+    JournalEntry::create([
+        'voucher_number' => $voucher, 'transaction_date' => $date, 'description' => $description,
+        'account_id' => $cashId, 'debit' => 0, 'credit' => $amount,
+        'daily_transaction_id' => $dailyId, 'business_unit_id' => $unitId,
+    ]);
+}
+
+test('repair keeps each expense voucher of the same daily on its own number', function () {
+    [$user, $unit, $cash] = seedUnitWithAccounts();
+    $beban = Account::create(['code' => '5-1000', 'name' => 'Beban Operasional', 'type' => 'beban']);
+
+    $d1 = DailyTransaction::create(['business_unit_id' => $unit->id, 'user_id' => $user->id, 'transaction_date' => '2026-07-18', 'total_income' => 0]);
+    $d2 = DailyTransaction::create(['business_unit_id' => $unit->id, 'user_id' => $user->id, 'transaction_date' => '2026-07-19', 'total_income' => 0]);
+
+    // One daily owning two distinct expense vouchers plus a number shared with another daily.
+    seedExpenseVoucher($d1->id, 'KSB001', '2026-07-18', $unit->id, $beban->id, $cash->id, 'Nota A', 100000);
+    seedExpenseVoucher($d1->id, 'KSB002', '2026-07-18', $unit->id, $beban->id, $cash->id, 'Nota B', 200000);
+    seedExpenseVoucher($d2->id, 'KSB002', '2026-07-19', $unit->id, $beban->id, $cash->id, 'Nota C', 300000);
+
+    $this->artisan('voucher:repair-duplicates', ['--prefix' => 'KSB', '--unit' => $unit->id, '--month' => '2026-07'])->assertSuccessful();
+
+    $vouchersFor = fn (int $dailyId, string $desc) => JournalEntry::where('daily_transaction_id', $dailyId)
+        ->where('description', $desc)->pluck('voucher_number')->unique()->values()->all();
+
+    // d1 keeps two separate numbers, shared KSB002 splits chronologically.
+    expect($vouchersFor($d1->id, 'Nota A'))->toBe(['KSB001']);
+    expect($vouchersFor($d1->id, 'Nota B'))->toBe(['KSB002']);
+    expect($vouchersFor($d2->id, 'Nota C'))->toBe(['KSB003']);
+
+    // Amounts and descriptions untouched.
+    expect((float) JournalEntry::where('description', 'Nota B')->sum('debit'))->toEqual(200000.0);
+    expect((float) JournalEntry::where('description', 'Nota C')->sum('credit'))->toEqual(300000.0);
+});
