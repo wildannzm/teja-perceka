@@ -11,7 +11,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 #[Signature('voucher:repair-duplicates {--dry-run : Show planned renames without applying changes} {--prefix= : Only repair this voucher prefix (e.g. DSB)} {--unit= : Only repair this business_unit_id} {--month= : Only repair this month (YYYY-MM)}')]
-#[Description('Renumber voucher numbers shared by multiple daily transactions (same prefix+month+unit) chronologically')]
+#[Description('Renumber voucher scopes (prefix+month+unit) that are not sequential 001..N chronologically')]
 class RepairDuplicateVouchers extends Command
 {
     /**
@@ -19,15 +19,16 @@ class RepairDuplicateVouchers extends Command
      */
     public function handle(): int
     {
-        $scopes = $this->findCorruptScopes();
+        $scopes = $this->findScopesNeedingRepair();
 
         if ($scopes->isEmpty()) {
-            $this->info('No duplicate vouchers found.');
+            $this->info('All voucher numbers already sequential.');
 
             return self::SUCCESS;
         }
 
         foreach ($scopes as $scope) {
+            $this->line("<comment>Reason: {$scope['reason']}</comment>");
             $this->repairScope($scope);
         }
 
@@ -35,29 +36,49 @@ class RepairDuplicateVouchers extends Command
     }
 
     /**
-     * Scopes (prefix + month + unit) where one voucher number is shared
-     * by more than one daily transaction.
+     * Scopes (prefix + month + unit) whose numbers are not exactly 001..N
+     * in chronological order: shared numbers (duplicates) or gaps left by
+     * deletions. Sequential scopes are skipped so history is never churned.
      *
-     * @return Collection<int, array{prefix: string, month: string, unit: ?int}>
+     * @return Collection<int, array{prefix: string, month: string, unit: ?int, reason: string}>
      */
-    private function findCorruptScopes()
+    private function findScopesNeedingRepair()
     {
-        $groups = JournalEntry::query()
-            ->selectRaw('voucher_number, business_unit_id, SUBSTR(transaction_date, 1, 7) as ym, COUNT(DISTINCT daily_transaction_id) as dailies')
-            ->groupBy('voucher_number', 'business_unit_id', 'ym')
-            ->havingRaw('COUNT(DISTINCT daily_transaction_id) > 1')
-            ->get();
+        $rows = JournalEntry::query()
+            ->orderBy('transaction_date')
+            ->orderBy('id')
+            ->get(['voucher_number', 'business_unit_id', 'transaction_date', 'daily_transaction_id', 'id']);
 
-        return $groups
-            ->map(function ($row) {
-                if (! preg_match('/^([A-Z]+)(\d+)$/', (string) $row->voucher_number, $m)) {
+        $scopes = [];
+        foreach ($rows as $row) {
+            if (! preg_match('/^([A-Z]+)(\d+)$/', (string) $row->voucher_number, $m)) {
+                continue;
+            }
+            $key = $m[1].'|'.substr((string) $row->transaction_date, 0, 7).'|'.($row->business_unit_id ?? 'null');
+            $scopes[$key]['prefix'] = $m[1];
+            $scopes[$key]['month'] = substr((string) $row->transaction_date, 0, 7);
+            $scopes[$key]['unit'] = $row->business_unit_id;
+            $scopes[$key]['pairs'][$row->voucher_number.'|'.($row->daily_transaction_id ?? 'null')][] = $row;
+        }
+
+        return collect($scopes)
+            ->map(function ($scope) {
+                $pairs = collect($scope['pairs'])->sortBy(fn ($group) => $group[0]->transaction_date.'|'.str_pad($group[0]->id, 10, '0', STR_PAD_LEFT))->values();
+                $actual = $pairs->map(fn ($group) => $group[0]->voucher_number)->all();
+                $expected = [];
+                foreach (array_keys($actual) as $index) {
+                    $expected[] = $scope['prefix'].str_pad($index + 1, 3, '0', STR_PAD_LEFT);
+                }
+                if ($actual === $expected) {
                     return null;
                 }
 
-                return ['prefix' => $m[1], 'month' => (string) $row->ym, 'unit' => $row->business_unit_id];
+                $duplicates = count($actual) !== count(array_unique($actual));
+                $scope['reason'] = $duplicates ? 'duplicate numbers' : 'number gaps';
+
+                return $scope;
             })
             ->filter()
-            ->unique(fn ($scope) => $scope['prefix'].'|'.$scope['month'].'|'.($scope['unit'] ?? 'null'))
             ->filter(function ($scope) {
                 if ($this->option('prefix') && $scope['prefix'] !== $this->option('prefix')) {
                     return false;
@@ -75,7 +96,7 @@ class RepairDuplicateVouchers extends Command
     }
 
     /**
-     * @param  array{prefix: string, month: string, unit: ?int}  $scope
+     * @param  array{prefix: string, month: string, unit: ?int, reason: string}  $scope
      */
     private function repairScope(array $scope): void
     {

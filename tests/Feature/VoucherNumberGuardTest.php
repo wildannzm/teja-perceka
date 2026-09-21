@@ -137,3 +137,42 @@ test('repair keeps each expense voucher of the same daily on its own number', fu
     expect((float) JournalEntry::where('description', 'Nota B')->sum('debit'))->toEqual(200000.0);
     expect((float) JournalEntry::where('description', 'Nota C')->sum('credit'))->toEqual(300000.0);
 });
+
+function seedGappedScope(): array
+{
+    [$user, $unit, $cash, $rev] = seedUnitWithAccounts();
+    $d1 = DailyTransaction::create(['business_unit_id' => $unit->id, 'user_id' => $user->id, 'transaction_date' => '2026-09-01', 'total_income' => 1000]);
+    $d3 = DailyTransaction::create(['business_unit_id' => $unit->id, 'user_id' => $user->id, 'transaction_date' => '2026-09-03', 'total_income' => 3000]);
+    seedIncomeVoucher($d1->id, 'KSB001', '2026-09-01', $unit->id, $cash->id, $rev->id, 1000);
+    seedIncomeVoucher($d3->id, 'KSB003', '2026-09-03', $unit->id, $cash->id, $rev->id, 3000);
+
+    return [$unit, $d1, $d3];
+}
+
+test('append after a gap continues from the highest number instead of colliding', function () {
+    [$unit] = seedGappedScope();
+
+    // KSB002 is missing (deleted); appending Sep 4 must yield KSB004, not reuse KSB003.
+    expect(VoucherNumber::next('KSB', '2026-09-04', $unit->id)['number'])->toBe('KSB004');
+});
+
+test('backdated insert fills a gap and shifts later vouchers', function () {
+    [$unit, $d1, $d3] = seedGappedScope();
+
+    expect(VoucherNumber::next('KSB', '2026-09-02', $unit->id)['number'])->toBe('KSB002');
+    expect(JournalEntry::where('daily_transaction_id', $d3->id)->pluck('voucher_number')->unique()->all())->toBe(['KSB004']);
+    expect(JournalEntry::where('daily_transaction_id', $d1->id)->pluck('voucher_number')->unique()->all())->toBe(['KSB001']);
+});
+
+test('repair compacts gaps left by deletions', function () {
+    [$unit, $d1, $d3] = seedGappedScope();
+
+    $this->artisan('voucher:repair-duplicates', ['--prefix' => 'KSB', '--unit' => $unit->id, '--month' => '2026-09'])->assertSuccessful();
+
+    expect(JournalEntry::where('daily_transaction_id', $d1->id)->pluck('voucher_number')->unique()->all())->toBe(['KSB001']);
+    expect(JournalEntry::where('daily_transaction_id', $d3->id)->pluck('voucher_number')->unique()->all())->toBe(['KSB002']);
+
+    // Second run is a no-op on the now sequential scope.
+    $this->artisan('voucher:repair-duplicates', ['--prefix' => 'KSB', '--unit' => $unit->id, '--month' => '2026-09'])->assertSuccessful();
+    expect(JournalEntry::where('daily_transaction_id', $d3->id)->pluck('voucher_number')->unique()->all())->toBe(['KSB002']);
+});

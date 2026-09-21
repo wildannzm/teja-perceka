@@ -99,9 +99,20 @@ class VoucherNumber
                     ->update(['voucher_number' => $prefix.str_pad($old + $count, 3, '0', STR_PAD_LEFT)]);
             }
 
+            // Pure appends continue after the highest existing number so gaps
+            // left by deletions can never collide. Middle inserts keep the
+            // chronological slot freed by the shift above.
+            $maxExisting = 0;
+            foreach (array_keys($vouchers) as $key) {
+                $maxExisting = max($maxExisting, (int) substr($key, -3));
+            }
+            $base = $k >= count($ordered)
+                ? max($maxExisting, $baseOffset + $k)
+                : $baseOffset + $k;
+
             $numbers = [];
             for ($i = 1; $i <= $count; $i++) {
-                $numbers[] = $prefix.str_pad($baseOffset + $k + $i, 3, '0', STR_PAD_LEFT);
+                $numbers[] = $prefix.str_pad($base + $i, 3, '0', STR_PAD_LEFT);
             }
 
             return $numbers;
