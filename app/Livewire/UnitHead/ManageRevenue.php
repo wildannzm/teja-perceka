@@ -2,11 +2,11 @@
 
 namespace App\Livewire\UnitHead;
 
-use App\Enums\TransactionType;
 use App\Enums\CategoryType;
+use App\Enums\TransactionType;
+use App\Models\Account;
 use App\Models\CategoryPriceHistory;
 use App\Models\TransactionCategory;
-use App\Models\Account;
 use App\Models\TransactionItem;
 use App\Models\User;
 use App\Notifications\CategoryPriceUpdated;
@@ -24,10 +24,10 @@ class ManageRevenue extends Component
 
     public string $unitName;
 
-    /** @var array<int, float|string> harga per kategori (untuk edit harga existing) */
+    /** @var array<int, float|string> price per category (for editing existing prices) */
     public array $prices = [];
 
-    // ─── Form tambah kategori baru ────────────────────────────────────────
+    // ─── New category form ──────────────────────────────────────────────
     public string $categoryName = '';
 
     public string $categoryType = 'harga_x_qty';
@@ -38,7 +38,7 @@ class ManageRevenue extends Component
 
     public bool $showCreateForm = false;
 
-    // ─── Form edit kategori ────────────────────────────────────────────────
+    // ─── Edit category form ─────────────────────────────────────────────
     public bool $showEditModal = false;
 
     public ?int $editId = null;
@@ -49,7 +49,7 @@ class ManageRevenue extends Component
 
     public ?int $editCategoryAccountId = null;
 
-    // ─── Form hapus kategori ───────────────────────────────────────────────
+    // ─── Delete category form ───────────────────────────────────────────
     public bool $showDeleteModal = false;
 
     public ?int $deleteId = null;
@@ -84,7 +84,7 @@ class ManageRevenue extends Component
         }
     }
 
-    // ─── Update harga kategori existing ──────────────────────────────────
+    // ─── Update existing category prices ─────────────────────────────────
 
     public function updatePrice(int $categoryId): void
     {
@@ -127,7 +127,7 @@ class ManageRevenue extends Component
         $this->resetErrorBag();
     }
 
-    // ─── Tambah kategori baru ─────────────────────────────────────────────
+    // ─── Create new category ────────────────────────────────────────────
 
     public function updatedCategoryType(): void
     {
@@ -208,7 +208,7 @@ class ManageRevenue extends Component
         $this->showCreateForm = false;
     }
 
-    // ─── Edit Kategori ───────────────────────────────────────────────────
+    // ─── Edit Category ──────────────────────────────────────────────────
 
     public function editCategory(int $id): void
     {

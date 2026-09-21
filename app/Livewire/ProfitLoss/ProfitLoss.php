@@ -2,9 +2,9 @@
 
 namespace App\Livewire\ProfitLoss;
 
-use App\Models\JournalEntry;
 use App\Models\Account;
 use App\Models\BusinessUnit;
+use App\Models\JournalEntry;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -23,7 +23,7 @@ class ProfitLoss extends Component
     /** 'monthly' | 'semester' | 'yearly' */
     public string $mode = 'monthly';
 
-    /** Format Y-m untuk bulanan, Y untuk tahunan */
+    /** Y-m format for monthly, Y for yearly */
     public string $period = '';
 
     public string $semester = '1';
@@ -34,12 +34,12 @@ class ProfitLoss extends Component
     {
         $user = Auth::user();
 
-        // Kepala unit: kunci ke unit sendiri
+        // Unit heads: locked to their own unit
         if ($user->hasRole('kepala_unit')) {
             $this->unit_id = $user->business_unit_id;
         }
 
-        // Default periode ke bulan/tahun berjalan
+        // Default to the current month/year
         $now = Carbon::now();
         $this->period = $this->mode === 'monthly' ? $now->format('Y-m') : $now->format('Y');
         $this->semesterYear = $now->format('Y');
@@ -107,9 +107,9 @@ class ProfitLoss extends Component
         [$start, $end] = $this->periodRange();
         $batchTime = time();
 
-        foreach ($this->editValues as $akunId => $newValue) {
+        foreach ($this->editValues as $accountId => $newValue) {
             $newValue = (float) $newValue;
-            $originalRow = $allOriginalRows->firstWhere('id', $akunId);
+            $originalRow = $allOriginalRows->firstWhere('id', $accountId);
 
             if ($originalRow) {
                 $difference = $newValue - $originalRow->amount;
@@ -136,10 +136,10 @@ class ProfitLoss extends Component
                     }
 
                     JournalEntry::create([
-                        'voucher_number' => 'ADJ-'.$batchTime.'-'.$akunId,
+                        'voucher_number' => 'ADJ-'.$batchTime.'-'.$accountId,
                         'transaction_date' => $end->format('Y-m-d'),
                         'description' => 'Penyesuaian Manual Laba Rugi',
-                        'account_id' => $akunId,
+                        'account_id' => $accountId,
                         'debit' => $debit,
                         'credit' => $credit,
                         'business_unit_id' => $this->unit_id,

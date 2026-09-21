@@ -4,28 +4,34 @@ namespace App\Support;
 
 use App\Models\Account;
 use App\Models\BusinessUnit;
-use App\Models\DailyTransaction;
 use App\Models\JournalEntry;
-use App\Models\TransactionItem;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
-class SaldoKasBumdes
+class BumdesCashBalance
 {
     /**
      * Calculate BUMDes opening cash balance prior to the given start date.
      *
-     * Single source of truth, identical to the unit income views:
-     * unit net = detail subtotals - header expenses.
+     * Same journal-ledger source as the unit income views and Laba Rugi:
+     * prior unit net = prior revenue journals - prior expense journals.
      * Opening Balance = (Total Prior Unit Net + Manual BUMDes Income) - Prior BUMDes Expenses (KBM).
      */
     public static function getOpeningBalance(Carbon|string $startDate): float
     {
         $day = Carbon::parse($startDate)->startOfDay()->format('Y-m-d');
 
-        $priorIds = DailyTransaction::whereDate('transaction_date', '<', $day)->pluck('id');
-        $revenue = (float) TransactionItem::whereIn('daily_transaction_id', $priorIds)->sum('subtotal');
-        $expenses = (float) DailyTransaction::whereDate('transaction_date', '<', $day)->sum('total_expense');
+        // Unit legs only (daily_transaction_id set): manual BUMDes income and
+        // KBM expenses have their own legs below and must not be double counted.
+        $revenue = (float) JournalEntry::whereDate('transaction_date', '<', $day)
+            ->whereNotNull('daily_transaction_id')
+            ->whereHas('account', fn ($query) => $query->whereIn('type', ['pendapatan', 'pendapatan_lain']))
+            ->sum(DB::raw('credit - debit'));
+        $expenses = (float) JournalEntry::whereDate('transaction_date', '<', $day)
+            ->whereNotNull('daily_transaction_id')
+            ->whereHas('account', fn ($query) => $query->whereIn('type', ['hpp', 'beban', 'beban_lain']))
+            ->sum(DB::raw('debit - credit'));
         $unitNet = max(0.0, $revenue - $expenses);
 
         $manualBumdesIncome = (float) JournalEntry::where('voucher_number', 'like', 'DBM%')
@@ -48,8 +54,8 @@ class SaldoKasBumdes
     /**
      * Calculate net revenue per business unit for the specified date range.
      *
-     * Same source as the unit income views: detail subtotals - header
-     * expenses, so BUMDes consolidation always matches the unit figures.
+     * Same journal-ledger source as Laba Rugi (not header/item totals, which
+     * can go stale): revenue journals - expense journals per unit.
      *
      * @return Collection<int, array{unit: BusinessUnit, amount: float}>
      */
@@ -62,19 +68,19 @@ class SaldoKasBumdes
         $results = collect();
 
         foreach ($units as $unit) {
-            $headerIds = DailyTransaction::where('business_unit_id', $unit->id)
+            $scope = JournalEntry::where('business_unit_id', $unit->id)
                 ->whereDate('transaction_date', '>=', $startDay)
-                ->whereDate('transaction_date', '<=', $endDay)
-                ->pluck('id');
+                ->whereDate('transaction_date', '<=', $endDay);
 
-            $revenue = (float) TransactionItem::whereIn('daily_transaction_id', $headerIds)->sum('subtotal');
+            $revenue = (float) (clone $scope)
+                ->whereHas('account', fn ($query) => $query->whereIn('type', ['pendapatan', 'pendapatan_lain']))
+                ->sum(DB::raw('credit - debit'));
 
-            $expenses = (float) DailyTransaction::where('business_unit_id', $unit->id)
-                ->whereDate('transaction_date', '>=', $startDay)
-                ->whereDate('transaction_date', '<=', $endDay)
-                ->sum('total_expense');
+            $expenses = (float) (clone $scope)
+                ->whereHas('account', fn ($query) => $query->whereIn('type', ['hpp', 'beban', 'beban_lain']))
+                ->sum(DB::raw('debit - credit'));
 
-            // Net unit revenue = detail revenue - header expenses
+            // Net unit revenue = ledger revenue - ledger expenses
             $netAmount = max(0.0, $revenue - $expenses);
 
             if ($netAmount > 0) {
@@ -297,27 +303,5 @@ class SaldoKasBumdes
 
             return $isDescending ? (($second->id ?? 0) <=> ($first->id ?? 0)) : (($first->id ?? 0) <=> ($second->id ?? 0));
         })->values();
-    }
-
-    // ── Backward Compatibility Aliases ─────────────────────────────────────
-
-    public static function getSaldoAwal(Carbon|string $startDate): float
-    {
-        return self::getOpeningBalance($startDate);
-    }
-
-    public static function getPendapatanPerUnit(Carbon|string $startDate, Carbon|string $endDate): Collection
-    {
-        return self::getNetIncomePerUnit($startDate, $endDate);
-    }
-
-    public static function getTotalPendapatanUnit(Carbon|string $startDate, Carbon|string $endDate): float
-    {
-        return self::getTotalNetUnitIncome($startDate, $endDate);
-    }
-
-    public static function makeSaldoAwalEntries(Carbon|string $startDate, float $amount, string $mode = 'monthly', string $voucherNumber = 'DBM001'): Collection
-    {
-        return self::makeOpeningBalanceEntries($startDate, $amount, $mode, $voucherNumber);
     }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Revenue;
 
-use App\Models\TransactionItem;
-use App\Models\DailyTransaction;
 use App\Models\BusinessUnit;
+use App\Models\DailyTransaction;
+use App\Models\TransactionItem;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -88,8 +88,8 @@ class RevenueReport extends Component
                 return [$date->startOfDay(), $date->copy()->endOfDay()];
 
             case 'weekly':
-                // For TPS: match exact single record with tanggal = startOfWeek (ISO)
-                // For daily units: WHERE tanggal BETWEEN startOfWeek AND endOfWeek
+                // For TPS: match exact single record with transaction_date = startOfWeek (ISO)
+                // For daily units: WHERE transaction_date BETWEEN startOfWeek AND endOfWeek
                 $weekStart = Carbon::parse($this->week ?: Carbon::now()->startOfWeek()->format('Y-m-d'));
                 $weekEnd = $weekStart->copy()->endOfWeek();
 
@@ -129,7 +129,7 @@ class RevenueReport extends Component
 
     /**
      * Build DailyTransaction query based on mode, range, and unit.
-     * TPS (weekly): query based on exact date (tanggal = start of week).
+     * TPS (weekly): query based on exact date (transaction_date = start of week).
      * Daily units: query based on date range.
      */
     private function buildDailyTransactionQuery(?BusinessUnit $unit, ?array $range)
@@ -148,12 +148,12 @@ class RevenueReport extends Component
         }
 
         // TPS (weekly): find exact record whose period matches current week
-        // Column tanggal = week start, tanggal_akhir = week end
+        // Column transaction_date = week start, end_date = week end
         if ($this->mode === 'weekly' && $this->isWeeklyUnit($unit) && $this->unit_id) {
             $q->where('transaction_date', $start->format('Y-m-d'))
                 ->where('end_date', $end->format('Y-m-d'));
         } else {
-            // Daily unit: WHERE tanggal BETWEEN start AND end
+            // Daily unit: WHERE transaction_date BETWEEN start AND end
             // For consolidated view, include all units including TPS by date
             $q->whereBetween('transaction_date', [$start->format('Y-m-d'), $end->format('Y-m-d')]);
         }
@@ -287,7 +287,7 @@ class RevenueReport extends Component
             ->with('transactionCategory.businessUnit')
             ->get();
 
-        // Shape kategoriRows into the expected format
+        // Shape categoryRows into the expected format
         $categoryRows = $aggregatedRows->map(function ($row) {
             $category = $row->transactionCategory;
 

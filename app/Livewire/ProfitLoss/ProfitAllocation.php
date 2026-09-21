@@ -2,10 +2,10 @@
 
 namespace App\Livewire\ProfitLoss;
 
-use App\Models\ProfitAllocationRecord;
-use App\Models\JournalEntry;
 use App\Models\Account;
-use App\Support\SaldoKasBumdes;
+use App\Models\JournalEntry;
+use App\Models\ProfitAllocationRecord;
+use App\Support\BumdesCashBalance;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -154,7 +154,7 @@ class ProfitAllocation extends Component
     {
         [$start, $end] = $this->periodRange();
 
-        $revenue = $this->sumAccountBalance('pendapatan', 'credit', [$start, $end]) + SaldoKasBumdes::getTotalNetUnitIncome($start, $end);
+        $revenue = $this->sumAccountBalance('pendapatan', 'credit', [$start, $end]) + BumdesCashBalance::getTotalNetUnitIncome($start, $end);
         $cogs = $this->sumAccountBalance('hpp', 'debit', [$start, $end]);
         $expenses = $this->sumAccountBalance('beban', 'debit', [$start, $end]);
         $otherRevenue = $this->sumAccountBalance('pendapatan_lain', 'credit', [$start, $end]);

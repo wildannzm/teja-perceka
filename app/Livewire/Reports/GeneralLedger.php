@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Reports;
 
-use App\Models\JournalEntry;
 use App\Models\Account;
 use App\Models\BusinessUnit;
+use App\Models\JournalEntry;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
@@ -18,7 +18,7 @@ use Livewire\Component;
 #[Title('Laporan Buku Besar')]
 class GeneralLedger extends Component
 {
-    /** null = konsolidasi semua unit */
+    /** null = consolidate all units */
     public ?int $unit_id = null;
 
     /** Format Y-m */
@@ -110,7 +110,7 @@ class GeneralLedger extends Component
                 $normalBalance = $this->getNormalBalanceType($selectedAccount->type);
                 [$startDate, $endDate] = $this->periodRange();
 
-                // Calculate Saldo Awal (before start date)
+                // Calculate opening balance (before start date)
                 $openingQuery = JournalEntry::where('account_id', $this->account_id)
                     ->whereDate('transaction_date', '<', $startDate->format('Y-m-d'));
 

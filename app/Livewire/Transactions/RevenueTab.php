@@ -2,9 +2,10 @@
 
 namespace App\Livewire\Transactions;
 
-use App\Models\TransactionItem;
-use App\Models\DailyTransaction;
 use App\Models\BusinessUnit;
+use App\Models\DailyTransaction;
+use App\Models\JournalEntry;
+use App\Models\TransactionItem;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -154,6 +155,39 @@ class RevenueTab extends Component
         }
     }
 
+    /**
+     * Income/expense/net totals read from the same source as Laba Rugi:
+     * journal entries grouped by COA account type over the same period and
+     * unit scope. Per-category rows below still come from transaction items
+     * (they have no journal equivalent), but the headline figures always
+     * match the profit/loss report.
+     *
+     * @return array{0: float, 1: float}
+     */
+    private function journalTotals(array $range): array
+    {
+        [$start, $end] = $range;
+
+        $sums = JournalEntry::query()
+            ->join('accounts', 'accounts.id', '=', 'journal_entries.account_id')
+            ->whereIn('accounts.type', ['pendapatan', 'pendapatan_lain', 'hpp', 'beban', 'beban_lain'])
+            ->whereBetween('journal_entries.transaction_date', [$start->format('Y-m-d'), $end->format('Y-m-d')])
+            ->when($this->unitId && is_numeric($this->unitId),
+                fn ($query) => $query->where('journal_entries.business_unit_id', (int) $this->unitId))
+            ->selectRaw('accounts.type as type, SUM(journal_entries.debit) as d, SUM(journal_entries.credit) as c')
+            ->groupBy('accounts.type')
+            ->get();
+
+        $netOf = fn (string $type, string $direction): float => (float) $sums
+            ->where('type', $type)
+            ->sum(fn ($row) => $direction === 'credit' ? $row->c - $row->d : $row->d - $row->c);
+
+        $revenue = $netOf('pendapatan', 'credit') + $netOf('pendapatan_lain', 'credit');
+        $expenses = $netOf('hpp', 'debit') + $netOf('beban', 'debit') + $netOf('beban_lain', 'debit');
+
+        return [$revenue, $expenses];
+    }
+
     #[Computed]
     public function reportData(): array
     {
@@ -174,7 +208,6 @@ class RevenueTab extends Component
         }
 
         $transactionQuery = $this->buildDailyTransactionQuery($unit, $range);
-        $unitTotalExpense = (float) (clone $transactionQuery)->sum('total_expense');
         $transactionIds = $transactionQuery->pluck('id');
 
         if ($transactionIds->isEmpty()) {
@@ -219,12 +252,15 @@ class RevenueTab extends Component
         $totalRevenue = $categoryRows->sum('subtotal');
         $dailyTransactionId = $this->mode === 'daily' ? $categoryRows->first()['daily_transaction_id'] ?? null : null;
 
+        // Headline figures from journals (same as Laba Rugi), not from items/headers.
+        [$journalRevenue, $journalExpenses] = $this->journalTotals($range);
+
         return [
             'unit' => $unitName,
             'categoryRows' => $categoryRows,
-            'totalRevenue' => $totalRevenue,
-            'unitTotalExpense' => $unitTotalExpense,
-            'netIncome' => $totalRevenue - $unitTotalExpense,
+            'totalRevenue' => $journalRevenue,
+            'unitTotalExpense' => $journalExpenses,
+            'netIncome' => $journalRevenue - $journalExpenses,
             'isEmpty' => $categoryRows->isEmpty(),
             'emptyMessage' => 'Tidak ada data pemasukan pada periode ini.',
             'dailyTransactionId' => $dailyTransactionId,

@@ -1,4 +1,6 @@
-<div class="flex flex-col gap-6 max-w-full mx-auto w-full pb-20">
+<div class="flex flex-col gap-6 max-w-full mx-auto w-full pb-20"
+    x-data
+    x-effect="document.body.style.overflow = ($wire.showCreateModal || $wire.showEditModal || $wire.showDeleteModal) ? 'hidden' : ''">
 
     <x-page-header title="Catat Pengeluaran" description="Riwayat pengeluaran operasional unit usaha.">
         <x-slot:actions>
@@ -177,7 +179,7 @@
                             </td>
                             <td class="py-3.5 px-4 whitespace-nowrap text-center">
                                 <div class="flex items-center justify-center gap-1">
-                                    <button wire:click="editHistory('{{ $journal->voucher_number }}')"
+                                    <button wire:click="editHistory({{ $journal->id }})"
                                         class="p-2 text-brand-600 hover:text-brand-800 rounded-lg transition-colors inline-flex items-center justify-center"
                                         title="Edit">
                                         <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -186,7 +188,7 @@
                                                 d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
                                         </svg>
                                     </button>
-                                    <button wire:click="confirmDelete('{{ $journal->voucher_number }}')"
+                                    <button wire:click="confirmDelete({{ $journal->id }})"
                                         class="p-2 text-red-500 hover:text-red-700 rounded-lg transition-colors inline-flex items-center justify-center"
                                         title="Hapus">
                                         <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -243,7 +245,7 @@
                     <div class="flex items-center justify-between pt-2">
                         <span class="text-sm font-bold text-red-600">Rp {{ number_format($journal->debit, 0, ',', '.') }}</span>
                         <div class="flex items-center gap-1">
-                            <button wire:click="editHistory('{{ $journal->voucher_number }}')"
+                            <button wire:click="editHistory({{ $journal->id }})"
                                 class="p-2 text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
                                 title="Edit">
                                 <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -252,7 +254,7 @@
                                         d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
                                 </svg>
                             </button>
-                            <button wire:click="confirmDelete('{{ $journal->voucher_number }}')"
+                            <button wire:click="confirmDelete({{ $journal->id }})"
                                 class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                 title="Hapus">
                                 <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -284,7 +286,7 @@
 
     {{-- ============================ CREATE MODAL ============================ --}}
     @if ($showCreateModal)
-        <div x-data x-init="document.body.style.overflow='hidden'" x-effect="document.body.style.overflow = $wire.showCreateModal ? 'hidden' : ''"
+        <div
             class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="create-modal-title">
             <div class="flex min-h-full items-center justify-center p-4">
                 <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" wire:click="closeCreateModal" aria-hidden="true"></div>
@@ -462,7 +464,7 @@
 
     {{-- ============================ EDIT MODAL ============================ --}}
     @if ($showEditModal)
-        <div x-data x-init="document.body.style.overflow='hidden'" x-effect="document.body.style.overflow = $wire.showEditModal ? 'hidden' : ''"
+        <div
             class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
             <div class="flex min-h-full items-center justify-center p-4">
                 <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" wire:click="closeEditModal" aria-hidden="true"></div>
@@ -601,7 +603,7 @@
 
     {{-- ============================ DELETE MODAL ============================ --}}
     @if ($showDeleteModal)
-        <div x-data x-init="document.body.style.overflow='hidden'" x-effect="document.body.style.overflow = $wire.showDeleteModal ? 'hidden' : ''"
+        <div
             class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
             <div class="flex min-h-full items-center justify-center p-4">
                 <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" wire:click="closeDeleteModal" aria-hidden="true"></div>

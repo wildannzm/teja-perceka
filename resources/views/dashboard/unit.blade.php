@@ -3,7 +3,7 @@
 
                 <x-page-header title="Dashboard Kepala Unit" description="Sistem pembukuan digital BUMDes Teja Perceka">
             <x-slot:actions>
-                <flux:button variant="primary" :href="route('unit.riwayat-transaksi')" wire:navigate
+                <flux:button variant="primary" :href="route('unit.transaction-history')" wire:navigate
                     class="w-full sm:w-auto shrink-0" icon="document-chart-bar">
                     Riwayat &amp; Rekap
                 </flux:button>
@@ -14,3 +14,4 @@
 
     </div>
 </x-layouts::app>
+

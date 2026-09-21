@@ -18,9 +18,9 @@ class VoucherNumber
     /**
      * @return array{prefix: string, number: string, sequence: int}
      */
-    public static function next(string $prefix, string $date, ?int $tourismUnitId = null): array
+    public static function next(string $prefix, string $date, ?int $businessUnitId = null): array
     {
-        $number = self::nextBatch($prefix, $date, 1, $tourismUnitId)[0];
+        $number = self::nextBatch($prefix, $date, 1, $businessUnitId)[0];
 
         return [
             'prefix' => $prefix,
@@ -30,13 +30,67 @@ class VoucherNumber
     }
 
     /**
+     * Extract the letter prefix of a voucher number (e.g. DSB003 -> DSB).
+     * Returns null for non-standard formats (e.g. ADJ-...), which are skipped.
+     */
+    public static function prefixOf(string $voucherNumber): ?string
+    {
+        if (! preg_match('/^([A-Z]+)(\d+)$/', $voucherNumber, $m)) {
+            return null;
+        }
+
+        return $m[1];
+    }
+
+    /**
+     * Close numbering gaps in one scope (prefix + YYYY-MM + unit) so vouchers
+     * stay exactly 001..N in chronological order. Called after every delete
+     * or cross-month move. Scopes that are already sequential are untouched.
+     */
+    public static function renumberScope(string $prefix, string $month, ?int $unitId = null): void
+    {
+        $monthStart = $month.'-01';
+        $monthEnd = Carbon::parse($monthStart)->endOfMonth()->format('Y-m-d');
+
+        $rows = JournalEntry::where('voucher_number', 'like', $prefix.'%')
+            ->whereDate('transaction_date', '>=', $monthStart)
+            ->whereDate('transaction_date', '<=', $monthEnd)
+            ->when($unitId !== null,
+                fn ($query) => $query->where('business_unit_id', $unitId),
+                fn ($query) => $query->whereNull('business_unit_id'))
+            ->lockForUpdate()
+            ->orderBy('transaction_date')
+            ->orderBy('id')
+            ->get(['id', 'voucher_number', 'transaction_date', 'daily_transaction_id', 'description']);
+
+        $pairs = $rows
+            ->groupBy(fn ($row) => $row->voucher_number.'|'.($row->daily_transaction_id ?? 'null').'|'.$row->description)
+            ->map(fn ($group) => [
+                'ids' => $group->pluck('id')->all(),
+                'old' => $group->first()->voucher_number,
+                'date' => $group->min('transaction_date'),
+                'firstId' => $group->min('id'),
+            ])
+            ->sortBy([['date', 'asc'], ['firstId', 'asc']])
+            ->values();
+
+        foreach ($pairs as $index => $pair) {
+            $new = $prefix.str_pad($index + 1, 3, '0', STR_PAD_LEFT);
+            if ($pair['old'] === $new) {
+                continue;
+            }
+            JournalEntry::whereIn('id', $pair['ids'])->update(['voucher_number' => $new]);
+        }
+    }
+
+    /**
      * Reserve $count sequential numbers at the chronological position.
      *
      * @return string[]
      */
-    public static function nextBatch(string $prefix, string $date, int $count, ?int $tourismUnitId = null): array
+    public static function nextBatch(string $prefix, string $date, int $count, ?int $businessUnitId = null): array
     {
-        return DB::transaction(function () use ($prefix, $date, $count, $tourismUnitId) {
+        return DB::transaction(function () use ($prefix, $date, $count, $businessUnitId) {
             $day = Carbon::parse($date)->format('Y-m-d');
 
             $query = JournalEntry::where('voucher_number', 'like', $prefix.'%')
@@ -44,11 +98,11 @@ class VoucherNumber
                 ->whereDate('transaction_date', '<', Carbon::parse($day)->startOfMonth()->addMonth()->format('Y-m-d'))
                 ->lockForUpdate();
 
-            if ($tourismUnitId !== null) {
-                $query->where('business_unit_id', $tourismUnitId);
+            if ($businessUnitId !== null) {
+                $query->where('business_unit_id', $businessUnitId);
             }
 
-            // One voucher = one nomor_bukti (possibly many debit/credit rows), ordered chronologically.
+            // One voucher = one voucher_number (possibly many debit/credit rows), ordered chronologically.
             // Identity of a logical voucher: same number + same daily + same
             // description. Every writer in this codebase stores one
             // description per voucher, so more than one combination means rows
@@ -78,7 +132,7 @@ class VoucherNumber
             $baseOffset = 0;
             if ($prefix === 'DBM') {
                 $monthStart = substr($day, 0, 7).'-01';
-                if (SaldoKasBumdes::getOpeningBalance($monthStart) > 0) {
+                if (BumdesCashBalance::getOpeningBalance($monthStart) > 0) {
                     $baseOffset = 1;
                 }
             }

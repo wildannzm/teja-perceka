@@ -23,9 +23,20 @@ class UserManager extends Component
 
     public $email = '';
 
+    /**
+     * Users a village head may manage: same boundary as the list —
+     * privileged roles are never editable here, even by guessed ID.
+     */
+    private function manageableUsers()
+    {
+        return User::whereHas('roles', function ($query) {
+            $query->whereNotIn('name', ['kepala_desa', 'pengawas', 'super_admin']);
+        });
+    }
+
     public function editUser($userId)
     {
-        $user = User::findOrFail($userId);
+        $user = $this->manageableUsers()->findOrFail($userId);
         $this->editingUserId = $user->id;
         $this->name = $user->name;
         $this->email = $user->email;
@@ -44,7 +55,7 @@ class UserManager extends Component
         ]);
 
         if ($this->editingUserId) {
-            $user = User::findOrFail($this->editingUserId);
+            $user = $this->manageableUsers()->findOrFail($this->editingUserId);
             $user->update([
                 'name' => $this->name,
                 'email' => $this->email,
@@ -58,10 +69,8 @@ class UserManager extends Component
 
     public function render()
     {
-        $users = User::with(['roles', 'businessUnit'])
-            ->whereHas('roles', function ($query) {
-                $query->whereNotIn('name', ['kepala_desa', 'pengawas', 'super_admin']);
-            })
+        $users = $this->manageableUsers()
+            ->with(['roles', 'businessUnit'])
             ->where(function ($q) {
                 $q->where('name', 'like', '%'.$this->search.'%')
                     ->orWhere('email', 'like', '%'.$this->search.'%');

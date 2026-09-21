@@ -146,7 +146,7 @@
             <h3 class="text-lg font-bold text-zinc-900 mb-2">Belum Ada Transaksi</h3>
             <p class="text-zinc-500 text-sm max-w-md mx-auto mb-6">{{ $data['emptyMessage'] }}</p>
             @if($this->isKepalaUnit)
-                <flux:button variant="primary" icon="plus" href="{{ route('unit.input-transaksi') }}">
+                <flux:button variant="primary" icon="plus" href="{{ route('unit.record-transaction') }}">
                     Input Transaksi Baru
                 </flux:button>
             @endif
@@ -201,3 +201,4 @@
     @endif
 
 </div>
+

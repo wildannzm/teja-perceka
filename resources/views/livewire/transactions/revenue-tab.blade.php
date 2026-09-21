@@ -3,7 +3,7 @@
 
     @php
         $data = $this->reportData;
-        $isConsolidated = in_array($unitId, ['bumdes', 'semua'], true) || empty($unitId);
+        $isConsolidated = in_array($unitId, ['bumdes', 'all'], true) || empty($unitId);
         $canEdit = $this->isKepalaUnit && $mode === 'daily' && isset($data['dailyTransactionId']) && $data['dailyTransactionId'];
     @endphp
 
@@ -44,7 +44,7 @@
     {{-- Edit button for unit heads (daily mode) --}}
     @if($canEdit)
         <div class="flex justify-end">
-            <a href="{{ route('unit.edit-transaksi', $data['dailyTransactionId']) }}"
+            <a href="{{ route('unit.edit-transaction', $data['dailyTransactionId']) }}"
                 wire:navigate
                 style="background-color:#fbbf24;color:#1c1917;"
                 class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors hover:opacity-90 shadow-sm">
@@ -66,7 +66,7 @@
             <h3 class="text-lg font-bold text-zinc-900 mb-2">Belum Ada Transaksi</h3>
             <p class="text-zinc-500 text-sm max-w-md mx-auto mb-6">{{ $data['emptyMessage'] }}</p>
             @if($this->isKepalaUnit)
-                <flux:button variant="primary" icon="plus" href="{{ route('unit.input-transaksi') }}">
+                <flux:button variant="primary" icon="plus" href="{{ route('unit.record-transaction') }}">
                     Input Transaksi Baru
                 </flux:button>
             @endif
@@ -127,3 +127,4 @@
     @endif
 
 </div>
+

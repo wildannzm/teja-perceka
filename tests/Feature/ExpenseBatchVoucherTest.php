@@ -26,7 +26,8 @@ test('recording multiple expense items at once reserves distinct voucher numbers
             ['account_id' => $beban->id, 'description' => 'Item dua', 'amount' => 200000],
         ])
         ->call('submit')
-        ->assertHasNoErrors();
+        ->assertHasNoErrors()
+        ->assertDispatched('swal-alert', icon: 'success', title: 'Berhasil');
 
     $numbers = JournalEntry::where('business_unit_id', $unit->id)
         ->where('voucher_number', 'like', 'KSB%')

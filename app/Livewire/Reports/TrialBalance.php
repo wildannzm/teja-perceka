@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Reports;
 
-use App\Models\JournalEntry;
 use App\Models\Account;
 use App\Models\BusinessUnit;
+use App\Models\JournalEntry;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
@@ -19,7 +19,7 @@ use Livewire\Component;
 #[Title('Neraca Saldo')]
 class TrialBalance extends Component
 {
-    /** null = konsolidasi semua unit */
+    /** null = consolidate all units */
     public ?int $unit_id = null;
 
     /** Format Y-m */
@@ -73,15 +73,15 @@ class TrialBalance extends Component
         [$start, $end] = $this->periodRange();
         $batchTime = time();
 
-        foreach ($this->editValues as $akunId => $newValue) {
+        foreach ($this->editValues as $accountId => $newValue) {
             $newValue = (float) $newValue;
-            $originalRow = $allOriginalRows->firstWhere('id', $akunId);
+            $originalRow = $allOriginalRows->firstWhere('id', $accountId);
 
             if ($originalRow) {
                 $difference = $newValue - $originalRow->balance;
 
                 if ($difference != 0) {
-                    $account = Account::find($akunId);
+                    $account = Account::find($accountId);
                     if (! $account) {
                         continue;
                     }
@@ -106,10 +106,10 @@ class TrialBalance extends Component
                     }
 
                     JournalEntry::create([
-                        'voucher_number' => 'ADJ-'.$batchTime.'-'.$akunId,
+                        'voucher_number' => 'ADJ-'.$batchTime.'-'.$accountId,
                         'transaction_date' => $end->format('Y-m-d'),
                         'description' => 'Penyesuaian Manual Neraca Saldo',
-                        'account_id' => $akunId,
+                        'account_id' => $accountId,
                         'debit' => $debit,
                         'credit' => $credit,
                         'business_unit_id' => $this->unit_id,

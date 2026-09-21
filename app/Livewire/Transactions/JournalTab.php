@@ -2,10 +2,11 @@
 
 namespace App\Livewire\Transactions;
 
-use App\Models\JournalEntry;
-use App\Models\DailyTransaction;
 use App\Models\BusinessUnit;
-use App\Support\SaldoKasBumdes;
+use App\Models\DailyTransaction;
+use App\Models\JournalEntry;
+use App\Support\BumdesCashBalance;
+use App\Support\VoucherNumber;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
@@ -83,7 +84,7 @@ class JournalTab extends Component
      * - kepala_unit: restricted to their assigned unit
      * - non-kepala-unit:
      *   - 'bumdes' or default: BUMDes expenses (KBM) and direct BUMDes journals (DBM)
-     *   - 'semua': all business unit journals (where business_unit_id is not null)
+     *   - 'all': all business unit journals (where business_unit_id is not null)
      *   - numeric ID: specific business unit journal
      */
     private function applyRoleScope($query)
@@ -96,7 +97,7 @@ class JournalTab extends Component
             return $query;
         }
 
-        if ($this->unitId === 'semua') {
+        if ($this->unitId === 'all') {
             $query->whereNotNull('business_unit_id');
         } elseif ($this->unitId && is_numeric($this->unitId)) {
             $query->where('business_unit_id', (int) $this->unitId);
@@ -230,7 +231,7 @@ class JournalTab extends Component
 
         if ($this->isBumdesScope()) {
             $dbTransactions = $query->get();
-            $allTransactions = SaldoKasBumdes::attachToTransactions(
+            $allTransactions = BumdesCashBalance::attachToTransactions(
                 $dbTransactions,
                 $start,
                 $end,
@@ -367,7 +368,7 @@ class JournalTab extends Component
      */
     private function mergeVirtualSummary($rows, Carbon $start, Carbon $end)
     {
-        $virtuals = SaldoKasBumdes::getBumdesVirtualEntries($start, $end, $this->mode);
+        $virtuals = BumdesCashBalance::getBumdesVirtualEntries($start, $end, $this->mode);
         if ($virtuals->isEmpty()) {
             return $rows->values();
         }
@@ -442,9 +443,9 @@ class JournalTab extends Component
         $total = (float) $query->sum('debit');
         if ($this->isBumdesScope()) {
             if (in_array($this->mode, ['monthly', 'semester', 'yearly'], true)) {
-                $total += SaldoKasBumdes::getOpeningBalance($start);
+                $total += BumdesCashBalance::getOpeningBalance($start);
             }
-            $total += SaldoKasBumdes::getTotalNetUnitIncome($start, $end);
+            $total += BumdesCashBalance::getTotalNetUnitIncome($start, $end);
         }
 
         return $total;
@@ -461,9 +462,9 @@ class JournalTab extends Component
         $total = (float) $query->sum('credit');
         if ($this->isBumdesScope()) {
             if (in_array($this->mode, ['monthly', 'semester', 'yearly'], true)) {
-                $total += SaldoKasBumdes::getOpeningBalance($start);
+                $total += BumdesCashBalance::getOpeningBalance($start);
             }
-            $total += SaldoKasBumdes::getTotalNetUnitIncome($start, $end);
+            $total += BumdesCashBalance::getTotalNetUnitIncome($start, $end);
         }
 
         return $total;
@@ -533,6 +534,16 @@ class JournalTab extends Component
                     fn ($query) => $query->where('business_unit_id', $journal->business_unit_id),
                     fn ($query) => $query->whereNull('business_unit_id'))
                 ->delete();
+
+            // Keep the remaining numbers gapless (001, 002, ...).
+            $prefix = VoucherNumber::prefixOf($journal->voucher_number);
+            if ($prefix !== null) {
+                VoucherNumber::renumberScope(
+                    $prefix,
+                    $journal->transaction_date->format('Y-m'),
+                    $journal->business_unit_id
+                );
+            }
         });
 
         $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Satu set jurnal (debet & kredit) berhasil dihapus.');
@@ -543,13 +554,13 @@ class JournalTab extends Component
 
     // ── Edit ──────────────────────────────────────────────────────────────────
 
-    public function openEdit(int $jurnalId): void
+    public function openEdit(int $journalId): void
     {
         if (! $this->canEdit) {
             abort(403);
         }
 
-        $journal = JournalEntry::findOrFail($jurnalId);
+        $journal = JournalEntry::findOrFail($journalId);
 
         // Unit heads: only edit own unit's journals
         if (Auth::user()->hasRole('kepala_unit')) {
@@ -571,7 +582,7 @@ class JournalTab extends Component
             ->orderBy('id', 'asc')
             ->get();
 
-        $this->editJournalId = $jurnalId;
+        $this->editJournalId = $journalId;
         $this->editVoucherNumber = $journal->voucher_number;
         $this->editDate = $journal->transaction_date->format('Y-m-d');
         $this->editDescription = $journal->description;
@@ -603,6 +614,11 @@ class JournalTab extends Component
 
         try {
             DB::transaction(function () {
+                $editedIds = collect($this->editRows)->pluck('id')->all();
+                $oldMonth = JournalEntry::whereIn('id', $editedIds)->min('transaction_date');
+                $oldMonth = $oldMonth ? Carbon::parse($oldMonth)->format('Y-m') : null;
+                $oldDebitTotal = JournalEntry::whereIn('id', $editedIds)->sum('debit');
+
                 foreach ($this->editRows as $row) {
                     $journal = JournalEntry::findOrFail($row['id']);
 
@@ -630,10 +646,26 @@ class JournalTab extends Component
                 $firstJournal = JournalEntry::whereIn('id', $editedIds)->first();
                 if ($firstJournal && $firstJournal->daily_transaction_id) {
                     $totalDebit = JournalEntry::whereIn('id', $editedIds)->sum('debit');
-                    DailyTransaction::where('id', $firstJournal->daily_transaction_id)->update([
-                        'transaction_date' => $this->editDate,
-                        'total_income' => $totalDebit,
-                    ]);
+                    DailyTransaction::where('id', $firstJournal->daily_transaction_id)
+                        ->update(['transaction_date' => $this->editDate]);
+                    if (str_starts_with($firstJournal->voucher_number, 'K')) {
+                        // Expense voucher: keep header expense in step with journals.
+                        DailyTransaction::where('id', $firstJournal->daily_transaction_id)
+                            ->increment('total_expense', $totalDebit - $oldDebitTotal);
+                    } else {
+                        DailyTransaction::where('id', $firstJournal->daily_transaction_id)
+                            ->update(['total_income' => $totalDebit]);
+                    }
+                }
+
+                // A cross-month move leaves a gap behind: close it on both sides.
+                $newMonth = substr($this->editDate, 0, 7);
+                if ($firstJournal) {
+                    $prefix = VoucherNumber::prefixOf($firstJournal->voucher_number);
+                    if ($prefix !== null && $oldMonth !== null && $newMonth !== $oldMonth) {
+                        VoucherNumber::renumberScope($prefix, $oldMonth, $firstJournal->business_unit_id);
+                        VoucherNumber::renumberScope($prefix, $newMonth, $firstJournal->business_unit_id);
+                    }
                 }
             });
 
@@ -721,7 +753,7 @@ class JournalTab extends Component
 
         $transactions = $query->get();
         if ($this->isBumdesScope()) {
-            $transactions = SaldoKasBumdes::attachToTransactions(
+            $transactions = BumdesCashBalance::attachToTransactions(
                 $transactions,
                 $start,
                 $end,

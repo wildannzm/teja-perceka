@@ -2,14 +2,14 @@
 
 namespace App\Livewire\UnitHead;
 
-use App\Enums\TransactionType;
 use App\Enums\CategoryType;
+use App\Enums\TransactionType;
+use App\Models\Account;
+use App\Models\BusinessUnit;
+use App\Models\DailyTransaction;
 use App\Models\JournalEntry;
 use App\Models\TransactionCategory;
-use App\Models\Account;
 use App\Models\TransactionItem;
-use App\Models\DailyTransaction;
-use App\Models\BusinessUnit;
 use App\Support\VoucherNumber;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -38,7 +38,7 @@ class RecordDailyTransaction extends Component
     public bool $isEditing = false;
 
     // Holds the input state of each category
-    // Format: [kategori_id => ['quantity' => value, 'amount' => value, 'active' => boolean, 'subtotal' => value]]
+    // Format: [category_id => ['quantity' => value, 'amount' => value, 'active' => boolean, 'subtotal' => value]]
     public array $inputs = [];
 
     public bool $alreadySubmitted = false;
@@ -67,7 +67,7 @@ class RecordDailyTransaction extends Component
         } else {
             if ($this->isWeekly) {
                 // For weekly units (TPS), default to today as the specific entry date,
-                // while tanggalAkhir marks the end of the current week period.
+                // while endDate marks the end of the current week period.
                 $this->transactionDate = $today->format('Y-m-d');
                 $this->endDate = $today->copy()->endOfWeek()->format('Y-m-d');
             } else {
@@ -93,25 +93,25 @@ class RecordDailyTransaction extends Component
         $this->transactionDate = $transaction->transaction_date->format('Y-m-d');
         $this->endDate = $transaction->end_date?->format('Y-m-d');
 
-        // Build a lookup of existing detail values keyed by kategori_id
+        // Build a lookup of existing detail values keyed by category_id
         $existingDetails = $transaction->items->keyBy('transaction_category_id');
 
         $this->initCategoryInputs();
 
         // Overlay existing values onto the initialised inputs
-        foreach ($existingDetails as $kategoriId => $detail) {
-            if (! isset($this->inputs[$kategoriId])) {
+        foreach ($existingDetails as $categoryId => $detail) {
+            if (! isset($this->inputs[$categoryId])) {
                 continue;
             }
 
-            $type = $this->inputs[$kategoriId]['type'];
+            $type = $this->inputs[$categoryId]['type'];
 
             if ($type === CategoryType::PriceTimesQuantity->value || $type === CategoryType::Yearly->value) {
-                $this->inputs[$kategoriId]['quantity'] = $detail->quantity ?? '';
+                $this->inputs[$categoryId]['quantity'] = $detail->quantity ?? '';
             } elseif ($type === CategoryType::Flat->value) {
-                $this->inputs[$kategoriId]['active'] = $detail->subtotal > 0;
+                $this->inputs[$categoryId]['active'] = $detail->subtotal > 0;
             } elseif ($type === CategoryType::Custom->value) {
-                $this->inputs[$kategoriId]['amount'] = $detail->subtotal > 0 ? (string) (int) $detail->subtotal : '';
+                $this->inputs[$categoryId]['amount'] = $detail->subtotal > 0 ? (string) (int) $detail->subtotal : '';
             }
         }
 
@@ -122,7 +122,7 @@ class RecordDailyTransaction extends Component
     {
         if ($this->isWeekly) {
             // For weekly units (TPS), the user picks a specific day within the week.
-            // Keep their chosen date and derive tanggalAkhir as the end of that week.
+            // Keep their chosen date and derive endDate as the end of that week.
             $date = Carbon::parse($this->transactionDate);
             $this->endDate = $date->copy()->endOfWeek()->format('Y-m-d');
         }
@@ -299,7 +299,7 @@ class RecordDailyTransaction extends Component
             session()->flash('status', 'Transaksi berhasil disimpan!');
 
             // Redirect to the same page to re-render a clean state
-            return $this->redirect(route('unit.input-transaksi'), navigate: true);
+            return $this->redirect(route('unit.record-transaction'), navigate: true);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -316,6 +316,7 @@ class RecordDailyTransaction extends Component
                 ->findOrFail($this->editId);
 
             $date = Carbon::parse($this->transactionDate);
+            $oldMonth = $transaction->transaction_date->format('Y-m');
 
             // Update header
             $transaction->update([
@@ -363,12 +364,20 @@ class RecordDailyTransaction extends Component
                 ->delete();
             $this->createJournalEntries($transaction, $date);
 
+            // A cross-month move leaves a gap in the old month: close it.
+            // (The new month is numbered correctly by createJournalEntries.)
+            $newMonth = $date->format('Y-m');
+            if ($newMonth !== $oldMonth) {
+                $unitCode = strtoupper($this->unit->code ?? 'XX');
+                VoucherNumber::renumberScope('D'.$unitCode, $oldMonth, $this->unitId);
+            }
+
             DB::commit();
 
             session()->flash('status', 'Transaksi berhasil diperbarui!');
             session()->flash('swal', ['icon' => 'success', 'title' => 'Berhasil', 'text' => 'Transaksi berhasil diperbarui!']);
 
-            return $this->redirect(route('riwayat-rekap'), navigate: true);
+            return $this->redirect(route('history-recap'), navigate: true);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -414,25 +423,25 @@ class RecordDailyTransaction extends Component
             $subtotal = $input['subtotal'];
             if ($subtotal > 0) {
                 $category = $this->categoryList->get($id);
-                $akunId = $category->account_id;
-                if (! $akunId) {
+                $accountId = $category->account_id;
+                if (! $accountId) {
                     throw new \Exception('Kategori "'.$category->name.'" belum terhubung ke Kode Akun (Chart of Account).');
                 }
 
-                if (! isset($creditGroups[$akunId])) {
-                    $creditGroups[$akunId] = 0;
+                if (! isset($creditGroups[$accountId])) {
+                    $creditGroups[$accountId] = 0;
                 }
-                $creditGroups[$akunId] += $subtotal;
+                $creditGroups[$accountId] += $subtotal;
             }
         }
 
         // 3. Record Credit for each corresponding revenue account
-        foreach ($creditGroups as $akunId => $creditAmount) {
+        foreach ($creditGroups as $accountId => $creditAmount) {
             JournalEntry::create([
                 'voucher_number' => $voucherNumber,
                 'transaction_date' => $this->transactionDate,
                 'description' => $journalDescription,
-                'account_id' => $akunId,
+                'account_id' => $accountId,
                 'debit' => 0,
                 'credit' => $creditAmount,
                 'daily_transaction_id' => $transaction->id,

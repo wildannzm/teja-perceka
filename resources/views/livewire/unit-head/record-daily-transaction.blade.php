@@ -27,7 +27,7 @@
                 <p class="text-xs text-amber-700 mt-0.5">Anda sedang mengubah data transaksi yang sudah ada. Simpan
                     untuk memperbarui.</p>
             </div>
-            <flux:button variant="ghost" size="sm" :href="route('riwayat-rekap')" wire:navigate icon="x-mark"
+            <flux:button variant="ghost" size="sm" :href="route('history-recap')" wire:navigate icon="x-mark"
                 class="shrink-0 text-amber-700 hover:bg-amber-100" />
         </div>
     @endif
@@ -96,7 +96,7 @@
                     ({{ \Carbon\Carbon::parse($transactionDate)->translatedFormat('d F Y') }}).
                     Silakan cek halaman Riwayat & Rekap untuk melihat atau mengubah detailnya.
                 </p>
-                <flux:button variant="primary" :href="route('unit.riwayat-transaksi')" wire:navigate
+                <flux:button variant="primary" :href="route('unit.transaction-history')" wire:navigate
                     icon="document-chart-bar">
                     Lihat Riwayat & Rekap
                 </flux:button>
@@ -264,3 +264,4 @@
         </div>
     </flux:modal>
 </div>
+

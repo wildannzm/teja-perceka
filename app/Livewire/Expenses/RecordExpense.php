@@ -48,9 +48,9 @@ class RecordExpense extends Component
 
     public bool $showDeleteModal = false;
 
-    public ?string $editingVoucherNumber = null;
+    public ?int $editingJournalId = null;
 
-    public ?string $deletingVoucherNumber = null;
+    public ?int $deletingJournalId = null;
 
     public string $editDate = '';
 
@@ -106,7 +106,7 @@ class RecordExpense extends Component
 
     public function updatedTransactionDate(): void
     {
-        // Tidak ada aksi khusus, tanggal bebas dipilih
+        // No special action; any date may be picked
     }
 
     public function openCreateModal(): void
@@ -127,14 +127,14 @@ class RecordExpense extends Component
     public function closeEditModal(): void
     {
         $this->showEditModal = false;
-        $this->reset(['editingVoucherNumber', 'editAccountId', 'editDescription', 'editAmount', 'editDate']);
+        $this->reset(['editingJournalId', 'editAccountId', 'editDescription', 'editAmount', 'editDate']);
         $this->resetErrorBag();
     }
 
     public function closeDeleteModal(): void
     {
         $this->showDeleteModal = false;
-        $this->deletingVoucherNumber = null;
+        $this->deletingJournalId = null;
     }
 
     public function resetFilter(): void
@@ -178,6 +178,7 @@ class RecordExpense extends Component
 
         if (empty($validItems)) {
             $this->addError('items', 'Minimal satu item pengeluaran dengan nominal valid harus diisi.');
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: 'Minimal satu item pengeluaran dengan nominal valid harus diisi.');
 
             return;
         }
@@ -232,7 +233,7 @@ class RecordExpense extends Component
             return;
         }
 
-        \Flux::toast(variant: 'success', text: 'Pengeluaran unit berhasil dicatat!');
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Pengeluaran unit berhasil dicatat!');
 
         $this->reset(['items', 'totalExpense']);
         $this->transactionDate = Carbon::today()->format('Y-m-d');
@@ -240,18 +241,45 @@ class RecordExpense extends Component
         $this->showCreateModal = false;
     }
 
-    public function editHistory($voucherNumber): void
+    /**
+     * Rows of the single logical voucher the user clicked: same voucher +
+     * same month + same unit + same daily + same description. Never touch
+     * another month's same-numbered voucher or a merged same-number voucher.
+     */
+    private function historyGroup(int $journalId)
     {
-        $debitJournal = JournalEntry::where('voucher_number', $voucherNumber)
+        $anchor = JournalEntry::where('id', $journalId)
             ->where('business_unit_id', $this->unitId)
-            ->where('debit', '>', 0)
             ->first();
+
+        if (! $anchor) {
+            return collect();
+        }
+
+        $monthStart = Carbon::parse($anchor->transaction_date)->startOfMonth()->format('Y-m-d');
+        $monthEnd = Carbon::parse($anchor->transaction_date)->endOfMonth()->format('Y-m-d');
+
+        return JournalEntry::where('voucher_number', $anchor->voucher_number)
+            ->where('business_unit_id', $this->unitId)
+            ->whereBetween('transaction_date', [$monthStart, $monthEnd])
+            ->when($anchor->daily_transaction_id !== null,
+                fn ($query) => $query->where('daily_transaction_id', $anchor->daily_transaction_id),
+                fn ($query) => $query->whereNull('daily_transaction_id'))
+            ->where('description', $anchor->description)
+            ->orderBy('id')
+            ->get();
+    }
+
+    public function editHistory(int $journalId): void
+    {
+        $group = $this->historyGroup($journalId);
+        $debitJournal = $group->first(fn ($row) => $row->debit > 0);
 
         if (! $debitJournal) {
             return;
         }
 
-        $this->editingVoucherNumber = $voucherNumber;
+        $this->editingJournalId = $journalId;
         $this->editDate = $debitJournal->transaction_date
             ? Carbon::parse($debitJournal->transaction_date)->format('Y-m-d')
             : Carbon::today()->format('Y-m-d');
@@ -270,14 +298,16 @@ class RecordExpense extends Component
             'editAmount' => 'required|numeric|min:1|max:9999999999999',
         ]);
 
-        $journals = JournalEntry::where('voucher_number', $this->editingVoucherNumber)
-            ->where('business_unit_id', $this->unitId)
-            ->get();
+        $journals = $this->historyGroup((int) $this->editingJournalId);
+        if ($journals->isEmpty()) {
+            return;
+        }
 
-        $oldTotal = $journals->sum('debit');
-        $oldTotal = $journals->sum('debit');
+        $prefix = VoucherNumber::prefixOf($journals->first()->voucher_number);
+        $oldMonth = substr((string) $journals->first()->transaction_date, 0, 7);
+        $newMonth = substr($validated['editDate'], 0, 7);
 
-        DB::transaction(function () use ($journals, $validated) {
+        DB::transaction(function () use ($journals, $validated, $prefix, $oldMonth, $newMonth) {
             $cashAccount = Account::where('code', '1-1100')->firstOrFail();
 
             foreach ($journals as $j) {
@@ -291,53 +321,62 @@ class RecordExpense extends Component
                 ]);
             }
 
+            // A cross-month move leaves a gap behind: close it on both sides.
+            if ($prefix !== null && $newMonth !== $oldMonth) {
+                VoucherNumber::renumberScope($prefix, $oldMonth, $this->unitId);
+                VoucherNumber::renumberScope($prefix, $newMonth, $this->unitId);
+            }
         });
 
         $this->showEditModal = false;
-        $this->reset(['editingVoucherNumber', 'editAccountId', 'editDescription', 'editAmount', 'editDate']);
+        $this->reset(['editingJournalId', 'editAccountId', 'editDescription', 'editAmount', 'editDate']);
 
-        \Flux::toast(variant: 'success', text: 'Data pengeluaran berhasil diperbarui.');
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Data pengeluaran berhasil diperbarui.');
     }
 
-    public function confirmDelete($voucherNumber): void
+    public function confirmDelete(int $journalId): void
     {
-        $this->deletingVoucherNumber = $voucherNumber;
+        $this->deletingJournalId = $journalId;
         $this->showDeleteModal = true;
     }
 
     public function executeDelete(): void
     {
-        if (! $this->deletingVoucherNumber) {
+        if (! $this->deletingJournalId) {
             return;
         }
 
-        $this->deleteHistory($this->deletingVoucherNumber, false);
+        $this->deleteHistory($this->deletingJournalId, false);
 
         $this->showDeleteModal = false;
-        $this->deletingVoucherNumber = null;
+        $this->deletingJournalId = null;
 
-        \Flux::toast(variant: 'success', text: 'Data pengeluaran berhasil dihapus.');
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Data pengeluaran berhasil dihapus.');
     }
 
-    public function deleteHistory($voucherNumber, $showToast = true): void
+    public function deleteHistory(int $journalId, $showToast = true): void
     {
-        $journals = JournalEntry::where('voucher_number', $voucherNumber)->where('business_unit_id', $this->unitId)->get();
+        $journals = $this->historyGroup($journalId);
         if ($journals->isEmpty()) {
             return;
         }
 
-        $totalDebit = $journals->sum('debit');
-        $totalDebit = $journals->sum('debit');
+        $prefix = VoucherNumber::prefixOf($journals->first()->voucher_number);
+        $month = substr((string) $journals->first()->transaction_date, 0, 7);
 
-        DB::transaction(function () use ($journals) {
+        DB::transaction(function () use ($journals, $prefix, $month) {
             foreach ($journals as $j) {
                 $j->delete();
             }
 
+            // Keep the remaining numbers gapless (001, 002, ...).
+            if ($prefix !== null) {
+                VoucherNumber::renumberScope($prefix, $month, $this->unitId);
+            }
         });
 
         if ($showToast) {
-            \Flux::toast(variant: 'success', text: 'Data pengeluaran berhasil dihapus.');
+            $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Data pengeluaran berhasil dihapus.');
         }
     }
 

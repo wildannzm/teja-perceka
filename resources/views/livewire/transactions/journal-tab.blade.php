@@ -42,7 +42,7 @@
                             <tr class="bg-brand-50/80 text-brand-900 border-b border-brand-100">
                                 <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Tanggal</th>
                                 <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Bukti</th>
-                                @if($unitId === 'semua')
+                                @if($unitId === 'all')
                                     <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Unit</th>
                                 @endif
                                 <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs w-full min-w-[200px]">Keterangan</th>
@@ -60,7 +60,7 @@
                                         @if($loop->first)
                                             <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 align-top border-r border-zinc-100">{{ \Carbon\Carbon::parse($displayDate)->translatedFormat('d F Y') }}</td>
                                             <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 font-mono text-xs text-zinc-500 align-top border-r border-zinc-100">{{ $groupFirst->firstVoucher }}</td>
-                                            @if($unitId === 'semua')
+                                            @if($unitId === 'all')
                                                 <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 text-xs font-semibold text-zinc-600 align-top border-r border-zinc-100">{{ $groupFirst->unitName ?? 'BUMDes' }}</td>
                                             @endif
                                             <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 text-wrap leading-relaxed align-top border-r border-zinc-100">{{ $groupFirst->description }}</td>
@@ -88,7 +88,7 @@
                             <div>
                                 <p class="text-xs font-mono text-zinc-500">{{ $groupFirst->firstVoucher }}</p>
                                 <p class="text-sm font-semibold text-zinc-800 mt-0.5">{{ \Carbon\Carbon::parse($displayDate)->translatedFormat('d F Y') }}</p>
-                                @if($unitId === 'semua')
+                                @if($unitId === 'all')
                                     <span class="inline-block mt-1 text-[11px] font-medium bg-brand-100 text-brand-800 px-2 py-0.5 rounded-md">
                                         {{ $groupFirst->unitName ?? 'BUMDes' }}
                                     </span>
@@ -133,7 +133,7 @@
                         <tr class="bg-brand-50/80 text-brand-900 border-b border-brand-100">
                             <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Tanggal</th>
                             <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Bukti</th>
-                            @if($unitId === 'semua')
+                            @if($unitId === 'all')
                                 <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs text-center">Unit</th>
                             @endif
                             <th class="py-4 px-4 font-semibold uppercase tracking-wider text-xs w-full min-w-[200px]">Keterangan</th>
@@ -152,7 +152,7 @@
                                     @if($loop->first)
                                         <td rowspan="{{ $group->count() }}" class="py-3 px-4 align-top border-r border-zinc-100">{{ $journal->transaction_date->translatedFormat('d F Y') }}</td>
                                         <td rowspan="{{ $group->count() }}" class="py-3 px-4 font-mono text-xs text-zinc-500 align-top border-r border-zinc-100">{{ $journal->voucher_number }}</td>
-                                        @if($unitId === 'semua')
+                                        @if($unitId === 'all')
                                             <td rowspan="{{ $group->count() }}" class="py-3 px-4 text-xs font-semibold text-zinc-600 align-top border-r border-zinc-100">{{ $journal->businessUnit?->name ?? 'BUMDes' }}</td>
                                         @endif
                                         <td rowspan="{{ $group->count() }}" class="py-3 px-4 text-wrap leading-relaxed align-top border-r border-zinc-100">{{ $journal->description }}</td>
@@ -202,7 +202,7 @@
                         <div>
                             <p class="text-xs font-mono text-zinc-500">{{ $firstJournal->voucher_number }}</p>
                             <p class="text-sm font-semibold text-zinc-800 mt-0.5">{{ $firstJournal->transaction_date->translatedFormat('d F Y') }}</p>
-                            @if($unitId === 'semua')
+                            @if($unitId === 'all')
                                 <span class="inline-block mt-1 text-[11px] font-medium bg-brand-100 text-brand-800 px-2 py-0.5 rounded-md">
                                     {{ $firstJournal->businessUnit?->name ?? 'BUMDes' }}
                                 </span>

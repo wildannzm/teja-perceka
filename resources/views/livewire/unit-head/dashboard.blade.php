@@ -1,6 +1,6 @@
 <div class="flex flex-col gap-5 max-w-full mx-auto w-full">
 
-    <x-page-header :title="'Dashboard — ' . ($unit->name ?? 'Unit Usaha')" />
+    <x-page-header :title="'Dashboard - ' . ($unit->name ?? 'Unit Usaha')" />
 
     {{-- Unsubmitted transaction alert --}}
     @if (!$isCurrentPeriodSubmitted)
@@ -25,7 +25,7 @@
                     </p>
                 </div>
             </div>
-            <flux:button variant="danger" :href="route('unit.input-transaksi')" wire:navigate
+            <flux:button variant="danger" :href="route('unit.record-transaction')" wire:navigate
                 class="w-full sm:w-auto shrink-0" icon="pencil-square">
                 Input Sekarang
             </flux:button>
@@ -77,7 +77,7 @@
                 Rp {{ number_format($this->thisWeekIncome, 0, ',', '.') }}
             </div>
             <div class="text-xs text-zinc-400">
-                {{ \Illuminate\Support\Carbon::now()->startOfWeek()->format('d') }} –
+                {{ \Illuminate\Support\Carbon::now()->startOfWeek()->format('d') }} -
                 {{ \Illuminate\Support\Carbon::now()->endOfWeek()->translatedFormat('d M Y') }}
             </div>
         </div>
@@ -134,7 +134,7 @@
                 <h2 class="text-sm font-semibold text-zinc-800">7 Transaksi Terakhir</h2>
                 <p class="text-xs text-zinc-400 mt-0.5">{{ $this->thisMonthTransactionCount }} transaksi bulan ini</p>
             </div>
-            <flux:button size="sm" variant="ghost" :href="route('unit.riwayat-transaksi')" wire:navigate
+            <flux:button size="sm" variant="ghost" :href="route('unit.transaction-history')" wire:navigate
                 icon="arrow-right">
                 Lihat semua
             </flux:button>
@@ -245,3 +245,4 @@
     });
 </script>
 @endscript
+

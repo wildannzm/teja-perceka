@@ -14,7 +14,7 @@
                     <select wire:model.live="unit_id"
                         class="w-full sm:min-w-48 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors font-medium">
                         <option value="bumdes">BUMDes</option>
-                        <option value="semua">Semua Unit Usaha</option>
+                        <option value="all">Semua Unit Usaha</option>
                         <optgroup label="Per Unit Usaha">
                             @foreach($this->units as $u)
                                 <option value="{{ $u->id }}">{{ $u->name }}</option>

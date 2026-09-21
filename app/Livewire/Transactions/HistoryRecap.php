@@ -46,7 +46,7 @@ class HistoryRecap extends Component
 
     public string $sortDirection = 'asc';
 
-    public string $sortOption = 'tanggal-asc';
+    public string $sortOption = 'date-asc';
 
     /** Journal tab view: 'summary' (aggregated) or 'detailed' (per voucher). */
     public string $viewMode = 'summary';
@@ -64,7 +64,7 @@ class HistoryRecap extends Component
         $this->sortOption = $field.'-'.$this->sortDirection;
     }
 
-    public function sortJurnalBy(string $field): void
+    public function sortJournalsBy(string $field): void
     {
         if (! in_array($field, ['transaction_date', 'voucher_number'])) {
             return;
