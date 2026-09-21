@@ -47,7 +47,7 @@ class RepairDuplicateVouchers extends Command
         $rows = JournalEntry::query()
             ->orderBy('transaction_date')
             ->orderBy('id')
-            ->get(['voucher_number', 'business_unit_id', 'transaction_date', 'daily_transaction_id', 'id']);
+            ->get(['voucher_number', 'business_unit_id', 'transaction_date', 'daily_transaction_id', 'description', 'id']);
 
         $scopes = [];
         foreach ($rows as $row) {
@@ -58,7 +58,7 @@ class RepairDuplicateVouchers extends Command
             $scopes[$key]['prefix'] = $m[1];
             $scopes[$key]['month'] = substr((string) $row->transaction_date, 0, 7);
             $scopes[$key]['unit'] = $row->business_unit_id;
-            $scopes[$key]['pairs'][$row->voucher_number.'|'.($row->daily_transaction_id ?? 'null')][] = $row;
+            $scopes[$key]['pairs'][$row->voucher_number.'|'.($row->daily_transaction_id ?? 'null').'|'.$row->description][] = $row;
         }
 
         return collect($scopes)
@@ -113,7 +113,7 @@ class RepairDuplicateVouchers extends Command
                 fn ($query) => $query->whereNull('business_unit_id'))
             ->orderBy('transaction_date')
             ->orderBy('id')
-            ->get(['id', 'voucher_number', 'transaction_date', 'daily_transaction_id']);
+            ->get(['id', 'voucher_number', 'transaction_date', 'daily_transaction_id', 'description']);
 
         if ($rows->whereNull('daily_transaction_id')->isNotEmpty()) {
             $this->error("Scope {$prefix} {$scope['month']} unit ".($scope['unit'] ?? 'null').' contains manual rows without daily_transaction_id — repair manually.');
@@ -121,14 +121,16 @@ class RepairDuplicateVouchers extends Command
             return;
         }
 
-        // One logical voucher = one (voucher number, daily transaction) pair.
-        // An expense daily may own several vouchers, so renumber per pair —
-        // never merge a daily's vouchers into one number.
+        // One logical voucher = one (voucher number, daily transaction,
+        // description) triple. Every writer stores one description per
+        // voucher, so a triple split means distinct transactions got merged
+        // under one number — renumber per triple, never merge.
         $pairs = $rows
-            ->groupBy(fn ($row) => $row->voucher_number.'|'.$row->daily_transaction_id)
+            ->groupBy(fn ($row) => $row->voucher_number.'|'.$row->daily_transaction_id.'|'.$row->description)
             ->map(fn ($group) => [
                 'old' => $group->first()->voucher_number,
                 'daily' => $group->first()->daily_transaction_id,
+                'description' => $group->first()->description,
                 'date' => $group->min('transaction_date'),
                 'firstId' => $group->min('id'),
             ])
@@ -140,13 +142,17 @@ class RepairDuplicateVouchers extends Command
             $plan[] = [
                 'old' => $pair['old'],
                 'daily' => $pair['daily'],
+                'description' => $pair['description'],
                 'new' => $prefix.str_pad($index + 1, 3, '0', STR_PAD_LEFT),
             ];
         }
 
         $label = "Scope {$prefix} {$scope['month']} unit ".($scope['unit'] ?? 'null');
         $this->line("<comment>{$label}</comment> — {$pairs->count()} vouchers:");
-        $this->table(['old', 'daily_transaction_id', 'new'], $plan);
+        $this->table(['old', 'daily_transaction_id', 'description', 'new'], array_map(
+            fn ($item) => [$item['old'], $item['daily'], mb_strimwidth($item['description'], 0, 40, '…'), $item['new']],
+            $plan
+        ));
 
         if ($this->option('dry-run')) {
             return;
@@ -156,6 +162,7 @@ class RepairDuplicateVouchers extends Command
             foreach ($plan as $item) {
                 JournalEntry::where('daily_transaction_id', $item['daily'])
                     ->where('voucher_number', $item['old'])
+                    ->where('description', $item['description'])
                     ->whereDate('transaction_date', '>=', $monthStart)
                     ->whereDate('transaction_date', '<=', $monthEnd)
                     ->when($scope['unit'] !== null,

@@ -176,3 +176,41 @@ test('repair compacts gaps left by deletions', function () {
     $this->artisan('voucher:repair-duplicates', ['--prefix' => 'KSB', '--unit' => $unit->id, '--month' => '2026-09'])->assertSuccessful();
     expect(JournalEntry::where('daily_transaction_id', $d3->id)->pluck('voucher_number')->unique()->all())->toBe(['KSB002']);
 });
+
+test('voucher numbering refuses a voucher shared by two descriptions of the same daily', function () {
+    [$user, $unit, $cash] = seedUnitWithAccounts();
+    $beban = Account::create(['code' => '5-1000', 'name' => 'Beban Operasional', 'type' => 'beban']);
+
+    $d = DailyTransaction::create(['business_unit_id' => $unit->id, 'user_id' => $user->id, 'transaction_date' => '2026-09-06', 'total_income' => 0]);
+    seedExpenseVoucher($d->id, 'KSB007', '2026-09-06', $unit->id, $beban->id, $cash->id, 'Slip PHL', 2550000);
+    seedExpenseVoucher($d->id, 'KSB007', '2026-09-06', $unit->id, $beban->id, $cash->id, 'KWT no.001', 550000);
+
+    expect(fn () => VoucherNumber::next('KSB', '2026-09-07', $unit->id))
+        ->toThrow(RuntimeException::class, 'KSB007');
+});
+
+test('repair splits one voucher number shared by two descriptions', function () {
+    [$user, $unit, $cash] = seedUnitWithAccounts();
+    $beban = Account::create(['code' => '5-1000', 'name' => 'Beban Operasional', 'type' => 'beban']);
+
+    $d6 = DailyTransaction::create(['business_unit_id' => $unit->id, 'user_id' => $user->id, 'transaction_date' => '2026-09-06', 'total_income' => 0]);
+    $d7 = DailyTransaction::create(['business_unit_id' => $unit->id, 'user_id' => $user->id, 'transaction_date' => '2026-09-07', 'total_income' => 0]);
+    seedExpenseVoucher($d6->id, 'KSB006', '2026-09-06', $unit->id, $beban->id, $cash->id, 'Nota tanggal 06', 356000);
+    seedExpenseVoucher($d6->id, 'KSB007', '2026-09-06', $unit->id, $beban->id, $cash->id, 'Slip PHL', 2550000);
+    seedExpenseVoucher($d6->id, 'KSB007', '2026-09-06', $unit->id, $beban->id, $cash->id, 'KWT no.001', 550000);
+    seedExpenseVoucher($d7->id, 'KSB008', '2026-09-07', $unit->id, $beban->id, $cash->id, 'Nota tanggal 07', 108000);
+
+    $this->artisan('voucher:repair-duplicates', ['--prefix' => 'KSB', '--unit' => $unit->id, '--month' => '2026-09'])->assertSuccessful();
+
+    $vouchersFor = fn (int $dailyId, string $desc) => JournalEntry::where('daily_transaction_id', $dailyId)
+        ->where('description', $desc)->pluck('voucher_number')->unique()->values()->all();
+
+    expect($vouchersFor($d6->id, 'Nota tanggal 06'))->toBe(['KSB001']);
+    expect($vouchersFor($d6->id, 'Slip PHL'))->toBe(['KSB002']);
+    expect($vouchersFor($d6->id, 'KWT no.001'))->toBe(['KSB003']);
+    expect($vouchersFor($d7->id, 'Nota tanggal 07'))->toBe(['KSB004']);
+
+    // Amounts untouched, every voucher balanced.
+    expect((float) JournalEntry::where('description', 'Slip PHL')->sum('debit'))->toEqual(2550000.0);
+    expect((float) JournalEntry::where('description', 'KWT no.001')->sum('credit'))->toEqual(550000.0);
+});

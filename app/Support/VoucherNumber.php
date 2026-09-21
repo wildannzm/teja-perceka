@@ -49,25 +49,26 @@ class VoucherNumber
             }
 
             // One voucher = one nomor_bukti (possibly many debit/credit rows), ordered chronologically.
+            // Identity of a logical voucher: same number + same daily + same
+            // description. Every writer in this codebase stores one
+            // description per voucher, so more than one combination means rows
+            // of distinct transactions got merged under one number.
             $vouchers = [];
-            foreach ((clone $query)->orderBy('transaction_date')->orderBy('id')->get(['id', 'voucher_number', 'transaction_date', 'daily_transaction_id']) as $row) {
+            foreach ((clone $query)->orderBy('transaction_date')->orderBy('id')->get(['id', 'voucher_number', 'transaction_date', 'daily_transaction_id', 'description']) as $row) {
                 $key = $row->voucher_number;
                 $vouchers[$key]['date'] ??= Carbon::parse($row->transaction_date)->format('Y-m-d');
                 $vouchers[$key]['ids'][] = $row->id;
-                if ($row->daily_transaction_id !== null) {
-                    $vouchers[$key]['dailies'][$row->daily_transaction_id] = true;
-                }
+                $vouchers[$key]['combos'][$row->daily_transaction_id.'|'.$row->description] = true;
             }
 
             // Never silently grow a corruption: one voucher shared by several
-            // daily transactions means numbering already broke (repair with
+            // transactions means numbering already broke (repair with
             // `voucher:repair-duplicates` instead of reusing the number).
             foreach ($vouchers as $number => $voucher) {
-                if (count($voucher['dailies'] ?? []) > 1) {
+                if (count($voucher['combos'] ?? []) > 1) {
                     throw new \RuntimeException(
-                        "Duplicate voucher {$number} shared by daily transactions "
-                        .implode(',', array_keys($voucher['dailies']))
-                        .'. Run `php artisan voucher:repair-duplicates` first.'
+                        "Duplicate voucher {$number} shared by several transactions. "
+                        .'Run `php artisan voucher:repair-duplicates` first.'
                     );
                 }
             }
