@@ -6,12 +6,12 @@ use App\Models\Account;
 use App\Models\BusinessUnit;
 use App\Models\JournalEntry;
 use App\Support\BumdesCashBalance;
+use App\Support\PdfExport;
 use App\Support\SafeDates;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -213,7 +213,7 @@ class GeneralLedger extends Component
 
         [$start, $end] = $this->periodRange();
         $printDate = strtoupper($end->translatedFormat('d F Y'));
-        $signatureDate = $end->translatedFormat('F Y');
+        $signatureDate = PdfExport::signatureDate($end);
         $periodLabel = SafeDates::month($this->period)->translatedFormat('F Y');
 
         $signatory = Auth::user()->name;
@@ -230,8 +230,8 @@ class GeneralLedger extends Component
         $pdf = Pdf::loadView('pdf.general-ledger', array_merge($data, compact('periodLabel', 'entityName', 'printDate', 'signatureDate', 'signatory', 'position')))
             ->setPaper('a4', 'portrait');
 
-        $unitSlug = $unit ? Str::slug($unit->name, '_') : 'Konsolidasi';
-        $filename = 'BukuBesar_'.$unitSlug.'_'.Str::slug($data['selectedAccount']->code.'_'.$periodLabel, '_').'.pdf';
+        $unitLabel = $unit ? $unit->name : ($this->isBumdesScope() ? 'BUMDes' : 'Semua Unit');
+        $filename = PdfExport::filename('Buku Besar', $unitLabel, $data['selectedAccount']->code.' '.$data['selectedAccount']->name, $periodLabel);
 
         return response()->streamDownload(fn () => print ($pdf->output()), $filename);
     }

@@ -6,13 +6,13 @@ use App\Models\Account;
 use App\Models\BusinessUnit;
 use App\Models\JournalEntry;
 use App\Support\BumdesCashBalance;
+use App\Support\PdfExport;
 use App\Support\SafeDates;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -397,7 +397,7 @@ class TrialBalance extends Component
 
         [$start, $end] = $this->periodRange();
         $printDate = strtoupper($end->translatedFormat('d F Y'));
-        $signatureDate = $end->translatedFormat('F Y');
+        $signatureDate = PdfExport::signatureDate($end);
         $periodLabel = SafeDates::month($this->period)->translatedFormat('F Y');
 
         $signatory = Auth::user()->name;
@@ -414,8 +414,8 @@ class TrialBalance extends Component
         $pdf = Pdf::loadView('pdf.trial-balance', array_merge($data, compact('periodLabel', 'entityName', 'printDate', 'signatureDate', 'signatory', 'position')))
             ->setPaper('a4', 'portrait');
 
-        $unitSlug = $unit ? Str::slug($unit->name, '_') : 'Konsolidasi';
-        $filename = 'NeracaSaldo_'.$unitSlug.'_'.Str::slug($periodLabel, '_').'.pdf';
+        $unitLabel = $unit ? $unit->name : ($this->isBumdesScope() ? 'BUMDes' : 'Semua Unit');
+        $filename = PdfExport::filename('Neraca Saldo', $unitLabel, $periodLabel);
 
         return response()->streamDownload(fn () => print ($pdf->output()), $filename);
     }

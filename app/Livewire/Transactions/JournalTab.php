@@ -6,6 +6,7 @@ use App\Models\BusinessUnit;
 use App\Models\DailyTransaction;
 use App\Models\JournalEntry;
 use App\Support\BumdesCashBalance;
+use App\Support\PdfExport;
 use App\Support\VoucherNumber;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -13,7 +14,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Reactive;
@@ -769,7 +769,7 @@ class JournalTab extends Component
 
         $unit = ($this->unitId && is_numeric($this->unitId)) ? BusinessUnit::find($this->unitId) : null;
         $period = $this->periodLabel;
-        $unitLabel = $unit ? Str::slug($unit->name, '_') : ($this->isBumdesScope() ? 'BUMDes' : 'Semua_Unit');
+        $unitLabel = $unit ? $unit->name : ($this->isBumdesScope() ? 'BUMDes' : 'Semua Unit');
 
         if ($this->viewMode === 'summary') {
             ['groups' => $groups, 'displayDate' => $displayDate] = $this->buildSummaryGroups();
@@ -785,7 +785,7 @@ class JournalTab extends Component
                 'totalCredit'
             ))->setPaper('a4', 'landscape');
 
-            $filename = 'JurnalUmum_Summary_'.$unitLabel.'_'.Str::slug($period, '_').'.pdf';
+            $filename = PdfExport::filename('Jurnal Umum', $unitLabel, 'Ringkas', $period);
 
             return response()->streamDownload(function () use ($pdf) {
                 echo $pdf->output();
@@ -828,7 +828,7 @@ class JournalTab extends Component
             'totalCredit'
         ))->setPaper('a4', 'landscape');
 
-        $filename = 'JurnalUmum_Detailed_'.$unitLabel.'_'.Str::slug($period, '_').'.pdf';
+        $filename = PdfExport::filename('Jurnal Umum', $unitLabel, 'Rinci', $period);
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();

@@ -49,7 +49,7 @@
                         <tr><td colspan="3" style="padding: 4px; font-weight: bold;">1-1000 AKTIVA LANCAR</td></tr>
                         @foreach($currentAssets as $item)
                         <tr>
-                            <td class="font-mono" style="width: 15%; padding: 4px; padding-left: 8px;">{{ $item->code }}</td>
+                            <td class="font-mono" style="width: 18%; white-space: nowrap; padding: 4px; padding-left: 8px;">{{ $item->code }}</td>
                             <td style="width: 55%; padding: 4px;">{{ $item->name }}</td>
                             <td class="text-right" style="width: 30%; padding: 4px; padding-right: 8px;">{{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}</td>
                         </tr>
@@ -62,7 +62,7 @@
                         <tr><td colspan="3" style="padding: 4px; font-weight: bold;">1-2000 AKTIVA TIDAK LANCAR</td></tr>
                         @foreach($fixedAssets as $item)
                         <tr>
-                            <td class="font-mono" style="width: 15%; padding: 4px; padding-left: 8px;">{{ $item->code }}</td>
+                            <td class="font-mono" style="width: 18%; white-space: nowrap; padding: 4px; padding-left: 8px;">{{ $item->code }}</td>
                             <td style="width: 55%; padding: 4px;">{{ $item->name }}</td>
                             <td class="text-right" style="width: 30%; padding: 4px; padding-right: 8px;">{{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}</td>
                         </tr>
@@ -80,7 +80,7 @@
                         <tr><td colspan="3" style="padding: 4px; font-weight: bold; padding-left: 8px;">2-1000 KEWAJIBAN JANGKA PENDEK</td></tr>
                         @foreach($currentLiabilities as $item)
                         <tr>
-                            <td class="font-mono" style="width: 15%; padding: 4px; padding-left: 12px;">{{ $item->code }}</td>
+                            <td class="font-mono" style="width: 18%; white-space: nowrap; padding: 4px; padding-left: 12px;">{{ $item->code }}</td>
                             <td style="width: 55%; padding: 4px;">{{ $item->name }}</td>
                             <td class="text-right" style="width: 30%; padding: 4px; padding-right: 8px;">{{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}</td>
                         </tr>
@@ -89,7 +89,7 @@
                         <tr><td colspan="3" style="padding: 4px; font-weight: bold; padding-left: 8px;">2-2000 KEWAJIBAN JANGKA PANJANG</td></tr>
                         @foreach($longTermLiabilities as $item)
                         <tr>
-                            <td class="font-mono" style="width: 15%; padding: 4px; padding-left: 12px;">{{ $item->code }}</td>
+                            <td class="font-mono" style="width: 18%; white-space: nowrap; padding: 4px; padding-left: 12px;">{{ $item->code }}</td>
                             <td style="width: 55%; padding: 4px;">{{ $item->name }}</td>
                             <td class="text-right" style="width: 30%; padding: 4px; padding-right: 8px;">{{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}</td>
                         </tr>
@@ -103,7 +103,7 @@
                         <tr><td colspan="3" style="padding: 4px; font-weight: bold;">3-0000 EKUITAS</td></tr>
                         @foreach($equity as $item)
                         <tr>
-                            <td class="font-mono" style="width: 15%; padding: 4px; padding-left: 8px;">{{ $item->code }}</td>
+                            <td class="font-mono" style="width: 18%; white-space: nowrap; padding: 4px; padding-left: 8px;">{{ $item->code }}</td>
                             <td style="width: 55%; padding: 4px; {{ $item->name === 'LABA BERSIH' ? 'text-transform: uppercase;' : '' }}">{{ $item->name }}</td>
                             <td class="text-right" style="width: 30%; padding: 4px; padding-right: 8px;">{{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}</td>
                         </tr>

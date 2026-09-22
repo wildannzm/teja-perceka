@@ -6,6 +6,7 @@ use App\Models\Account;
 use App\Models\JournalEntry;
 use App\Models\ProfitAllocationRecord;
 use App\Support\BumdesCashBalance;
+use App\Support\PdfExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -335,7 +336,7 @@ class ProfitAllocation extends Component
 
         [$start, $end] = $this->periodRange();
         $printDate = strtoupper($end->translatedFormat('d F Y'));
-        $signatureDate = $end->translatedFormat('F Y');
+        $signatureDate = PdfExport::signatureDate($end);
         $periodLabel = $this->periodLabel();
 
         $signatory = Auth::user()->name;
@@ -354,8 +355,7 @@ class ProfitAllocation extends Component
         $totalAdArtPercent = $this->totalAdArtPercent;
         $totalAdArtAmount = $this->totalAdArtAmount;
 
-        ini_set('memory_limit', '-1');
-        set_time_limit(300);
+        set_time_limit(120);
 
         $pdf = Pdf::loadView('pdf.profit-allocation', compact(
             'entityName', 'printDate', 'signatureDate', 'periodLabel', 'signatory', 'position',
@@ -363,7 +363,7 @@ class ProfitAllocation extends Component
             'adArtRows', 'totalAdArtPercent', 'totalAdArtAmount'
         ))->setPaper('a4', 'portrait');
 
-        $filename = 'AlokasiLaba_BUMDes_'.str_replace(' ', '_', $periodLabel).'.pdf';
+        $filename = PdfExport::filename('Alokasi Laba', 'BUMDes', $periodLabel);
 
         return response()->streamDownload(fn () => print ($pdf->output()), $filename);
     }

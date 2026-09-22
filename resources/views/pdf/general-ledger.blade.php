@@ -19,6 +19,7 @@
         .text-right { text-align: right !important; }
         .text-center { text-align: center !important; }
         .font-mono { font-family: 'Courier New', Courier, monospace; }
+        .nowrap { white-space: nowrap; }
         .footer-sig { width: 100%; margin-top: 40px; }
         .sig-box { float: right; text-align: center; width: 250px; }
         .sig-name { font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; display: inline-block; margin-bottom: 2px; }
@@ -39,9 +40,9 @@
                 <th style="width:12%">Tanggal</th>
                 <th style="width:13%">Nomor Bukti</th>
                 <th style="width:30%">Keterangan</th>
-                <th style="width:15%" class="text-right">Debit</th>
-                <th style="width:15%" class="text-right">Kredit</th>
-                <th style="width:15%" class="text-right">Saldo</th>
+                <th style="width:15%">Debit</th>
+                <th style="width:15%">Kredit</th>
+                <th style="width:15%">Saldo</th>
             </tr>
         </thead>
         <tbody>
@@ -55,7 +56,7 @@
                     }
                 @endphp
                 <tr>
-                    <td class="text-center">{{ $journal->transaction_date->translatedFormat('d F Y') }}</td>
+                    <td class="text-center nowrap">{{ $journal->transaction_date->translatedFormat('d F Y') }}</td>
                     <td class="font-mono text-center">{{ $journal->voucher_number }}</td>
                     <td>
                         {{ $journal->description }}
@@ -63,9 +64,9 @@
                             <br><small>({{ $journal->businessUnit->name }})</small>
                         @endif
                     </td>
-                    <td class="text-right">{{ $journal->debit > 0 ? number_format($journal->debit, 0, ',', '.') : '-' }}</td>
-                    <td class="text-right">{{ $journal->credit > 0 ? number_format($journal->credit, 0, ',', '.') : '-' }}</td>
-                    <td class="text-right">{{ number_format($runningBalance, 0, ',', '.') }}</td>
+                    <td class="text-right nowrap">{{ $journal->debit > 0 ? number_format($journal->debit, 0, ',', '.') : '-' }}</td>
+                    <td class="text-right nowrap">{{ $journal->credit > 0 ? number_format($journal->credit, 0, ',', '.') : '-' }}</td>
+                    <td class="text-right nowrap">{{ number_format($runningBalance, 0, ',', '.') }}</td>
                 </tr>
             @empty
                 <tr>
@@ -75,9 +76,9 @@
             @if(count($transactions) > 0)
                 <tr class="row-subtotal">
                     <td colspan="3" class="text-right">MUTASI BULAN INI</td>
-                    <td class="text-right">{{ number_format($totalDebit, 0, ',', '.') }}</td>
-                    <td class="text-right">{{ number_format($totalCredit, 0, ',', '.') }}</td>
-                    <td class="text-right">{{ number_format($runningBalance, 0, ',', '.') }}</td>
+                    <td class="text-right nowrap">{{ number_format($totalDebit, 0, ',', '.') }}</td>
+                    <td class="text-right nowrap">{{ number_format($totalCredit, 0, ',', '.') }}</td>
+                    <td class="text-right nowrap">{{ number_format($runningBalance, 0, ',', '.') }}</td>
                 </tr>
             @endif
         </tbody>

@@ -109,7 +109,7 @@
                                 </tr>
                                 @foreach($data['currentAssets'] as $item)
                                 <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
-                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500">{{ $item->code }}</td>
+                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 whitespace-nowrap">{{ $item->code }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->name }}</td>
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
                                         @if($isEditing)
@@ -133,7 +133,7 @@
                                 </tr>
                                 @foreach($data['fixedAssets'] as $item)
                                 <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
-                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500">{{ $item->code }}</td>
+                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 whitespace-nowrap">{{ $item->code }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->name }}</td>
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
                                         @if($isEditing)
@@ -179,7 +179,7 @@
                                 </tr>
                                 @foreach($data['currentLiabilities'] as $item)
                                 <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
-                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 pl-6">{{ $item->code }}</td>
+                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 whitespace-nowrap pl-6">{{ $item->code }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->name }}</td>
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
                                         @if($isEditing)
@@ -198,7 +198,7 @@
                                 </tr>
                                 @foreach($data['longTermLiabilities'] as $item)
                                 <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
-                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 pl-6">{{ $item->code }}</td>
+                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 whitespace-nowrap pl-6">{{ $item->code }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->name }}</td>
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
                                         @if($isEditing)
@@ -223,7 +223,7 @@
                                 </tr>
                                 @foreach($data['equity'] as $item)
                                 <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
-                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 pl-6">{{ $item->code }}</td>
+                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 whitespace-nowrap pl-6">{{ $item->code }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800 {{ $item->name === 'LABA BERSIH' ? 'uppercase' : '' }}">{{ $item->name }}</td>
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
                                         @if($isEditing)

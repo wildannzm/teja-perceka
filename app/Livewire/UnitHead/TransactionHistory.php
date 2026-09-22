@@ -2,8 +2,9 @@
 
 namespace App\Livewire\UnitHead;
 
-use App\Models\JournalEntry;
 use App\Models\BusinessUnit;
+use App\Models\JournalEntry;
+use App\Support\PdfExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -167,8 +168,7 @@ class TransactionHistory extends Component
         $totalDebit = $this->totalDebit;
         $totalCredit = $this->totalCredit;
 
-        ini_set('memory_limit', '-1');
-        set_time_limit(300);
+        set_time_limit(120);
 
         $pdf = Pdf::loadView('pdf.transaction-history', compact(
             'transactions',
@@ -178,7 +178,7 @@ class TransactionHistory extends Component
             'totalCredit'
         ))->setPaper('a4', 'landscape'); // Landscape fits ledger tables better
 
-        $filename = 'JurnalUmum_'.str_replace(' ', '_', $unit->name).'_'.str_replace([' ', '-', '/'], '_', $period).'.pdf';
+        $filename = PdfExport::filename('Jurnal Umum', $unit->name, 'Rinci', $period);
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();

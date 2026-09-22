@@ -6,12 +6,12 @@ use App\Models\Account;
 use App\Models\BusinessUnit;
 use App\Models\JournalEntry;
 use App\Support\BumdesCashBalance;
+use App\Support\PdfExport;
 use App\Support\SafeDates;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -364,7 +364,7 @@ class ProfitLoss extends Component
 
         [$start, $end] = $this->periodRange();
         $printDate = strtoupper($end->translatedFormat('d F Y'));
-        $signatureDate = $end->translatedFormat('F Y');
+        $signatureDate = PdfExport::signatureDate($end);
 
         $signatory = Auth::user()->name;
         $position = match (true) {
@@ -380,8 +380,8 @@ class ProfitLoss extends Component
         $pdf = Pdf::loadView('pdf.profit-loss', array_merge($data, compact('periodLabel', 'entityName', 'printDate', 'signatureDate', 'signatory', 'position')))
             ->setPaper('a4', 'portrait');
 
-        $unitSlug = $unit ? Str::slug($unit->name, '_') : 'Konsolidasi';
-        $filename = 'LabaRugi_'.$unitSlug.'_'.Str::slug($periodLabel, '_').'.pdf';
+        $unitLabel = $unit ? $unit->name : ($this->isBumdesScope() ? 'BUMDes' : 'Semua Unit');
+        $filename = PdfExport::filename('Laporan Laba Rugi', $unitLabel, $periodLabel);
 
         return response()->streamDownload(fn () => print ($pdf->output()), $filename);
     }
@@ -406,7 +406,7 @@ class ProfitLoss extends Component
 
         [$start, $end] = $this->periodRange();
         $printDate = strtoupper($end->translatedFormat('d F Y'));
-        $signatureDate = $end->translatedFormat('F Y');
+        $signatureDate = PdfExport::signatureDate($end);
         $periodLabel = $this->periodLabel();
 
         $signatory = Auth::user()->name;
