@@ -18,7 +18,7 @@
         $summaryData = $isSummary ? $this->summaryRows : null;
         $summaryGroups = $summaryData['groups'] ?? collect();
         $summaryPaginator = $summaryData['paginator'] ?? null;
-        $displayDate = $summaryData['displayDate'] ?? null;
+        $fallbackDate = $summaryData['displayDate'] ?? null;
         $listEmpty = $isSummary ? $summaryGroups->isEmpty() : $groups->isEmpty();
     @endphp
 
@@ -53,12 +53,16 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-100 text-zinc-700">
-                            @foreach($summaryGroups as $groupKey => $groupRows)
-                                @php $groupFirst = $groupRows->first(); @endphp
+                            @foreach($summaryGroups as $groupKey => $group)
+                                @php
+                                    $groupRows = is_array($group) ? $group['rows'] : $group;
+                                    $groupDisplayDate = is_array($group) ? ($group['displayDate'] ?? $fallbackDate) : $fallbackDate;
+                                    $groupFirst = $groupRows->first();
+                                @endphp
                                 @foreach($groupRows as $row)
                                     <tr class="hover:bg-zinc-50 transition-colors" wire:key="summary-{{ $row->id }}-{{ $row->account_id }}">
                                         @if($loop->first)
-                                            <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 align-top border-r border-zinc-100">{{ \Carbon\Carbon::parse($displayDate)->translatedFormat('d F Y') }}</td>
+                                            <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 align-top border-r border-zinc-100">{{ \Carbon\Carbon::parse($groupDisplayDate)->translatedFormat('d F Y') }}</td>
                                             <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 font-mono text-xs text-zinc-500 align-top border-r border-zinc-100">{{ $groupFirst->firstVoucher }}</td>
                                             @if($unitId === 'all')
                                                 <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 text-xs font-semibold text-zinc-600 align-top border-r border-zinc-100">{{ $groupFirst->unitName ?? 'BUMDes' }}</td>
@@ -81,13 +85,17 @@
 
             {{-- Mobile summary: one card per merged group --}}
             <div class="flex flex-col gap-3 sm:hidden">
-                @foreach($summaryGroups as $groupKey => $groupRows)
-                    @php $groupFirst = $groupRows->first(); @endphp
+                @foreach($summaryGroups as $groupKey => $group)
+                    @php
+                        $groupRows = is_array($group) ? $group['rows'] : $group;
+                        $groupDisplayDate = is_array($group) ? ($group['displayDate'] ?? $fallbackDate) : $fallbackDate;
+                        $groupFirst = $groupRows->first();
+                    @endphp
                     <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden" wire:key="summary-m-{{ $groupFirst->firstVoucher }}-{{ $loop->index }}">
                         <div class="bg-brand-50/60 border-b border-brand-100 px-4 py-3 flex items-start justify-between gap-2">
                             <div>
                                 <p class="text-xs font-mono text-zinc-500">{{ $groupFirst->firstVoucher }}</p>
-                                <p class="text-sm font-semibold text-zinc-800 mt-0.5">{{ \Carbon\Carbon::parse($displayDate)->translatedFormat('d F Y') }}</p>
+                                <p class="text-sm font-semibold text-zinc-800 mt-0.5">{{ \Carbon\Carbon::parse($groupDisplayDate)->translatedFormat('d F Y') }}</p>
                                 @if($unitId === 'all')
                                     <span class="inline-block mt-1 text-[11px] font-medium bg-brand-100 text-brand-800 px-2 py-0.5 rounded-md">
                                         {{ $groupFirst->unitName ?? 'BUMDes' }}

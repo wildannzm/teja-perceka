@@ -116,13 +116,12 @@ class VoucherNumber
             }
 
             // Never silently grow a corruption: one voucher shared by several
-            // transactions means numbering already broke (repair with
-            // `voucher:repair-duplicates` instead of reusing the number).
+            // transactions means numbering already broke.
             foreach ($vouchers as $number => $voucher) {
                 if (count($voucher['combos'] ?? []) > 1) {
                     throw new \RuntimeException(
                         "Duplicate voucher {$number} shared by several transactions. "
-                        .'Run `php artisan voucher:repair-duplicates` first.'
+                        .'Silakan perbaiki data jurnal secara manual.'
                     );
                 }
             }

@@ -5,10 +5,13 @@ namespace App\Livewire\Reports;
 use App\Models\Account;
 use App\Models\BusinessUnit;
 use App\Models\JournalEntry;
+use App\Support\BumdesCashBalance;
+use App\Support\SafeDates;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -19,7 +22,7 @@ use Livewire\Component;
 class GeneralLedger extends Component
 {
     /** null = consolidate all units */
-    public ?int $unit_id = null;
+    public mixed $unit_id = null;
 
     /** Format Y-m */
     public string $period = '';
@@ -33,6 +36,8 @@ class GeneralLedger extends Component
         // Kepala unit: kunci ke unit sendiri
         if ($user->hasRole('kepala_unit')) {
             $this->unit_id = $user->business_unit_id;
+        } elseif (empty($this->unit_id)) {
+            $this->unit_id = 'bumdes';
         }
 
         $this->period = Carbon::now()->format('Y-m');
@@ -53,9 +58,14 @@ class GeneralLedger extends Component
         return 'credit';
     }
 
+    public function isBumdesScope(): bool
+    {
+        return ! Auth::user()?->hasRole('kepala_unit') && ($this->unit_id === 'bumdes' || empty($this->unit_id));
+    }
+
     private function periodRange(): array
     {
-        $date = Carbon::parse($this->period ?: Carbon::now()->format('Y-m'));
+        $date = SafeDates::month($this->period);
 
         return [
             $date->copy()->startOfMonth(),
@@ -90,7 +100,7 @@ class GeneralLedger extends Component
     #[Computed]
     public function selectedUnit(): ?BusinessUnit
     {
-        return $this->unit_id ? BusinessUnit::find($this->unit_id) : null;
+        return ($this->unit_id && is_numeric($this->unit_id)) ? BusinessUnit::find($this->unit_id) : null;
     }
 
     #[Computed]
@@ -114,8 +124,17 @@ class GeneralLedger extends Component
                 $openingQuery = JournalEntry::where('account_id', $this->account_id)
                     ->whereDate('transaction_date', '<', $startDate->format('Y-m-d'));
 
-                if ($this->unit_id) {
-                    $openingQuery->where('business_unit_id', $this->unit_id);
+                if ($this->isBumdesScope()) {
+                    $openingQuery->where(function ($q) {
+                        $q->where('voucher_number', 'like', 'KBM%')
+                            ->orWhere(function ($sub) {
+                                $sub->where('voucher_number', 'like', 'DBM%')
+                                    ->whereNull('daily_transaction_id')
+                                    ->whereNull('business_unit_id');
+                            });
+                    });
+                } elseif ($this->unit_id && is_numeric($this->unit_id)) {
+                    $openingQuery->where('business_unit_id', (int) $this->unit_id);
                 }
 
                 $openingDebit = (clone $openingQuery)->sum('debit');
@@ -127,6 +146,11 @@ class GeneralLedger extends Component
                     $openingBalance = $openingCredit - $openingDebit;
                 }
 
+                // BUMDes scope: add saldo sebelumnya to cash accounts
+                if ($this->isBumdesScope() && in_array($selectedAccount->code, ['1-1100', '1-1200'])) {
+                    $openingBalance += BumdesCashBalance::getOpeningBalance($startDate);
+                }
+
                 // Get current transactions
                 $currentQuery = JournalEntry::with('businessUnit')
                     ->where('account_id', $this->account_id)
@@ -134,13 +158,39 @@ class GeneralLedger extends Component
                     ->orderBy('transaction_date', 'asc')
                     ->orderBy('id', 'asc');
 
-                if ($this->unit_id) {
-                    $currentQuery->where('business_unit_id', $this->unit_id);
+                if ($this->isBumdesScope()) {
+                    $currentQuery->where(function ($q) {
+                        $q->where('voucher_number', 'like', 'KBM%')
+                            ->orWhere(function ($sub) {
+                                $sub->where('voucher_number', 'like', 'DBM%')
+                                    ->whereNull('daily_transaction_id')
+                                    ->whereNull('business_unit_id');
+                            });
+                    });
+                } elseif ($this->unit_id && is_numeric($this->unit_id)) {
+                    $currentQuery->where('business_unit_id', (int) $this->unit_id);
                 }
 
                 $transactions = $currentQuery->get();
                 $totalDebit = $transactions->sum('debit');
                 $totalCredit = $transactions->sum('credit');
+
+                // BUMDes scope: inject virtual entries (saldo sebelumnya + net income per unit)
+                // into the transaction list for cash (1-1100), equity (3-2000), and revenue (4-2000) accounts.
+                if ($this->isBumdesScope() && in_array($selectedAccount->code, ['1-1100', '1-1200', '3-2000', '4-2000'])) {
+                    $isCash = in_array($selectedAccount->code, ['1-1100', '1-1200']);
+                    $virtualEntries = BumdesCashBalance::getBumdesVirtualEntries($startDate, $endDate);
+                    $relevantVirtuals = $virtualEntries->filter(fn ($entry) => $entry->account_id === $selectedAccount->id);
+
+                    if ($relevantVirtuals->isNotEmpty()) {
+                        $transactions = $transactions->concat($relevantVirtuals)->sortBy([
+                            fn ($a, $b) => $a->transaction_date <=> $b->transaction_date,
+                            fn ($a, $b) => $a->id <=> $b->id,
+                        ])->values();
+                        $totalDebit += $relevantVirtuals->sum('debit');
+                        $totalCredit += $relevantVirtuals->sum('credit');
+                    }
+                }
             }
         }
 
@@ -164,7 +214,7 @@ class GeneralLedger extends Component
         [$start, $end] = $this->periodRange();
         $printDate = strtoupper($end->translatedFormat('d F Y'));
         $signatureDate = $end->translatedFormat('F Y');
-        $periodLabel = Carbon::parse($this->period ?: Carbon::now()->format('Y-m'))->translatedFormat('F Y');
+        $periodLabel = SafeDates::month($this->period)->translatedFormat('F Y');
 
         $signatory = Auth::user()->name;
         $position = match (true) {
@@ -175,20 +225,32 @@ class GeneralLedger extends Component
             default => '',
         };
 
-        ini_set('memory_limit', '-1');
-        set_time_limit(300);
+        set_time_limit(120);
 
         $pdf = Pdf::loadView('pdf.general-ledger', array_merge($data, compact('periodLabel', 'entityName', 'printDate', 'signatureDate', 'signatory', 'position')))
             ->setPaper('a4', 'portrait');
 
-        $unitSlug = $unit ? str_replace(' ', '_', $unit->name) : 'Konsolidasi';
-        $filename = 'BukuBesar_'.$unitSlug.'_'.$data['selectedAccount']->code.'_'.str_replace(' ', '_', $periodLabel).'.pdf';
+        $unitSlug = $unit ? Str::slug($unit->name, '_') : 'Konsolidasi';
+        $filename = 'BukuBesar_'.$unitSlug.'_'.Str::slug($data['selectedAccount']->code.'_'.$periodLabel, '_').'.pdf';
 
         return response()->streamDownload(fn () => print ($pdf->output()), $filename);
     }
 
+    public function updatingUnitId($value): void
+    {
+        $user = Auth::user();
+        if ($user && $user->hasRole('kepala_unit') && (int) $value !== (int) $user->business_unit_id) {
+            abort(403, 'Unauthorized');
+        }
+    }
+
     public function render()
     {
+        $user = Auth::user();
+        if ($user && $user->hasRole('kepala_unit') && $this->unit_id !== $user->business_unit_id) {
+            $this->unit_id = $user->business_unit_id;
+        }
+
         return view('livewire.reports.general-ledger');
     }
 }

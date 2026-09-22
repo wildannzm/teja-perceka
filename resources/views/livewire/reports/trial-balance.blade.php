@@ -33,17 +33,20 @@
     <div class="bg-white p-4 sm:p-6 rounded-xl border border-brand-100 shadow-sm">
         <h2 class="text-base sm:text-lg font-semibold mb-4 text-zinc-900">Filter Laporan</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                @unless($this->isKepalaUnit)
+            @unless($this->isKepalaUnit)
                 <div class="flex flex-col gap-1.5">
-                    <label class="text-sm font-medium text-zinc-700">Unit Usaha</label>
-                    <select wire:model.live="unit_id" class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none focus:outline-none transition-colors">
-                        <option value="">Semua Unit</option>
-                        @foreach ($this->units as $unit)
-                            <option value="{{ $unit->id }}">{{ $unit->name }}</option>
-                        @endforeach
+                    <label class="text-sm font-medium text-zinc-700">Entitas / Unit Usaha</label>
+                    <select wire:model.live="unit_id" class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none focus:outline-none transition-colors font-medium">
+                        <option value="bumdes">BUMDes</option>
+                        <option value="all">Semua Unit Usaha</option>
+                        <optgroup label="Per Unit Usaha">
+                            @foreach ($this->units as $unit)
+                                <option value="{{ $unit->id }}">{{ $unit->name }}</option>
+                            @endforeach
+                        </optgroup>
                     </select>
                 </div>
-                @endunless
+            @endunless
 
                 <div class="flex flex-col gap-1.5">
                     <label class="text-sm font-medium text-zinc-700">Periode</label>
@@ -77,11 +80,12 @@
                 <p class="text-sm text-zinc-600">Per Akhir Bulan: {{ \Carbon\Carbon::parse($this->period ?: now()->format('Y-m'))->translatedFormat('F Y') }}</p>
             </div>
             
-            <div class="flex justify-end px-4 sm:px-6 py-3 {{ $data['totalAssets'] === $data['totalLiabilitiesEquity'] ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100' }} border-b">
+            @php $isBalanced = abs($data['totalAssets'] - $data['totalLiabilitiesEquity']) < 0.5; @endphp
+            <div class="flex justify-end px-4 sm:px-6 py-3 {{ $isBalanced ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100' }} border-b">
                 <div class="flex items-center gap-2">
-                    <p class="text-xs font-semibold uppercase tracking-wider {{ $data['totalAssets'] === $data['totalLiabilitiesEquity'] ? 'text-emerald-600' : 'text-red-600' }}">Status:</p>
-                    <p class="text-sm font-bold flex items-center gap-1.5 {{ $data['totalAssets'] === $data['totalLiabilitiesEquity'] ? 'text-emerald-700' : 'text-red-700' }}">
-                        @if($data['totalAssets'] === $data['totalLiabilitiesEquity'])
+                    <p class="text-xs font-semibold uppercase tracking-wider {{ $isBalanced ? 'text-emerald-600' : 'text-red-600' }}">Status:</p>
+                    <p class="text-sm font-bold flex items-center gap-1.5 {{ $isBalanced ? 'text-emerald-700' : 'text-red-700' }}">
+                        @if($isBalanced)
                             <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
                             SEIMBANG
                         @else

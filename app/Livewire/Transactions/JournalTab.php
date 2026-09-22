@@ -13,6 +13,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Reactive;
 use Livewire\Component;
@@ -55,7 +57,7 @@ class JournalTab extends Component
 
     /** Journal view: 'summary' (aggregated per description) or 'detailed' (per voucher). Set from the parent filter. */
     #[Reactive]
-    public string $viewMode = 'summary';
+    public string $viewMode = 'detailed';
 
     public function updating(string $name, mixed $value): void
     {
@@ -90,9 +92,7 @@ class JournalTab extends Component
     private function applyRoleScope($query)
     {
         if (Auth::user()?->hasRole('kepala_unit')) {
-            if ($this->unitId && is_numeric($this->unitId)) {
-                $query->where('business_unit_id', (int) $this->unitId);
-            }
+            $query->where('business_unit_id', Auth::user()->business_unit_id);
 
             return $query;
         }
@@ -317,7 +317,7 @@ class JournalTab extends Component
         $query = JournalEntry::query()
             ->leftJoin('accounts', 'accounts.id', '=', 'journal_entries.account_id')
             ->leftJoin('business_units', 'business_units.id', '=', 'journal_entries.business_unit_id')
-            ->selectRaw('MIN(journal_entries.id) as id, TRIM(journal_entries.description) as description, journal_entries.account_id, journal_entries.business_unit_id, accounts.code as code, accounts.name as accountName, business_units.name as unitName, SUM(journal_entries.debit) as totalDebit, SUM(journal_entries.credit) as totalCredit, COUNT(*) as rowCount, COUNT(DISTINCT journal_entries.voucher_number) as voucherCount, MIN(journal_entries.voucher_number) as firstVoucher, MAX(journal_entries.voucher_number) as lastVoucher')
+            ->selectRaw('MIN(journal_entries.id) as id, TRIM(journal_entries.description) as description, journal_entries.account_id, journal_entries.business_unit_id, accounts.code as code, accounts.name as accountName, business_units.name as unitName, SUM(journal_entries.debit) as totalDebit, SUM(journal_entries.credit) as totalCredit, COUNT(*) as rowCount, COUNT(DISTINCT journal_entries.voucher_number) as voucherCount, MIN(journal_entries.voucher_number) as firstVoucher, MAX(journal_entries.voucher_number) as lastVoucher, MIN(journal_entries.transaction_date) as minDate')
             ->whereBetween('journal_entries.transaction_date', [$start->format('Y-m-d'), $end->format('Y-m-d')])
             ->groupBy($key, 'journal_entries.account_id', 'journal_entries.business_unit_id', 'accounts.code', 'accounts.name', 'business_units.name', DB::raw('SUBSTR(journal_entries.transaction_date, 1, 7)'));
 
@@ -337,6 +337,7 @@ class JournalTab extends Component
                 $first->voucherCount = (int) $monthRows->sum('voucherCount');
                 $first->firstVoucher = $monthRows->min('firstVoucher');
                 $first->lastVoucher = $monthRows->max('lastVoucher');
+                $first->minDate = $monthRows->min('minDate');
 
                 return $first;
             })
@@ -346,12 +347,32 @@ class JournalTab extends Component
             $rows = $this->mergeVirtualSummary($rows, $start, $end);
         }
 
-        $desc = $this->sortDirection === 'desc';
+        $sortField = in_array($this->sortField, ['transaction_date', 'voucher_number']) ? $this->sortField : 'transaction_date';
+        $sortDirection = $this->sortDirection === 'desc' ? 'desc' : 'asc';
 
         $groups = $rows
             ->groupBy(fn ($row) => mb_strtolower(trim((string) $row->description)).'|'.($row->firstVoucher ?? '').'|'.($row->business_unit_id ?? 'null'))
-            ->map(fn ($group) => $group->sortByDesc(fn ($row) => (float) $row->totalDebit > 0)->values())
-            ->sortBy(fn ($group) => ($group->first()->firstVoucher ?? '').'|'.mb_strtolower(trim((string) $group->first()->description)), SORT_STRING, $desc)
+            ->map(function ($group) use ($end) {
+                // If all rows share the same firstVoucher and lastVoucher,
+                // it's a single voucher (debit + credit rows inflate voucherCount).
+                $singleVoucher = $group->max('lastVoucher') === $group->min('firstVoucher');
+                $groupDate = $singleVoucher
+                    ? $group->min('minDate')
+                    : $end->format('Y-m-d');
+
+                return [
+                    'rows' => $group->sortByDesc(fn ($row) => (float) $row->totalDebit > 0)->values(),
+                    'displayDate' => $groupDate,
+                ];
+            })
+            ->sortBy(function ($item) use ($sortField) {
+                $key = match ($sortField) {
+                    'voucher_number' => ($item['rows']->first()->firstVoucher ?? '').'|'.mb_strtolower(trim((string) $item['rows']->first()->description)),
+                    default => ($item['displayDate'] ?? '').'|'.($item['rows']->first()->firstVoucher ?? '').'|'.mb_strtolower(trim((string) $item['rows']->first()->description)),
+                };
+
+                return $key;
+            }, SORT_STRING, $sortDirection === 'desc')
             ->values();
 
         return [
@@ -608,9 +629,31 @@ class JournalTab extends Component
             'editDate' => 'required|date',
             'editDescription' => 'required|string|max:500',
             'editRows' => 'required|array|min:1',
-            'editRows.*.debit' => 'nullable|numeric|min:0',
-            'editRows.*.credit' => 'nullable|numeric|min:0',
+            'editRows.*.debit' => 'nullable|numeric|min:0|max:999999999999',
+            'editRows.*.credit' => 'nullable|numeric|min:0|max:999999999999',
         ]);
+
+        $totals = collect($this->editRows)->reduce(function (array $carry, array $row): array {
+            $debit = (float) ($row['debit'] ?: 0);
+            $credit = (float) ($row['credit'] ?: 0);
+
+            if ($debit > 0 && $credit > 0) {
+                throw ValidationException::withMessages(['editRows' => 'Setiap baris hanya boleh diisi debit atau kredit, tidak keduanya.']);
+            }
+
+            if ($debit <= 0 && $credit <= 0) {
+                throw ValidationException::withMessages(['editRows' => 'Setiap baris harus memiliki nominal debit atau kredit.']);
+            }
+
+            $carry[0] += $debit;
+            $carry[1] += $credit;
+
+            return $carry;
+        }, [0.0, 0.0]);
+
+        if (abs($totals[0] - $totals[1]) > 0.01) {
+            throw ValidationException::withMessages(['editRows' => 'Total debit harus sama dengan total kredit.']);
+        }
 
         try {
             DB::transaction(function () {
@@ -674,8 +717,11 @@ class JournalTab extends Component
             $this->showEditModal = false;
             $this->resetEditState();
             unset($this->transactions);
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
-            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan: '.$e->getMessage());
+            report($e);
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan saat menyimpan perubahan.');
         }
     }
 
@@ -694,8 +740,18 @@ class JournalTab extends Component
         $this->editRows = [];
     }
 
+    #[Computed]
+    public function canExport(): bool
+    {
+        return (bool) Auth::user();
+    }
+
     public function exportPdf()
     {
+        if (! $this->canExport) {
+            abort(403);
+        }
+
         if (! $this->canExportPdf) {
             $this->dispatch('swal-alert', icon: 'warning', title: 'Perhatian', text: 'Cetak PDF hanya tersedia untuk mode Bulanan, Semester, dan Tahunan.');
 
@@ -708,13 +764,12 @@ class JournalTab extends Component
             return;
         }
 
-        // Prevent OOM & timeout for large datasets (thousands of rows) during PDF export
-        ini_set('memory_limit', '-1');
-        set_time_limit(300);
+        // Guard against runaway exports: bounded page size keeps memory flat.
+        set_time_limit(120);
 
         $unit = ($this->unitId && is_numeric($this->unitId)) ? BusinessUnit::find($this->unitId) : null;
         $period = $this->periodLabel;
-        $unitLabel = $unit ? str_replace(' ', '_', $unit->name) : ($this->isBumdesScope() ? 'BUMDes' : 'Semua_Unit');
+        $unitLabel = $unit ? Str::slug($unit->name, '_') : ($this->isBumdesScope() ? 'BUMDes' : 'Semua_Unit');
 
         if ($this->viewMode === 'summary') {
             ['groups' => $groups, 'displayDate' => $displayDate] = $this->buildSummaryGroups();
@@ -730,7 +785,7 @@ class JournalTab extends Component
                 'totalCredit'
             ))->setPaper('a4', 'landscape');
 
-            $filename = 'JurnalUmum_Summary_'.$unitLabel.'_'.str_replace([' ', '-', '/'], '_', $period).'.pdf';
+            $filename = 'JurnalUmum_Summary_'.$unitLabel.'_'.Str::slug($period, '_').'.pdf';
 
             return response()->streamDownload(function () use ($pdf) {
                 echo $pdf->output();
@@ -773,7 +828,7 @@ class JournalTab extends Component
             'totalCredit'
         ))->setPaper('a4', 'landscape');
 
-        $filename = 'JurnalUmum_Detailed_'.$unitLabel.'_'.str_replace([' ', '-', '/'], '_', $period).'.pdf';
+        $filename = 'JurnalUmum_Detailed_'.$unitLabel.'_'.Str::slug($period, '_').'.pdf';
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
@@ -782,6 +837,13 @@ class JournalTab extends Component
 
     public function render()
     {
+        $user = Auth::user();
+        if ($user && $user->hasRole('kepala_unit') && (int) $this->unitId !== (int) $user->business_unit_id) {
+            $this->unitId = $user->business_unit_id;
+        }
+
+        $this->mode = in_array($this->mode, ['daily', 'weekly', 'monthly', 'semester', 'yearly'], true) ? $this->mode : 'daily';
+
         return view('livewire.transactions.journal-tab');
     }
 }

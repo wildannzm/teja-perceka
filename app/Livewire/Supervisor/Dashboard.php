@@ -4,11 +4,10 @@ namespace App\Livewire\Supervisor;
 
 use App\Models\JournalEntry;
 use App\Traits\DashboardChartData;
-use Livewire\Attributes\Layout;
+use Illuminate\Support\Carbon;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Layout('layouts.app')]
 #[Title('Dashboard')]
 class Dashboard extends Component
 {
@@ -16,32 +15,27 @@ class Dashboard extends Component
 
     public function render()
     {
-        // Income accounts: 4- and 7- prefixes (credit column)
+        $now = Carbon::now();
+        $start = $now->copy()->startOfMonth()->format('Y-m-d');
+        $end = $now->copy()->endOfMonth()->format('Y-m-d');
+
+        $scope = fn ($q) => $q->whereBetween('transaction_date', [$start, $end]);
+
         $income = JournalEntry::whereHas('account', function ($q) {
             $q->where('code', 'like', '4-%')->orWhere('code', 'like', '7-%');
-        })->sum('credit');
+        })->tap($scope)->sum('credit');
 
-        // Expense accounts: 5- and 6- prefixes (debit column)
         $expenses = JournalEntry::whereHas('account', function ($q) {
             $q->where('code', 'like', '5-%')->orWhere('code', 'like', '6-%');
-        })->sum('debit');
+        })->tap($scope)->sum('debit');
 
-        // Cash balance: debit - credit on Cash (1-1100) and Bank (1-1200)
-        $cashDebit = JournalEntry::whereHas('account', function ($q) {
-            $q->whereIn('code', ['1-1100', '1-1200']);
-        })->sum('debit');
-
-        $cashCredit = JournalEntry::whereHas('account', function ($q) {
-            $q->whereIn('code', ['1-1100', '1-1200']);
-        })->sum('credit');
-
-        $balance = $cashDebit - $cashCredit;
+        $netIncome = $income - $expenses;
         $chartData = $this->getChartData();
 
         return view('livewire.supervisor.dashboard', [
             'income' => $income,
             'expenses' => $expenses,
-            'balance' => $balance,
+            'netIncome' => $netIncome,
             'incomeChart' => $chartData['income'],
             'expenseChart' => $chartData['expenses'],
         ])->layout('layouts.app', ['title' => 'Dashboard Pengawas']);

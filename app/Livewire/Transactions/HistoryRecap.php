@@ -49,7 +49,7 @@ class HistoryRecap extends Component
     public string $sortOption = 'date-asc';
 
     /** Journal tab view: 'summary' (aggregated) or 'detailed' (per voucher). */
-    public string $viewMode = 'summary';
+    public string $viewMode = 'detailed';
 
     public function updatedSortOption(): void
     {
@@ -119,12 +119,6 @@ class HistoryRecap extends Component
     public function selectedUnit(): ?BusinessUnit
     {
         return ($this->unit_id && is_numeric($this->unit_id)) ? BusinessUnit::find($this->unit_id) : null;
-    }
-
-    #[Computed]
-    public function isDailyDisabled(): bool
-    {
-        return false;
     }
 
     public function updatedMode(): void

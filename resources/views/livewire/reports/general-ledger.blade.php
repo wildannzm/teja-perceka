@@ -26,12 +26,15 @@
 
                 @unless($this->isKepalaUnit)
                 <div class="flex flex-col gap-1.5">
-                    <label class="text-sm font-medium text-zinc-700">Unit Usaha</label>
-                    <select wire:model.live="unit_id" class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none focus:outline-none transition-colors">
-                        <option value="">Semua Unit</option>
-                        @foreach ($this->units as $unit)
-                            <option value="{{ $unit->id }}">{{ $unit->name }}</option>
-                        @endforeach
+                    <label class="text-sm font-medium text-zinc-700">Entitas / Unit Usaha</label>
+                    <select wire:model.live="unit_id" class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none focus:outline-none transition-colors font-medium">
+                        <option value="bumdes">BUMDes</option>
+                        <option value="all">Semua Unit Usaha</option>
+                        <optgroup label="Per Unit Usaha">
+                            @foreach ($this->units as $unit)
+                                <option value="{{ $unit->id }}">{{ $unit->name }}</option>
+                            @endforeach
+                        </optgroup>
                     </select>
                 </div>
                 @endunless

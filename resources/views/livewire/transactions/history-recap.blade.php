@@ -29,9 +29,7 @@
                 <label class="text-sm font-medium text-zinc-700">Periode</label>
                 <select wire:model.live="mode"
                     class="w-full sm:min-w-40 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
-                    @if(!$this->isDailyDisabled)
-                        <option value="daily">Harian</option>
-                    @endif
+                    <option value="daily">Harian</option>
                     <option value="weekly">Mingguan</option>
                     <option value="monthly">Bulanan</option>
                     <option value="semester">Semester</option>

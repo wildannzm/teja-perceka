@@ -121,11 +121,15 @@
         </thead>
         <tbody>
             @if ($groups->isNotEmpty())
-                @foreach ($groups as $groupRows)
-                    @php $groupFirst = $groupRows->first(); @endphp
+                @foreach ($groups as $group)
+                    @php
+                        $groupRows = is_array($group) ? $group['rows'] : $group;
+                        $groupDisplayDate = is_array($group) ? ($group['displayDate'] ?? $displayDate) : $displayDate;
+                        $groupFirst = $groupRows->first();
+                    @endphp
                     @foreach ($groupRows as $row)
                         <tr>
-                            <td class="text-center">{{ \Carbon\Carbon::parse($displayDate)->translatedFormat('d F Y') }}</td>
+                            <td class="text-center">{{ \Carbon\Carbon::parse($groupDisplayDate)->translatedFormat('d F Y') }}</td>
                             <td class="text-center">{{ $groupFirst->firstVoucher }}</td>
                             <td>{{ $groupFirst->description }}</td>
                             <td class="text-center">{{ $row->code ?? '-' }}</td>

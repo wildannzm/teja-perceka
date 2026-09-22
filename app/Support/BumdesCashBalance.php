@@ -64,21 +64,28 @@ class BumdesCashBalance
         $startDay = Carbon::parse($startDate)->startOfDay()->format('Y-m-d');
         $endDay = Carbon::parse($endDate)->endOfDay()->format('Y-m-d');
 
-        $units = BusinessUnit::orderBy('id')->get();
+        $sums = JournalEntry::query()
+            ->join('accounts', 'accounts.id', '=', 'journal_entries.account_id')
+            ->whereNotNull('journal_entries.business_unit_id')
+            ->whereDate('journal_entries.transaction_date', '>=', $startDay)
+            ->whereDate('journal_entries.transaction_date', '<=', $endDay)
+            ->whereIn('accounts.type', ['pendapatan', 'pendapatan_lain', 'hpp', 'beban', 'beban_lain'])
+            ->selectRaw('journal_entries.business_unit_id as unit_id, accounts.type as type, SUM(journal_entries.credit - journal_entries.debit) as net_credit, SUM(journal_entries.debit - journal_entries.credit) as net_debit')
+            ->groupBy('journal_entries.business_unit_id', 'accounts.type')
+            ->get()
+            ->groupBy('unit_id');
+
+        $units = BusinessUnit::orderBy('id')->get()->keyBy('id');
         $results = collect();
 
-        foreach ($units as $unit) {
-            $scope = JournalEntry::where('business_unit_id', $unit->id)
-                ->whereDate('transaction_date', '>=', $startDay)
-                ->whereDate('transaction_date', '<=', $endDay);
+        foreach ($sums as $unitId => $rows) {
+            $unit = $units->get($unitId);
+            if (! $unit) {
+                continue;
+            }
 
-            $revenue = (float) (clone $scope)
-                ->whereHas('account', fn ($query) => $query->whereIn('type', ['pendapatan', 'pendapatan_lain']))
-                ->sum(DB::raw('credit - debit'));
-
-            $expenses = (float) (clone $scope)
-                ->whereHas('account', fn ($query) => $query->whereIn('type', ['hpp', 'beban', 'beban_lain']))
-                ->sum(DB::raw('debit - credit'));
+            $revenue = (float) $rows->whereIn('type', ['pendapatan', 'pendapatan_lain'])->sum('net_credit');
+            $expenses = (float) $rows->whereIn('type', ['hpp', 'beban', 'beban_lain'])->sum('net_debit');
 
             // Net unit revenue = ledger revenue - ledger expenses
             $netAmount = max(0.0, $revenue - $expenses);
@@ -121,9 +128,9 @@ class BumdesCashBalance
         };
 
         $cashAccount = Account::where('code', '1-1100')->first();
-        $revenueAccount = Account::where('code', '4-2000')->first();
+        $equityAccount = Account::where('code', '3-2000')->first();
 
-        if (! $cashAccount || ! $revenueAccount) {
+        if (! $cashAccount || ! $equityAccount) {
             return collect();
         }
 
@@ -139,19 +146,19 @@ class BumdesCashBalance
         $cashEntry->setRelation('account', $cashAccount);
         $cashEntry->transaction_date = $date;
 
-        $revenueEntry = new JournalEntry([
+        $equityEntry = new JournalEntry([
             'voucher_number' => $voucherNumber,
             'transaction_date' => $date,
             'description' => $description,
-            'account_id' => $revenueAccount->id,
+            'account_id' => $equityAccount->id,
             'debit' => 0,
             'credit' => $amount,
             'business_unit_id' => null,
         ]);
-        $revenueEntry->setRelation('account', $revenueAccount);
-        $revenueEntry->transaction_date = $date;
+        $equityEntry->setRelation('account', $equityAccount);
+        $equityEntry->transaction_date = $date;
 
-        return collect([$cashEntry, $revenueEntry]);
+        return collect([$cashEntry, $equityEntry]);
     }
 
     /**

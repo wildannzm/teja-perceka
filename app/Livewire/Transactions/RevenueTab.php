@@ -6,6 +6,7 @@ use App\Models\BusinessUnit;
 use App\Models\DailyTransaction;
 use App\Models\JournalEntry;
 use App\Models\TransactionItem;
+use App\Support\BumdesCashBalance;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -122,6 +123,11 @@ class RevenueTab extends Component
         return Auth::user()->hasRole('kepala_unit');
     }
 
+    public function isBumdesScope(): bool
+    {
+        return ! Auth::user()?->hasRole('kepala_unit') && ($this->unitId === 'bumdes' || empty($this->unitId));
+    }
+
     #[Computed]
     public function periodLabel(): string
     {
@@ -162,19 +168,39 @@ class RevenueTab extends Component
      * (they have no journal equivalent), but the headline figures always
      * match the profit/loss report.
      *
+     * BUMDes scope: revenue = saldo sebelumnya + net income per unit,
+     * expenses = total KBM entries.
+     *
      * @return array{0: float, 1: float}
      */
     private function journalTotals(array $range): array
     {
         [$start, $end] = $range;
 
+        if ($this->isBumdesScope()) {
+            $revenue = BumdesCashBalance::getTotalNetUnitIncome($start, $end);
+
+            $expenses = (float) JournalEntry::where('voucher_number', 'like', 'KBM%')
+                ->whereDate('transaction_date', '>=', $start->format('Y-m-d'))
+                ->whereDate('transaction_date', '<=', $end->format('Y-m-d'))
+                ->whereHas('account', fn ($q) => $q->whereIn('type', ['hpp', 'beban', 'beban_lain']))
+                ->sum(DB::raw('debit - credit'));
+
+            return [$revenue, $expenses];
+        }
+
         $sums = JournalEntry::query()
             ->join('accounts', 'accounts.id', '=', 'journal_entries.account_id')
             ->whereIn('accounts.type', ['pendapatan', 'pendapatan_lain', 'hpp', 'beban', 'beban_lain'])
-            ->whereBetween('journal_entries.transaction_date', [$start->format('Y-m-d'), $end->format('Y-m-d')])
-            ->when($this->unitId && is_numeric($this->unitId),
-                fn ($query) => $query->where('journal_entries.business_unit_id', (int) $this->unitId))
-            ->selectRaw('accounts.type as type, SUM(journal_entries.debit) as d, SUM(journal_entries.credit) as c')
+            ->whereBetween('journal_entries.transaction_date', [$start->format('Y-m-d'), $end->format('Y-m-d')]);
+
+        if ($this->unitId === 'all') {
+            $sums->whereNotNull('journal_entries.business_unit_id');
+        } elseif ($this->unitId && is_numeric($this->unitId)) {
+            $sums->where('journal_entries.business_unit_id', (int) $this->unitId);
+        }
+
+        $sums = $sums->selectRaw('accounts.type as type, SUM(journal_entries.debit) as d, SUM(journal_entries.credit) as c')
             ->groupBy('accounts.type')
             ->get();
 
@@ -204,6 +230,21 @@ class RevenueTab extends Component
                 'netIncome' => 0,
                 'isEmpty' => true,
                 'emptyMessage' => 'Mode Harian tidak tersedia untuk unit TPS karena data diinput per minggu. Silakan pilih mode Mingguan atau Bulanan.',
+            ];
+        }
+
+        // BUMDes scope: headline from virtual entries + KBM, no category rows
+        if ($this->isBumdesScope()) {
+            [$journalRevenue, $journalExpenses] = $this->journalTotals($range);
+
+            return [
+                'unit' => $unitName,
+                'categoryRows' => collect([]),
+                'totalRevenue' => $journalRevenue,
+                'unitTotalExpense' => $journalExpenses,
+                'netIncome' => $journalRevenue - $journalExpenses,
+                'isEmpty' => false,
+                'emptyMessage' => '',
             ];
         }
 
@@ -269,6 +310,13 @@ class RevenueTab extends Component
 
     public function render()
     {
+        $user = Auth::user();
+        if ($user && $user->hasRole('kepala_unit') && (int) $this->unitId !== (int) $user->business_unit_id) {
+            $this->unitId = $user->business_unit_id;
+        }
+
+        $this->mode = in_array($this->mode, ['daily', 'weekly', 'monthly', 'semester', 'yearly'], true) ? $this->mode : 'daily';
+
         return view('livewire.transactions.revenue-tab');
     }
 }

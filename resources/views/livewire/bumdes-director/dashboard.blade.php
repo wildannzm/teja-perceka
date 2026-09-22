@@ -37,8 +37,8 @@
                     </svg>
                 </div>
                 <div class="flex flex-col">
-                    <h3 class="text-sm font-semibold text-zinc-500">Saldo Akhir</h3>
-                    <p class="mt-1 text-xl sm:text-2xl font-bold text-emerald-600 break-all">Rp {{ number_format($balance, 0, ',', '.') }}</p>
+                    <h3 class="text-sm font-semibold text-zinc-500">Laba Bersih (Bulan Ini)</h3>
+                    <p class="mt-1 text-xl sm:text-2xl font-bold text-emerald-600 break-all">Rp {{ number_format($netIncome, 0, ',', '.') }}</p>
                 </div>
             </div>
         </div>

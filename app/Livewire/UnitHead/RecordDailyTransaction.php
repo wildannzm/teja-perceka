@@ -11,6 +11,7 @@ use App\Models\JournalEntry;
 use App\Models\TransactionCategory;
 use App\Models\TransactionItem;
 use App\Support\VoucherNumber;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -221,14 +222,44 @@ class RecordDailyTransaction extends Component
 
     public function submit()
     {
+        $validCategoryIds = $this->categoryList->keys()->map(fn ($id) => (int) $id)->all();
+
         // Base validation
         $this->validate([
             'transactionDate' => 'required|date',
-            'totalIncome' => 'required|numeric|min:0',
+            'totalIncome' => 'required|numeric|min:0|max:999999999999',
         ]);
+
+        foreach ($this->inputs as $categoryId => $input) {
+            if (! in_array((int) $categoryId, $validCategoryIds, true)) {
+                unset($this->inputs[$categoryId]);
+
+                continue;
+            }
+
+            $quantity = $input['quantity'] ?? '';
+            $amount = $input['amount'] ?? '';
+
+            if ($quantity !== '' && (! is_numeric($quantity) || (int) $quantity < 0 || (int) $quantity > 1000000)) {
+                $this->addError("inputs.{$categoryId}.quantity", 'Kuantitas tidak valid.');
+                $this->dispatch('swal-alert', icon: 'warning', title: 'Perhatian', text: 'Kuantitas tidak valid.');
+
+                return;
+            }
+
+            if ($amount !== '' && (! is_numeric($amount) || (float) $amount < 0 || (float) $amount > 999999999999)) {
+                $this->addError("inputs.{$categoryId}.amount", 'Nominal tidak valid.');
+                $this->dispatch('swal-alert', icon: 'warning', title: 'Perhatian', text: 'Nominal tidak valid.');
+
+                return;
+            }
+        }
+
+        $this->recalculateSubtotals();
 
         if ($this->totalIncome <= 0) {
             $this->addError('totalIncome', 'Total pemasukan tidak boleh nol. Silakan isi minimal satu transaksi.');
+            $this->dispatch('swal-alert', icon: 'warning', title: 'Perhatian', text: 'Total pemasukan tidak boleh nol.');
 
             return;
         }
@@ -237,6 +268,7 @@ class RecordDailyTransaction extends Component
             $this->checkAlreadySubmitted();
             if ($this->alreadySubmitted) {
                 $this->showDuplicateError = true;
+                $this->dispatch('swal-alert', icon: 'warning', title: 'Perhatian', text: 'Transaksi untuk tanggal ini sudah pernah disimpan.');
 
                 return;
             }
@@ -292,18 +324,17 @@ class RecordDailyTransaction extends Component
 
             DB::commit();
 
-            // Reset the form
-            $this->initCategoryInputs();
-            $this->totalIncome = 0;
+            $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Transaksi berhasil disimpan!');
+            $this->dispatch('swal-redirect', url: route('unit.record-transaction'));
 
-            session()->flash('status', 'Transaksi berhasil disimpan!');
-
-            // Redirect to the same page to re-render a clean state
-            return $this->redirect(route('unit.record-transaction'), navigate: true);
-
+        } catch (QueryException $e) {
+            DB::rollBack();
+            report($e);
+            $this->dispatch('swal-alert', icon: 'warning', title: 'Perhatian', text: 'Transaksi untuk tanggal ini sudah pernah disimpan.');
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->addError('submit', 'Terjadi kesalahan saat menyimpan transaksi: '.$e->getMessage());
+            report($e);
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: 'Terjadi kesalahan saat menyimpan transaksi.');
         }
     }
 
@@ -374,14 +405,13 @@ class RecordDailyTransaction extends Component
 
             DB::commit();
 
-            session()->flash('status', 'Transaksi berhasil diperbarui!');
-            session()->flash('swal', ['icon' => 'success', 'title' => 'Berhasil', 'text' => 'Transaksi berhasil diperbarui!']);
-
-            return $this->redirect(route('history-recap'), navigate: true);
+            $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Transaksi berhasil diperbarui!');
+            $this->dispatch('swal-redirect', url: route('history-recap'));
 
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->addError('submit', 'Terjadi kesalahan saat memperbarui transaksi: '.$e->getMessage());
+            report($e);
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal memperbarui', text: 'Terjadi kesalahan saat memperbarui transaksi.');
         }
     }
 

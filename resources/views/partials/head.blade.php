@@ -42,24 +42,22 @@
 
 @if(session('swal'))
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const swal = @json(session('swal'));
-            window.Swal.fire({
-                icon: swal.icon ?? 'info',
-                title: swal.title ?? '',
-                text: swal.text ?? '',
-                timer: swal.icon === 'success' ? 2500 : undefined,
-                timerProgressBar: swal.icon === 'success',
-                showConfirmButton: swal.icon !== 'success',
-                confirmButtonText: 'OK',
-                confirmButtonColor: '#f59e0b',
-                customClass: {
-                    popup: 'rounded-2xl shadow-2xl font-sans',
-                    title: 'text-zinc-900 font-semibold',
-                    htmlContainer: 'text-zinc-600',
-                    timerProgressBar: 'bg-amber-400',
-                },
-            });
+        const swalData = @json(session('swal'));
+        window.Swal.fire({
+            icon: swalData.icon ?? 'info',
+            title: swalData.title ?? '',
+            text: swalData.text ?? '',
+            timer: swalData.icon === 'success' ? 2500 : undefined,
+            timerProgressBar: swalData.icon === 'success',
+            showConfirmButton: swalData.icon !== 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#f59e0b',
+            customClass: {
+                popup: 'rounded-2xl shadow-2xl font-sans',
+                title: 'text-zinc-900 font-semibold',
+                htmlContainer: 'text-zinc-600',
+                timerProgressBar: 'bg-amber-400',
+            },
         });
     </script>
 @endif

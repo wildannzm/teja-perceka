@@ -5,10 +5,13 @@ namespace App\Livewire\ProfitLoss;
 use App\Models\Account;
 use App\Models\BusinessUnit;
 use App\Models\JournalEntry;
+use App\Support\BumdesCashBalance;
+use App\Support\SafeDates;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -18,7 +21,7 @@ use Livewire\Component;
 #[Title('Laporan Laba Rugi')]
 class ProfitLoss extends Component
 {
-    public $unit_id = null;
+    public mixed $unit_id = null;
 
     /** 'monthly' | 'semester' | 'yearly' */
     public string $mode = 'monthly';
@@ -37,6 +40,8 @@ class ProfitLoss extends Component
         // Unit heads: locked to their own unit
         if ($user->hasRole('kepala_unit')) {
             $this->unit_id = $user->business_unit_id;
+        } elseif (empty($this->unit_id)) {
+            $this->unit_id = 'bumdes';
         }
 
         // Default to the current month/year
@@ -135,6 +140,10 @@ class ProfitLoss extends Component
                         }
                     }
 
+                    if (! Account::whereKey($accountId)->exists()) {
+                        continue;
+                    }
+
                     JournalEntry::create([
                         'voucher_number' => 'ADJ-'.$batchTime.'-'.$accountId,
                         'transaction_date' => $end->format('Y-m-d'),
@@ -142,7 +151,7 @@ class ProfitLoss extends Component
                         'account_id' => $accountId,
                         'debit' => $debit,
                         'credit' => $credit,
-                        'business_unit_id' => $this->unit_id,
+                        'business_unit_id' => $this->resolveAdjustmentUnitId(),
                     ]);
                 }
             }
@@ -153,7 +162,19 @@ class ProfitLoss extends Component
         unset($this->reportData);
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────
+    public function isBumdesScope(): bool
+    {
+        return ! Auth::user()?->hasRole('kepala_unit') && ($this->unit_id === 'bumdes' || empty($this->unit_id));
+    }
+
+    private function resolveAdjustmentUnitId(): ?int
+    {
+        if (Auth::user()?->hasRole('kepala_unit')) {
+            return Auth::user()->business_unit_id;
+        }
+
+        return ($this->unit_id && is_numeric($this->unit_id)) ? (int) $this->unit_id : null;
+    }
 
     private function periodRange(): array
     {
@@ -181,7 +202,7 @@ class ProfitLoss extends Component
             }
         }
 
-        $date = Carbon::parse($this->period ?: Carbon::now()->format('Y-m'));
+        $date = SafeDates::month($this->period);
 
         return [
             $date->copy()->startOfMonth(),
@@ -192,24 +213,36 @@ class ProfitLoss extends Component
     private function periodLabel(): string
     {
         if ($this->mode === 'yearly') {
-            return 'Tahun '.($this->period ?: Carbon::now()->format('Y'));
+            return 'Tahun '.SafeDates::year($this->period);
         }
 
         if ($this->mode === 'semester') {
-            $year = $this->semesterYear ?: Carbon::now()->format('Y');
+            $year = SafeDates::year($this->semesterYear);
 
             return 'Semester '.$this->semester.' Tahun '.$year;
         }
 
-        return Carbon::parse($this->period ?: Carbon::now()->format('Y-m'))->translatedFormat('F Y');
+        return SafeDates::month($this->period)->translatedFormat('F Y');
     }
 
     private function buildQuery()
     {
         [$start, $end] = $this->periodRange();
         $q = JournalEntry::query()->whereBetween('transaction_date', [$start->format('Y-m-d'), $end->format('Y-m-d')]);
-        if ($this->unit_id) {
-            $q->where('business_unit_id', $this->unit_id);
+
+        if ($this->isBumdesScope()) {
+            $q->where(function ($query) {
+                $query->where('voucher_number', 'like', 'KBM%')
+                    ->orWhere(function ($sub) {
+                        $sub->where('voucher_number', 'like', 'DBM%')
+                            ->whereNull('daily_transaction_id')
+                            ->whereNull('business_unit_id');
+                    });
+            });
+        } elseif ($this->unit_id === 'all') {
+            $q->whereNotNull('business_unit_id');
+        } elseif ($this->unit_id && is_numeric($this->unit_id)) {
+            $q->where('business_unit_id', (int) $this->unit_id);
         }
 
         return $q;
@@ -244,6 +277,17 @@ class ProfitLoss extends Component
                 : 'SUM(debit) - SUM(credit) as amount'))
             ->groupBy('account_id')
             ->pluck('amount', 'account_id');
+
+        // BUMDes scope: add virtual revenue (saldo sebelumnya + net income per unit)
+        // to account 4-2000, mirroring virtual journal entries DBM001/DBM002+.
+        if ($this->isBumdesScope() && $type === 'pendapatan') {
+            [$start, $end] = $this->periodRange();
+            $revenueAccount = Account::where('code', '4-2000')->first();
+            if ($revenueAccount && in_array($revenueAccount->id, $accountIds->toArray())) {
+                $virtualRevenue = BumdesCashBalance::getTotalNetUnitIncome($start, $end);
+                $sums[$revenueAccount->id] = ($sums[$revenueAccount->id] ?? 0) + $virtualRevenue;
+            }
+        }
 
         return $accountList->map(function ($account) use ($sums) {
             return (object) [
@@ -302,7 +346,7 @@ class ProfitLoss extends Component
     #[Computed]
     public function selectedUnit(): ?BusinessUnit
     {
-        return $this->unit_id ? BusinessUnit::find($this->unit_id) : null;
+        return ($this->unit_id && is_numeric($this->unit_id)) ? BusinessUnit::find($this->unit_id) : null;
     }
 
     // ─── Export PDF ──────────────────────────────────────────────────────
@@ -331,20 +375,32 @@ class ProfitLoss extends Component
             default => '',
         };
 
-        ini_set('memory_limit', '-1');
-        set_time_limit(300);
+        set_time_limit(120);
 
         $pdf = Pdf::loadView('pdf.profit-loss', array_merge($data, compact('periodLabel', 'entityName', 'printDate', 'signatureDate', 'signatory', 'position')))
             ->setPaper('a4', 'portrait');
 
-        $unitSlug = $unit ? str_replace(' ', '_', $unit->name) : 'Konsolidasi';
-        $filename = 'LabaRugi_'.$unitSlug.'_'.str_replace(' ', '_', $periodLabel).'.pdf';
+        $unitSlug = $unit ? Str::slug($unit->name, '_') : 'Konsolidasi';
+        $filename = 'LabaRugi_'.$unitSlug.'_'.Str::slug($periodLabel, '_').'.pdf';
 
         return response()->streamDownload(fn () => print ($pdf->output()), $filename);
     }
 
+    public function updatingUnitId($value): void
+    {
+        $user = Auth::user();
+        if ($user && $user->hasRole('kepala_unit') && (int) $value !== (int) $user->business_unit_id) {
+            abort(403, 'Unauthorized');
+        }
+    }
+
     public function render()
     {
+        $user = Auth::user();
+        if ($user && $user->hasRole('kepala_unit') && $this->unit_id !== $user->business_unit_id) {
+            $this->unit_id = $user->business_unit_id;
+        }
+
         $unit = $this->selectedUnit;
         $entityName = $unit ? strtoupper($unit->name) : 'BUMDESA TEJA PERCEKA';
 

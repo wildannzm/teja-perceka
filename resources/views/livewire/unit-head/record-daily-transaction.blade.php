@@ -1,4 +1,30 @@
-<div class="flex flex-col gap-6 max-w-full mx-auto w-full pb-20">
+<div class="flex flex-col gap-6 max-w-full mx-auto w-full pb-20" x-data x-init="
+    $wire.on('swal-alert', (event) => {
+        const e = Array.isArray(event) ? event[0] : event;
+        window.Swal.fire({
+            icon: e.icon ?? 'info',
+            title: e.title ?? '',
+            text: e.text ?? '',
+            timer: e.icon === 'success' ? 2500 : undefined,
+            timerProgressBar: e.icon === 'success',
+            showConfirmButton: e.icon !== 'success',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#f59e0b',
+            customClass: {
+                popup: 'rounded-2xl shadow-2xl font-sans',
+                title: 'text-zinc-900 font-semibold',
+                htmlContainer: 'text-zinc-600',
+                timerProgressBar: 'bg-amber-400',
+            },
+        });
+    });
+    $wire.on('swal-redirect', (event) => {
+        const url = Array.isArray(event) ? event[0]?.url : event?.url;
+        if (url) {
+            setTimeout(() => { window.location.href = url; }, 2600);
+        }
+    });
+">
     @if (session()->has('status'))
         <div class="p-4 mb-2 text-sm text-brand-900 bg-brand-100 rounded-xl border border-brand-200 flex items-center gap-3 shadow-sm"
             role="alert">
