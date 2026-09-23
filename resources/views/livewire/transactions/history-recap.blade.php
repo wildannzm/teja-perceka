@@ -129,13 +129,13 @@
     </div>
 
     {{-- Tabs --}}
-    <div class="border-b border-zinc-200 flex space-x-6 px-2 overflow-x-auto">
+    <div class="grid grid-cols-2 border-b border-zinc-200">
         <button wire:click="$set('tab', 'revenue')" 
-                class="pb-3 px-1 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap focus:outline-none {{ $tab === 'revenue' ? 'border-brand-500 text-brand-700' : 'border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300' }}">
+                class="pb-3 px-1 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap text-center focus:outline-none {{ $tab === 'revenue' ? 'border-brand-500 text-brand-700' : 'border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300' }}">
             Pendapatan
         </button>
         <button wire:click="$set('tab', 'journal')" 
-                class="pb-3 px-1 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap focus:outline-none {{ $tab === 'journal' ? 'border-brand-500 text-brand-700' : 'border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300' }}">
+                class="pb-3 px-1 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap text-center focus:outline-none {{ $tab === 'journal' ? 'border-brand-500 text-brand-700' : 'border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300' }}">
             Jurnal Umum
         </button>
     </div>

@@ -628,47 +628,77 @@
     </div><!-- End flex wrapper -->
 
     @if (session()->has('impersonator_id'))
-        <div
-            style="position: fixed !important; bottom: 24px !important; right: 24px !important; z-index: 999999 !important; background-color: #ffffff !important; border: 1px solid #e4e4e7 !important; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; border-radius: 9999px !important; padding: 6px 14px 6px 10px !important; display: flex !important; align-items: center !important; gap: 12px !important;">
-            <!-- Icon -->
-            <div
-                style="width: 34px !important; height: 34px !important; border-radius: 9999px !important; background-color: #fef3c7 !important; color: #d97706 !important; display: flex !important; align-items: center !important; justify-content: center !important; font-weight: 700 !important; font-size: 14px !important; flex-shrink: 0 !important;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                    stroke="currentColor" style="width: 18px !important; height: 18px !important;">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+        <div x-data="{ open: false }" class="fixed bottom-6 right-6 z-[999999]">
+            {{-- Mobile: Circle button --}}
+            <button @click="open = !open"
+                class="lg:hidden size-14 rounded-full bg-amber-500 text-white shadow-lg flex items-center justify-center hover:bg-amber-600 transition-colors active:scale-95">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                 </svg>
+            </button>
+
+            {{-- Mobile: Popup --}}
+            <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                @click.outside="open = false"
+                class="lg:hidden absolute bottom-18 right-0 w-64 bg-white rounded-2xl border border-zinc-200 shadow-xl p-4 flex flex-col gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="size-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                        </svg>
+                    </div>
+                    <div class="flex flex-col min-w-0">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-amber-600">Mode Impersonate</span>
+                        <span class="text-sm font-bold text-zinc-900 truncate" title="{{ auth()->user()->name }} ({{ auth()->user()->email }})">
+                            {{ auth()->user()->name }}
+                        </span>
+                    </div>
+                </div>
+                <form method="POST" action="{{ route('impersonate.stop') }}">
+                    @csrf
+                    <button type="submit"
+                        class="w-full h-10 rounded-xl bg-red-600 text-white text-sm font-bold flex items-center justify-center gap-2 hover:bg-red-700 transition-colors active:scale-95">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="size-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+                        </svg>
+                        Keluar
+                    </button>
+                </form>
             </div>
 
-            <!-- User info -->
-            <div
-                style="display: flex !important; flex-direction: column !important; text-align: left !important; line-height: 1.25 !important;">
-                <span
-                    style="font-size: 9px !important; font-weight: 800 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; color: #d97706 !important;">Mode
-                    Impersonate</span>
-                <span
-                    style="font-size: 12px !important; font-weight: 700 !important; color: #18181b !important; max-width: 150px !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important;"
-                    title="{{ auth()->user()->name }} ({{ auth()->user()->email }})">
-                    {{ auth()->user()->name }}
-                </span>
-            </div>
-
-            <!-- Exit button -->
-            <form method="POST" action="{{ route('impersonate.stop') }}"
-                style="display: inline-flex !important; margin: 0 !important; padding: 0 !important;">
-                @csrf
-                <button type="submit"
-                    style="height: 32px !important; padding: 0 12px !important; border-radius: 9999px !important; background-color: #dc2626 !important; color: #ffffff !important; font-weight: 700 !important; font-size: 11px !important; border: none !important; cursor: pointer !important; display: flex !important; align-items: center !important; gap: 6px !important; flex-shrink: 0 !important; transition: all 0.2s !important; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2) !important;"
-                    title="Keluar dari mode impersonasi (Kembali ke Admin)">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
-                        stroke="currentColor" style="width: 14px !important; height: 14px !important;">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+            {{-- Desktop: Full card --}}
+            <div class="hidden lg:flex items-center gap-3 bg-white border border-zinc-200 shadow-lg rounded-full pl-2.5 pr-1.5 py-1.5">
+                <div class="size-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                     </svg>
-                    <span>Keluar</span>
-                </button>
-            </form>
+                </div>
+                <div class="flex flex-col min-w-0 max-w-[150px]">
+                    <span class="text-[9px] font-extrabold uppercase tracking-wider text-amber-600 leading-tight">Mode Impersonate</span>
+                    <span class="text-xs font-bold text-zinc-900 truncate leading-tight" title="{{ auth()->user()->name }} ({{ auth()->user()->email }})">
+                        {{ auth()->user()->name }}
+                    </span>
+                </div>
+                <form method="POST" action="{{ route('impersonate.stop') }}">
+                    @csrf
+                    <button type="submit"
+                        class="h-8 px-3 rounded-full bg-red-600 text-white text-[11px] font-bold flex items-center gap-1.5 hover:bg-red-700 transition-colors active:scale-95 shrink-0"
+                        title="Keluar dari mode impersonasi">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="size-3.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+                        </svg>
+                        Keluar
+                    </button>
+                </form>
+            </div>
         </div>
     @endif
 

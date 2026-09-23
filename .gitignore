@@ -22,5 +22,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/graphify-out
 
 /referensi_excel

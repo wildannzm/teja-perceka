@@ -200,10 +200,10 @@
             </div>
 
             <button wire:click="exportPdf" wire:loading.attr="disabled" wire:target="exportPdf"
-                class="w-full min-h-[52px] rounded-xl text-base font-semibold bg-white text-brand-950 hover:bg-brand-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-70 disabled:cursor-wait disabled:active:scale-100 shadow-lg">
+                class="w-full min-h-[52px] rounded-2xl text-base font-semibold bg-brand-600 text-white hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-70 disabled:cursor-wait disabled:active:scale-100 shadow-lg">
                 {{-- Idle icon & text --}}
                 <span wire:loading.remove wire:target="exportPdf" class="flex items-center gap-2.5">
-                    <svg class="size-5 text-brand-800" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    <svg class="size-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -212,7 +212,7 @@
                 </span>
                 {{-- Loading state --}}
                 <span wire:loading wire:target="exportPdf" class="flex items-center gap-2.5">
-                    <svg class="animate-spin size-5 text-brand-800" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    <svg class="animate-spin size-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                             stroke-width="4"></circle>

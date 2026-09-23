@@ -6,7 +6,7 @@
             <button
                 wire:click="openCreate"
                 id="btn-tambah-aset"
-                class="flex items-center gap-1.5 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 px-4 py-2.5 rounded-xl transition-all active:scale-95 shadow-sm"
+                class="flex items-center justify-center gap-1.5 w-full sm:w-auto text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 px-4 py-2.5 rounded-xl transition-all active:scale-95 shadow-sm"
             >
                 <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

@@ -1,8 +1,6 @@
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <x-page-header title="Dashboard" description="Tinjauan ringkas performa keuangan seluruh unit BUMDes pada bulan ini." />
-        <div class="flex items-center gap-3">
+    <x-page-header title="Dashboard" description="Tinjauan ringkas performa keuangan seluruh unit BUMDes pada bulan ini.">
+        <x-slot:actions>
             <a href="{{ route('super-admin.users') }}" wire:navigate class="inline-flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm rounded-xl transition-colors shadow-sm">
                 <flux:icon icon="users" class="size-4" />
                 <span>Manajemen User</span>
@@ -11,8 +9,8 @@
                 <flux:icon icon="clock" class="size-4 text-zinc-500" />
                 <span>Log Aktivitas</span>
             </a>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-page-header>
 
     <!-- Stat cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
