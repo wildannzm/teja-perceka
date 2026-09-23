@@ -628,25 +628,94 @@
     </div><!-- End flex wrapper -->
 
     @if (session()->has('impersonator_id'))
-        <div x-data="{ open: false }" class="fixed bottom-6 right-6 z-[999999]">
-            {{-- Mobile: Circle button --}}
-            <button @click="open = !open"
-                class="lg:hidden size-14 rounded-full bg-amber-500 text-white shadow-lg flex items-center justify-center hover:bg-amber-600 transition-colors active:scale-95">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
+        {{-- Mobile: Draggable FAB --}}
+        <div x-data="{
+            open: false,
+            dragging: false,
+            moved: false,
+            faded: false,
+            posX: 0,
+            posY: 0,
+            initPos() {
+                this.posX = document.documentElement.clientWidth - 80;
+                this.posY = document.documentElement.clientHeight - 80;
+            },
+            startX: 0,
+            startY: 0,
+            startPx: 0,
+            startPy: 0,
+            fadeTimer: null,
+            resetFade() {
+                this.faded = false;
+                clearTimeout(this.fadeTimer);
+                this.fadeTimer = setTimeout(() => { this.faded = true; }, 30000);
+            },
+            onPointerDown(e) {
+                if (window.innerWidth >= 1024) return;
+                this.startX = e.clientX || e.touches?.[0]?.clientX || 0;
+                this.startY = e.clientY || e.touches?.[0]?.clientY || 0;
+                this.startPx = this.posX;
+                this.startPy = this.posY;
+                this.dragging = true;
+                this.moved = false;
+                this.resetFade();
+                document.body.style.overflow = 'hidden';
+                document.body.style.touchAction = 'none';
+            },
+            onPointerMove(e) {
+                if (!this.dragging) return;
+                e.preventDefault();
+                const cx = e.clientX || e.touches?.[0]?.clientX || 0;
+                const cy = e.clientY || e.touches?.[0]?.clientY || 0;
+                const dx = cx - this.startX;
+                const dy = cy - this.startY;
+                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) this.moved = true;
+                this.posX = Math.min(Math.max(this.startPx + dx, 16), document.documentElement.clientWidth - 72);
+                this.posY = Math.min(Math.max(this.startPy + dy, 16), document.documentElement.clientHeight - 72);
+            },
+            onPointerUp(e) {
+                this.dragging = false;
+                document.body.style.overflow = '';
+                document.body.style.touchAction = '';
+                if (!this.moved) {
+                    this.open = !this.open;
+                }
+                this.resetFade();
+            },
+            init() {
+                this.initPos();
+                this.resetFade();
+            }
+        }"
+        @pointerdown.window="onPointerDown($event)"
+        @pointermove.window="onPointerMove($event)"
+        @pointerup.window="onPointerUp($event)"
+        @touchstart.window="onPointerDown($event)"
+        @touchmove.window="onPointerMove($event)"
+        @touchend.window="onPointerUp($event)"
+        class="fixed z-[999999] lg:hidden"
+        :style="`left: ${posX}px; top: ${posY}px;`">
+
+            {{-- Circle button --}}
+            <button @click.prevent
+                class="size-14 rounded-full bg-amber-500 text-white shadow-lg flex items-center justify-center hover:bg-amber-600 transition-all active:scale-95 touch-none select-none"
+                :class="dragging ? 'cursor-grabbing' : 'cursor-grab'"
+                :style="faded ? 'opacity: 0.35;' : 'opacity: 1;'">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6 pointer-events-none">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                 </svg>
             </button>
 
-            {{-- Mobile: Popup --}}
+            {{-- Popup --}}
             <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 translate-y-2 scale-95"
-                x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
                 x-transition:leave="transition ease-in duration-150"
-                x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95"
                 @click.outside="open = false"
-                class="lg:hidden absolute bottom-18 right-0 w-64 bg-white rounded-2xl border border-zinc-200 shadow-xl p-4 flex flex-col gap-3">
+                class="absolute bottom-18 right-0 w-64 bg-white rounded-2xl border border-zinc-200 shadow-xl p-4 flex flex-col gap-3 pointer-events-auto">
                 <div class="flex items-center gap-3">
                     <div class="size-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5">
@@ -672,33 +741,33 @@
                     </button>
                 </form>
             </div>
+        </div>
 
-            {{-- Desktop: Full card --}}
-            <div class="hidden lg:flex items-center gap-3 bg-white border border-zinc-200 shadow-lg rounded-full pl-2.5 pr-1.5 py-1.5">
-                <div class="size-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                    </svg>
-                </div>
-                <div class="flex flex-col min-w-0 max-w-[150px]">
-                    <span class="text-[9px] font-extrabold uppercase tracking-wider text-amber-600 leading-tight">Mode Impersonate</span>
-                    <span class="text-xs font-bold text-zinc-900 truncate leading-tight" title="{{ auth()->user()->name }} ({{ auth()->user()->email }})">
-                        {{ auth()->user()->name }}
-                    </span>
-                </div>
-                <form method="POST" action="{{ route('impersonate.stop') }}">
-                    @csrf
-                    <button type="submit"
-                        class="h-8 px-3 rounded-full bg-red-600 text-white text-[11px] font-bold flex items-center gap-1.5 hover:bg-red-700 transition-colors active:scale-95 shrink-0"
-                        title="Keluar dari mode impersonasi">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="size-3.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
-                        </svg>
-                        Keluar
-                    </button>
-                </form>
+        {{-- Desktop: Fixed card --}}
+        <div class="hidden lg:flex fixed bottom-6 right-6 z-[999999] items-center gap-3 bg-white border border-zinc-200 shadow-lg rounded-full pl-2.5 pr-1.5 py-1.5">
+            <div class="size-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
             </div>
+            <div class="flex flex-col min-w-0 max-w-[150px]">
+                <span class="text-[9px] font-extrabold uppercase tracking-wider text-amber-600 leading-tight">Mode Impersonate</span>
+                <span class="text-xs font-bold text-zinc-900 truncate leading-tight" title="{{ auth()->user()->name }} ({{ auth()->user()->email }})">
+                    {{ auth()->user()->name }}
+                </span>
+            </div>
+            <form method="POST" action="{{ route('impersonate.stop') }}">
+                @csrf
+                <button type="submit"
+                    class="h-8 px-3 rounded-full bg-red-600 text-white text-[11px] font-bold flex items-center gap-1.5 hover:bg-red-700 transition-colors active:scale-95 shrink-0"
+                    title="Keluar dari mode impersonasi">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="size-3.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+                    </svg>
+                    Keluar
+                </button>
+            </form>
         </div>
     @endif
 
