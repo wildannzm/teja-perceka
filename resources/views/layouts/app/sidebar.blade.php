@@ -628,79 +628,13 @@
     </div><!-- End flex wrapper -->
 
     @if (session()->has('impersonator_id'))
-        {{-- Mobile: Draggable FAB --}}
-        <div x-data="{
-            open: false,
-            dragging: false,
-            moved: false,
-            faded: false,
-            posX: 0,
-            posY: 0,
-            initPos() {
-                this.posX = document.documentElement.clientWidth - 80;
-                this.posY = document.documentElement.clientHeight - 80;
-            },
-            startX: 0,
-            startY: 0,
-            startPx: 0,
-            startPy: 0,
-            fadeTimer: null,
-            resetFade() {
-                this.faded = false;
-                clearTimeout(this.fadeTimer);
-                this.fadeTimer = setTimeout(() => { this.faded = true; }, 30000);
-            },
-            onPointerDown(e) {
-                if (window.innerWidth >= 1024) return;
-                this.startX = e.clientX || e.touches?.[0]?.clientX || 0;
-                this.startY = e.clientY || e.touches?.[0]?.clientY || 0;
-                this.startPx = this.posX;
-                this.startPy = this.posY;
-                this.dragging = true;
-                this.moved = false;
-                this.resetFade();
-                document.body.style.overflow = 'hidden';
-                document.body.style.touchAction = 'none';
-            },
-            onPointerMove(e) {
-                if (!this.dragging) return;
-                e.preventDefault();
-                const cx = e.clientX || e.touches?.[0]?.clientX || 0;
-                const cy = e.clientY || e.touches?.[0]?.clientY || 0;
-                const dx = cx - this.startX;
-                const dy = cy - this.startY;
-                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) this.moved = true;
-                this.posX = Math.min(Math.max(this.startPx + dx, 16), document.documentElement.clientWidth - 72);
-                this.posY = Math.min(Math.max(this.startPy + dy, 16), document.documentElement.clientHeight - 72);
-            },
-            onPointerUp(e) {
-                this.dragging = false;
-                document.body.style.overflow = '';
-                document.body.style.touchAction = '';
-                if (!this.moved) {
-                    this.open = !this.open;
-                }
-                this.resetFade();
-            },
-            init() {
-                this.initPos();
-                this.resetFade();
-            }
-        }"
-        @pointerdown.window="onPointerDown($event)"
-        @pointermove.window="onPointerMove($event)"
-        @pointerup.window="onPointerUp($event)"
-        @touchstart.window="onPointerDown($event)"
-        @touchmove.window="onPointerMove($event)"
-        @touchend.window="onPointerUp($event)"
-        class="fixed z-[999999] lg:hidden"
-        :style="`left: ${posX}px; top: ${posY}px;`">
+        {{-- Mobile: Fixed FAB --}}
+        <div x-data="{ open: false }"
+        class="fixed bottom-6 right-6 z-[999999] lg:hidden">
 
             {{-- Circle button --}}
-            <button @click.prevent
-                class="size-14 rounded-full bg-amber-500 text-white shadow-lg flex items-center justify-center hover:bg-amber-600 transition-all active:scale-95 touch-none select-none"
-                :class="dragging ? 'cursor-grabbing' : 'cursor-grab'"
-                :style="faded ? 'opacity: 0.35;' : 'opacity: 1;'">
+            <button @click="open = !open"
+                class="size-14 rounded-full bg-amber-500 text-white shadow-lg flex items-center justify-center hover:bg-amber-600 active:scale-95">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6 pointer-events-none">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
