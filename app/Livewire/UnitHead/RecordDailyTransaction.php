@@ -105,13 +105,17 @@ class RecordDailyTransaction extends Component
                 continue;
             }
 
-            $type = $this->inputs[$categoryId]['type'];
+            $type = $this->categoryList->get($categoryId)?->type;
 
-            if ($type === CategoryType::PriceTimesQuantity->value || $type === CategoryType::Yearly->value) {
+            if ($type === null) {
+                continue;
+            }
+
+            if ($type->usesQuantity()) {
                 $this->inputs[$categoryId]['quantity'] = $detail->quantity ?? '';
-            } elseif ($type === CategoryType::Flat->value) {
+            } elseif ($type === CategoryType::Flat) {
                 $this->inputs[$categoryId]['active'] = $detail->subtotal > 0;
-            } elseif ($type === CategoryType::Custom->value) {
+            } elseif ($type === CategoryType::Custom) {
                 $this->inputs[$categoryId]['amount'] = $detail->subtotal > 0 ? (string) (int) $detail->subtotal : '';
             }
         }
@@ -199,17 +203,17 @@ class RecordDailyTransaction extends Component
 
             $subtotal = 0;
 
-            if ($input['type'] === CategoryType::PriceTimesQuantity->value || $input['type'] === CategoryType::Yearly->value) {
+            if ($category->type->usesQuantity()) {
                 $quantity = (int) ($input['quantity'] ?: 0);
                 if ($quantity > 0) {
                     $unitPrice = $category->priceAt($date);
                     $subtotal = $quantity * $unitPrice;
                 }
-            } elseif ($input['type'] === CategoryType::Flat->value) {
+            } elseif ($category->type === CategoryType::Flat) {
                 if ($input['active']) {
                     $subtotal = $category->priceAt($date);
                 }
-            } elseif ($input['type'] === CategoryType::Custom->value) {
+            } elseif ($category->type === CategoryType::Custom) {
                 $subtotal = (float) ($input['amount'] ?: 0);
             }
 
@@ -237,8 +241,23 @@ class RecordDailyTransaction extends Component
                 continue;
             }
 
+            $category = $this->categoryList->get($categoryId);
             $quantity = $input['quantity'] ?? '';
             $amount = $input['amount'] ?? '';
+
+            if (! $category->type->usesQuantity() && $quantity !== '') {
+                $this->addError("inputs.{$categoryId}.quantity", 'Kuantitas tidak valid.');
+                $this->dispatch('swal-alert', icon: 'warning', title: 'Perhatian', text: 'Kuantitas tidak valid.');
+
+                return;
+            }
+
+            if ($category->type !== CategoryType::Custom && $amount !== '') {
+                $this->addError("inputs.{$categoryId}.amount", 'Nominal tidak valid.');
+                $this->dispatch('swal-alert', icon: 'warning', title: 'Perhatian', text: 'Nominal tidak valid.');
+
+                return;
+            }
 
             if ($quantity !== '' && (! is_numeric($quantity) || (int) $quantity < 0 || (int) $quantity > 1000000)) {
                 $this->addError("inputs.{$categoryId}.quantity", 'Kuantitas tidak valid.');
@@ -303,10 +322,10 @@ class RecordDailyTransaction extends Component
                     $unitPrice = 0;
                     $quantity = null;
 
-                    if ($input['type'] === CategoryType::PriceTimesQuantity->value) {
+                    if ($category->type->usesQuantity()) {
                         $quantity = (int) $input['quantity'];
                         $unitPrice = $category->priceAt($date);
-                    } elseif ($input['type'] === CategoryType::Flat->value) {
+                    } elseif ($category->type === CategoryType::Flat) {
                         $unitPrice = $category->priceAt($date);
                     }
 
@@ -367,10 +386,10 @@ class RecordDailyTransaction extends Component
                     $unitPrice = 0;
                     $quantity = null;
 
-                    if ($input['type'] === CategoryType::PriceTimesQuantity->value) {
+                    if ($category->type->usesQuantity()) {
                         $quantity = (int) $input['quantity'];
                         $unitPrice = $category->priceAt($date);
-                    } elseif ($input['type'] === CategoryType::Flat->value) {
+                    } elseif ($category->type === CategoryType::Flat) {
                         $unitPrice = $category->priceAt($date);
                     }
 

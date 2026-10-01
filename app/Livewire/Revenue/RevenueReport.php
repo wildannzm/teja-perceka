@@ -295,9 +295,9 @@ class RevenueReport extends Component
                 'categoryId' => $category->id,
                 'category' => $category->name,
                 'unitName' => $category->businessUnit?->name ?? '-',
-                'type' => $category->type->value,  // harga_x_qty | flat | bebas | tahunan
-                'unit_price' => $category->type->value === 'harga_x_qty' ? (float) $row->unit_price : null,
-                'totalQuantity' => $category->type->value === 'harga_x_qty' ? (int) $row->totalQuantity : null,
+                'type' => $category->type->value,
+                'unit_price' => $category->type->usesQuantity() ? (float) $row->unit_price : null,
+                'totalQuantity' => $category->type->usesQuantity() ? (int) $row->totalQuantity : null,
                 'subtotal' => (float) $row->totalSubtotal,
             ];
         })->sortBy('category')->values();

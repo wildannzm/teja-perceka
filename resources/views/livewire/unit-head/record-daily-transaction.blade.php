@@ -149,7 +149,7 @@
                             <div class="flex justify-between items-start mb-2">
                                 <label
                                     class="text-base font-semibold text-zinc-900">{{ $this->categoryList->get($id)->name }}</label>
-                                @if ($input['type'] === 'harga_x_qty' || $input['type'] === 'flat')
+                                @if (in_array($input['type'], ['harga_x_qty', 'tahunan', 'flat']))
                                     <span
                                         class="text-xs font-semibold px-2.5 py-1 bg-brand-100 text-brand-800 rounded-md border border-brand-200">
                                         Rp
@@ -158,7 +158,7 @@
                                 @endif
                             </div>
 
-                            @if ($input['type'] === 'harga_x_qty' || $input['type'] === 'yearly')
+                            @if ($input['type'] === 'harga_x_qty' || $input['type'] === 'tahunan')
                                 <div class="flex flex-col sm:flex-row gap-4 sm:items-center">
                                     <div class="w-full sm:w-1/2">
                                         <input type="number" inputmode="numeric" placeholder="Jumlah"

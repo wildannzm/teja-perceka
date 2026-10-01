@@ -283,8 +283,8 @@ class RevenueTab extends Component
                 'category' => $category->name,
                 'unitName' => $category->businessUnit?->name ?? '-',
                 'type' => $category->type->value,
-                'unit_price' => $category->type->value === 'harga_x_qty' ? (float) $row->unit_price : null,
-                'totalQuantity' => $category->type->value === 'harga_x_qty' ? (int) $row->totalQuantity : null,
+                'unit_price' => $category->type->usesQuantity() ? (float) $row->unit_price : null,
+                'totalQuantity' => $category->type->usesQuantity() ? (int) $row->totalQuantity : null,
                 'subtotal' => (float) $row->totalSubtotal,
                 'daily_transaction_id' => (int) $row->daily_transaction_id,
             ];

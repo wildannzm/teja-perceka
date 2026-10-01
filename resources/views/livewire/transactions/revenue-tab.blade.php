@@ -101,7 +101,7 @@
                                             </span>
                                         @endif
                                     </div>
-                                    @if($row['type'] === 'harga_x_qty')
+                                    @if(in_array($row['type'], \App\Enums\CategoryType::quantityValues(), true))
                                         <div class="flex flex-wrap items-center gap-1.5 text-sm text-zinc-500 font-medium min-w-0">
                                             <span class="bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-md border border-zinc-200 shrink-0">{{ number_format($row['totalQuantity'], 0, ',', '.') }}</span>
                                             <span class="shrink-0">&times;</span>

@@ -54,7 +54,7 @@
                         <select wire:model.live="categoryType"
                             class="w-full rounded-xl border-2 border-zinc-200 px-3.5 py-2.5 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors @error('categoryType') border-red-400 @enderror">
                             <option value="harga_x_qty">Harga × Jumlah (tiket, parkir, sewa per item)</option>
-                            <option value="yearly">Tahunan (sewa kios, kontrak per tahun)</option>
+                            <option value="tahunan">Tahunan (sewa kios, kontrak per tahun)</option>
                             <option value="bebas">Bebas (nominal diisi manual saat transaksi)</option>
                         </select>
                         @error('categoryType')
@@ -62,7 +62,7 @@
                         @enderror
                         <p class="text-xs text-zinc-400">
                             @if ($categoryType === 'harga_x_qty') Pendapatan = harga satuan × jumlah pengunjung/item.
-                            @elseif ($categoryType === 'yearly') Nominal dibagi 12 per bulan untuk laporan bulanan.
+                            @elseif ($categoryType === 'tahunan') Nominal dibagi 12 per bulan untuk laporan bulanan.
                             @else Tidak ada harga tetap — nominal diisi bebas tiap kali input transaksi.
                             @endif
                         </p>
@@ -72,12 +72,15 @@
                     @if ($categoryType !== 'bebas')
                         <div class="flex flex-col gap-1.5">
                             <label class="text-sm font-semibold text-zinc-700">
-                                {{ $categoryType === 'yearly' ? 'Nominal per Tahun (Rp)' : 'Harga Satuan (Rp)' }}
+                                {{ $categoryType === 'tahunan' ? 'Harga per Tahun (Rp)' : 'Harga Satuan (Rp)' }}
                                 <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-500 text-sm font-medium pointer-events-none">Rp</span>
-                                <input type="number" wire:model="categoryPrice" min="0" step="500" placeholder="0"
+                                <input type="text" inputmode="numeric" wire:model="categoryPrice" placeholder="0"
+                                    x-data
+                                    x-init="$el.value = $el.value.replace(/\D/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,'.')"
+                                    x-on:input="$el.value = $el.value.replace(/\D/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,'.')"
                                     class="pl-10 w-full rounded-xl border-2 border-zinc-200 px-3.5 py-2.5 text-sm text-zinc-900 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors @error('categoryPrice') border-red-400 @enderror">
                             </div>
                             @error('categoryPrice')
@@ -150,17 +153,15 @@
                 <div class="group bg-white p-5 rounded-2xl shadow-sm border border-brand-100 flex flex-col gap-4">
                     <div class="flex justify-between items-start gap-4">
                         <h3 class="text-base font-semibold text-zinc-900">{{ $category->name }}</h3>
-                        <div class="flex items-center gap-1">
-                            <button type="button" wire:click="editCategory({{ $category->id }})" class="p-1 flex items-center justify-center text-zinc-300 hover:text-brand-600 transition-colors" title="Edit Kategori">
-                                <svg class="size-4.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" wire:click="editCategory({{ $category->id }})" style="background-color:#fbbf24;color:#1c1917;" title="Edit Kategori"
+                                class="inline-flex items-center justify-center size-7 rounded-lg transition-colors hover:opacity-90">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-3.5">
+                                    <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.263a1.75 1.75 0 0 0 0-2.474Z" />
+                                    <path d="M4.75 3.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h6.5c.69 0 1.25-.56 1.25-1.25V9A.75.75 0 0 1 13 9v2.25A2.75 2.75 0 0 1 10.25 14h-6.5A2.75 2.75 0 0 1 1 11.25v-6.5A2.75 2.75 0 0 1 3.75 2H6a.75.75 0 0 1 0 1.5H3.75Z" />
                                 </svg>
                             </button>
-                            <button type="button" wire:click="confirmDelete({{ $category->id }})" class="p-1 flex items-center justify-center text-zinc-300 hover:text-red-600 transition-colors" title="Hapus Kategori">
-                                <svg class="size-4.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                </svg>
-                            </button>
+<flux:button wire:click="confirmDelete({{ $category->id }})" variant="danger" size="xs" icon="trash" title="Hapus" />
                         </div>
                     </div>
 
@@ -168,16 +169,19 @@
                         <div>
                             <label for="price_{{ $category->id }}"
                                 class="block text-sm font-medium text-zinc-700 mb-1">
-                                {{ $category->type->value === 'yearly' ? 'Nominal per Tahun / Baru' : 'Harga Satuan / Baru' }}
+                                {{ $category->type->value === 'tahunan' ? 'Harga per Tahun' : 'Harga Satuan' }}
                             </label>
                             <div class="relative mt-1">
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <span class="text-zinc-500 font-medium text-lg sm:text-xl">Rp</span>
                                 </div>
-                                <input type="number" id="price_{{ $category->id }}"
+                                <input type="text" inputmode="numeric" id="price_{{ $category->id }}"
                                     wire:model="prices.{{ $category->id }}"
-                                    class="pl-14 py-3 sm:py-4 block w-full rounded-2xl border-2 border-zinc-200 bg-zinc-50/50 text-zinc-900 text-lg sm:text-xl font-bold focus:outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:bg-white transition-all shadow-sm @error('prices.' . $category->id) border-red-400 text-red-900 @enderror [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                    placeholder="0" required min="1">
+                                    x-data
+                                    x-init="$el.value = $el.value.replace(/\D/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,'.')"
+                                    x-on:input="$el.value = $el.value.replace(/\D/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,'.')"
+                                    class="pl-14 py-3 sm:py-4 block w-full rounded-2xl border-2 border-zinc-200 bg-zinc-50/50 text-zinc-900 text-lg sm:text-xl font-bold focus:outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:bg-white transition-all shadow-sm @error('prices.' . $category->id) border-red-400 text-red-900 @enderror"
+                                    placeholder="0" required>
                             </div>
                             @error('prices.' . $category->id)
                                 <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -224,17 +228,15 @@
                             <span class="text-sm font-semibold text-zinc-700">{{ $category->name }}</span>
                             <span class="text-xs text-zinc-400">Bebas — nominal diisi tiap transaksi</span>
                         </div>
-                        <div class="flex items-center shrink-0 gap-1">
-                            <button type="button" wire:click="editCategory({{ $category->id }})" class="p-1 flex items-center justify-center text-zinc-300 hover:text-brand-600 transition-colors" title="Edit Kategori">
-                                <svg class="size-4.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                        <div class="flex items-center shrink-0 gap-1.5">
+                            <button type="button" wire:click="editCategory({{ $category->id }})" style="background-color:#fbbf24;color:#1c1917;" title="Edit Kategori"
+                                class="inline-flex items-center justify-center size-7 rounded-lg transition-colors hover:opacity-90">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-3.5">
+                                    <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.263a1.75 1.75 0 0 0 0-2.474Z" />
+                                    <path d="M4.75 3.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h6.5c.69 0 1.25-.56 1.25-1.25V9A.75.75 0 0 1 13 9v2.25A2.75 2.75 0 0 1 10.25 14h-6.5A2.75 2.75 0 0 1 1 11.25v-6.5A2.75 2.75 0 0 1 3.75 2H6a.75.75 0 0 1 0 1.5H3.75Z" />
                                 </svg>
                             </button>
-                            <button type="button" wire:click="confirmDelete({{ $category->id }})" class="p-1 flex items-center justify-center text-zinc-300 hover:text-red-600 transition-colors" title="Hapus Kategori">
-                                <svg class="size-4.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                </svg>
-                            </button>
+<flux:button wire:click="confirmDelete({{ $category->id }})" variant="danger" size="xs" icon="trash" title="Hapus" />
                         </div>
                     </div>
                 @endforeach
@@ -270,7 +272,7 @@
                         <select wire:model="editCategoryType"
                             class="w-full rounded-xl border-2 border-zinc-200 px-3.5 py-2.5 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors @error('editCategoryType') border-red-400 @enderror">
                             <option value="harga_x_qty">Harga × Jumlah (tiket, parkir, sewa per item)</option>
-                            <option value="yearly">Tahunan (sewa kios, kontrak per tahun)</option>
+                            <option value="tahunan">Tahunan (sewa kios, kontrak per tahun)</option>
                             <option value="bebas">Bebas (nominal diisi manual saat transaksi)</option>
                         </select>
                         @error('editCategoryType') <p class="text-xs text-red-500">{{ $message }}</p> @enderror

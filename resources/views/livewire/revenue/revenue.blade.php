@@ -175,7 +175,7 @@
                             <div class="bg-white rounded-xl border border-zinc-200 p-4 sm:p-5 shadow-sm flex flex-row items-center justify-between hover:border-brand-300 hover:shadow-md transition-all gap-4 min-w-0">
                                 <div class="flex flex-col gap-1 flex-1 min-w-0">
                                     <p class="font-bold text-zinc-900 text-base break-words">{{ $row['category'] }}</p>
-                                    @if($row['type'] === 'harga_x_qty')
+                                    @if(in_array($row['type'], \App\Enums\CategoryType::quantityValues(), true))
                                         <div class="flex flex-wrap items-center gap-1.5 text-sm text-zinc-500 font-medium min-w-0">
                                             <span class="bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-md border border-zinc-200 shrink-0">{{ number_format($row['totalQuantity'], 0, ',', '.') }}</span>
                                             <span class="shrink-0">&times;</span>

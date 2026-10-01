@@ -12,7 +12,9 @@ use App\Models\User;
 use App\Notifications\CategoryPriceUpdated;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -20,11 +22,15 @@ use Livewire\Component;
 #[Title('Kelola Pendapatan')]
 class ManageRevenue extends Component
 {
+    #[Locked]
     public int $unitId;
 
+    #[Locked]
     public string $unitName;
 
-    /** @var array<int, float|string> price per category (for editing existing prices) */
+    private const MAX_PRICE = 999999999999;
+
+    /** @var array<int, string> price per category, formatted id-ID (dots per 3 digits) */
     public array $prices = [];
 
     // ─── New category form ──────────────────────────────────────────────
@@ -41,6 +47,7 @@ class ManageRevenue extends Component
     // ─── Edit category form ─────────────────────────────────────────────
     public bool $showEditModal = false;
 
+    #[Locked]
     public ?int $editId = null;
 
     public string $editCategoryName = '';
@@ -52,6 +59,7 @@ class ManageRevenue extends Component
     // ─── Delete category form ───────────────────────────────────────────
     public bool $showDeleteModal = false;
 
+    #[Locked]
     public ?int $deleteId = null;
 
     public string $deleteCategoryName = '';
@@ -72,6 +80,16 @@ class ManageRevenue extends Component
         $this->loadPrices();
     }
 
+    private static function sanitizeRupiah(string|int|float|null $value): float
+    {
+        return (float) preg_replace('/\D/', '', (string) ($value ?? ''));
+    }
+
+    private static function formatRupiah(float $value): string
+    {
+        return number_format($value, 0, ',', '.');
+    }
+
     private function loadPrices(): void
     {
         $categories = TransactionCategory::where('business_unit_id', $this->unitId)
@@ -80,7 +98,7 @@ class ManageRevenue extends Component
             ->get();
 
         foreach ($categories as $category) {
-            $this->prices[$category->id] = $category->priceAt(now());
+            $this->prices[$category->id] = self::formatRupiah($category->priceAt(now()));
         }
     }
 
@@ -92,10 +110,16 @@ class ManageRevenue extends Component
             ->where('business_unit_id', $this->unitId)
             ->firstOrFail();
 
-        $newPrice = (float) str_replace(['Rp', '.', ',', ' '], '', $this->prices[$categoryId] ?? '0');
+        $newPrice = self::sanitizeRupiah($this->prices[$categoryId] ?? null);
 
         if ($newPrice <= 0) {
             $this->addError('prices.'.$categoryId, 'Harga harus berupa angka positif.');
+
+            return;
+        }
+
+        if ($newPrice > self::MAX_PRICE) {
+            $this->addError('prices.'.$categoryId, 'Harga melebihi batas wajar.');
 
             return;
         }
@@ -108,45 +132,52 @@ class ManageRevenue extends Component
             return;
         }
 
-        CategoryPriceHistory::create([
-            'transaction_category_id' => $category->id,
-            'price' => $newPrice,
-            'effective_from' => now(),
-        ]);
+        DB::transaction(function () use ($category, $oldPrice, $newPrice) {
+            CategoryPriceHistory::create([
+                'transaction_category_id' => $category->id,
+                'price' => $newPrice,
+                'effective_from' => now(),
+            ]);
 
-        $message = "Kepala Unit {$this->unitName} mengubah harga {$category->name} dari Rp "
-            .number_format($oldPrice, 0, ',', '.').' menjadi Rp '.number_format($newPrice, 0, ',', '.');
-
-        $recipients = User::role(['bendahara', 'direktur_bumdes'])->get();
-        foreach ($recipients as $recipient) {
-            $recipient->notify(new CategoryPriceUpdated($message));
-        }
+            $this->notifyPriceRoles(
+                "Kepala Unit {$this->unitName} mengubah harga {$category->name} dari Rp "
+                .self::formatRupiah($oldPrice).' menjadi Rp '.self::formatRupiah($newPrice)
+            );
+        });
 
         session()->flash('success_'.$categoryId, 'Harga berhasil diperbarui!');
-        $this->prices[$categoryId] = $newPrice;
+        $this->prices[$categoryId] = self::formatRupiah($newPrice);
         $this->resetErrorBag();
     }
 
     // ─── Create new category ────────────────────────────────────────────
 
+    private function notifyPriceRoles(string $message): void
+    {
+        User::role(['bendahara', 'direktur_bumdes'])
+            ->each(fn (User $recipient) => $recipient->notify(new CategoryPriceUpdated($message)));
+    }
+
     public function updatedCategoryType(): void
     {
         // Reset the price when switching to the free type
-        if ($this->categoryType === 'bebas') {
+        if ($this->categoryType === CategoryType::Custom->value) {
             $this->categoryPrice = '';
         }
     }
 
     public function createCategory(): void
     {
+        $this->categoryPrice = (string) self::sanitizeRupiah($this->categoryPrice);
+
         $rules = [
             'categoryName' => 'required|string|max:100',
-            'categoryType' => 'required|in:harga_x_qty,tahunan,bebas',
+            'categoryType' => ['required', Rule::in(CategoryType::manageableValues())],
             'categoryAccountId' => 'required|exists:accounts,id',
         ];
 
-        if (in_array($this->categoryType, ['harga_x_qty', 'tahunan'])) {
-            $rules['categoryPrice'] = 'required|numeric|min:0';
+        if ($this->categoryType !== CategoryType::Custom->value) {
+            $rules['categoryPrice'] = 'required|numeric|min:1|max:'.self::MAX_PRICE;
         }
 
         $this->validate($rules, [
@@ -155,7 +186,18 @@ class ManageRevenue extends Component
             'categoryAccountId.required' => 'Pilih akun pendapatan untuk kategori ini.',
             'categoryPrice.required' => 'Harga atau nominal wajib diisi untuk tipe ini.',
             'categoryPrice.min' => 'Harga tidak boleh negatif.',
+            'categoryPrice.max' => 'Harga melebihi batas wajar.',
         ]);
+
+        $account = Account::where('id', $this->categoryAccountId)
+            ->where('type', 'pendapatan')
+            ->first();
+
+        if (! $account) {
+            $this->addError('categoryAccountId', 'Pilih akun pendapatan untuk kategori ini.');
+
+            return;
+        }
 
         // Check for duplicate names within the same unit
         $duplicate = TransactionCategory::where('business_unit_id', $this->unitId)
@@ -168,43 +210,43 @@ class ManageRevenue extends Component
             return;
         }
 
-        DB::transaction(function () {
+        $categoryType = CategoryType::from($this->categoryType);
+        $price = (float) $this->categoryPrice;
+        $notifyMessage = '';
+
+        DB::transaction(function () use ($account, $categoryType, $price, &$notifyMessage) {
             $category = TransactionCategory::create([
                 'business_unit_id' => $this->unitId,
-                'account_id' => $this->categoryAccountId,
+                'account_id' => $account->id,
                 'name' => $this->categoryName,
-                'type' => CategoryType::from($this->categoryType),
+                'type' => $categoryType,
                 'direction' => TransactionType::Income,
             ]);
 
             // Store the initial price unless the type is free
-            if (in_array($this->categoryType, ['harga_x_qty', 'tahunan'])) {
+            if ($categoryType->needsPrice()) {
                 CategoryPriceHistory::create([
                     'transaction_category_id' => $category->id,
-                    'price' => (float) $this->categoryPrice,
+                    'price' => $price,
                     'effective_from' => now()->startOfDay(),
                 ]);
 
                 // Append to the prices array so it shows up in the price-edit list immediately
-                $this->prices[$category->id] = (float) $this->categoryPrice;
+                $this->prices[$category->id] = self::formatRupiah($price);
             }
 
             // Notify the treasurer & director
-            $account = Account::find($this->categoryAccountId);
-            $message = "Kepala Unit {$this->unitName} menambahkan kategori pendapatan baru: "
-                ."\"{$this->categoryName}\" (Tipe: {$this->categoryType}, Akun: {$account?->code} {$account?->name})";
-
-            $recipients = User::role(['bendahara', 'direktur_bumdes'])->get();
-            foreach ($recipients as $recipient) {
-                $recipient->notify(new CategoryPriceUpdated($message));
-            }
+            $notifyMessage = "Kepala Unit {$this->unitName} menambahkan kategori pendapatan baru: "
+                ."\"{$this->categoryName}\" (Tipe: {$categoryType->label()}, Akun: {$account->code} {$account->name})";
         });
+
+        $this->notifyPriceRoles($notifyMessage);
 
         \Flux::toast(variant: 'success', text: "Kategori \"{$this->categoryName}\" berhasil ditambahkan!");
 
         // Reset the form
         $this->reset(['categoryName', 'categoryPrice', 'categoryAccountId']);
-        $this->categoryType = 'harga_x_qty';
+        $this->categoryType = CategoryType::PriceTimesQuantity->value;
         $this->showCreateForm = false;
     }
 
@@ -228,13 +270,23 @@ class ManageRevenue extends Component
     {
         $this->validate([
             'editCategoryName' => 'required|string|max:100',
-            'editCategoryType' => 'required|in:harga_x_qty,tahunan,bebas',
+            'editCategoryType' => ['required', Rule::in(CategoryType::manageableValues())],
             'editCategoryAccountId' => 'required|exists:accounts,id',
         ], [
             'editCategoryName.required' => 'Nama kategori wajib diisi.',
             'editCategoryType.required' => 'Tipe kategori wajib dipilih.',
             'editCategoryAccountId.required' => 'Pilih akun pendapatan.',
         ]);
+
+        $account = Account::where('id', $this->editCategoryAccountId)
+            ->where('type', 'pendapatan')
+            ->first();
+
+        if (! $account) {
+            $this->addError('editCategoryAccountId', 'Pilih akun pendapatan.');
+
+            return;
+        }
 
         $duplicate = TransactionCategory::where('business_unit_id', $this->unitId)
             ->where('name', $this->editCategoryName)
@@ -247,23 +299,23 @@ class ManageRevenue extends Component
             return;
         }
 
-        $category = TransactionCategory::findOrFail($this->editId);
+        $category = TransactionCategory::where('id', $this->editId)
+            ->where('business_unit_id', $this->unitId)
+            ->firstOrFail();
 
         $oldName = $category->name;
 
         $category->update([
             'name' => $this->editCategoryName,
             'type' => CategoryType::from($this->editCategoryType),
-            'account_id' => $this->editCategoryAccountId,
+            'account_id' => $account->id,
         ]);
 
         // Notify about the change when the name changes
         if ($oldName !== $this->editCategoryName) {
-            $message = "Kepala Unit {$this->unitName} mengubah kategori \"{$oldName}\" menjadi \"{$this->editCategoryName}\".";
-            $recipients = User::role(['bendahara', 'direktur_bumdes'])->get();
-            foreach ($recipients as $recipient) {
-                $recipient->notify(new CategoryPriceUpdated($message));
-            }
+            $this->notifyPriceRoles(
+                "Kepala Unit {$this->unitName} mengubah kategori \"{$oldName}\" menjadi \"{$this->editCategoryName}\"."
+            );
         }
 
         \Flux::toast(variant: 'success', text: 'Kategori berhasil diperbarui!');
