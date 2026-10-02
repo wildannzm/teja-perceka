@@ -6,6 +6,7 @@ use App\Models\Account;
 use App\Models\BusinessUnit;
 use App\Models\DailyTransaction;
 use App\Models\JournalEntry;
+use App\Support\Rupiah;
 use App\Support\VoucherNumber;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -153,13 +154,17 @@ class RecordExpense extends Component
     {
         $total = 0;
         foreach ($this->items as $item) {
-            $total += (float) ($item['amount'] ?: 0);
+            $total += Rupiah::parse($item['amount'] ?? null);
         }
         $this->totalExpense = $total;
     }
 
     public function submit(): void
     {
+        foreach ($this->items as $index => $item) {
+            $this->items[$index]['amount'] = Rupiah::parse($item['amount'] ?? null);
+        }
+
         $this->validate([
             'transactionDate' => 'required|date',
             'items' => 'required|array|min:1',
@@ -301,6 +306,8 @@ class RecordExpense extends Component
 
     public function updateHistory(): void
     {
+        $this->editAmount = Rupiah::parse($this->editAmount);
+
         $validated = $this->validate([
             'editDate' => 'required|date',
             'editAccountId' => 'required|exists:accounts,id',

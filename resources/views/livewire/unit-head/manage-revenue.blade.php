@@ -51,7 +51,7 @@
                     {{-- Category type --}}
                     <div class="flex flex-col gap-1.5">
                         <label class="text-sm font-semibold text-zinc-700">Tipe Kategori <span class="text-red-500">*</span></label>
-                        <select wire:model.live="categoryType"
+                        <select wire:model.live.debounce.250ms="categoryType"
                             class="w-full rounded-xl border-2 border-zinc-200 px-3.5 py-2.5 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors @error('categoryType') border-red-400 @enderror">
                             <option value="harga_x_qty">Harga × Jumlah (tiket, parkir, sewa per item)</option>
                             <option value="tahunan">Tahunan (sewa kios, kontrak per tahun)</option>
@@ -175,11 +175,8 @@
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <span class="text-zinc-500 font-medium text-lg sm:text-xl">Rp</span>
                                 </div>
-                                <input type="text" inputmode="numeric" id="price_{{ $category->id }}"
+                                <input type="text" inputmode="numeric" data-rupiah id="price_{{ $category->id }}"
                                     wire:model="prices.{{ $category->id }}"
-                                    x-data
-                                    x-init="$el.value = $el.value.replace(/\D/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,'.')"
-                                    x-on:input="$el.value = $el.value.replace(/\D/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,'.')"
                                     class="pl-14 py-3 sm:py-4 block w-full rounded-2xl border-2 border-zinc-200 bg-zinc-50/50 text-zinc-900 text-lg sm:text-xl font-bold focus:outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:bg-white transition-all shadow-sm @error('prices.' . $category->id) border-red-400 text-red-900 @enderror"
                                     placeholder="0" required>
                             </div>

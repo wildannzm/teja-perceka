@@ -3,6 +3,7 @@
 namespace App\Livewire\Assets;
 
 use App\Models\Asset;
+use App\Support\Rupiah;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -117,6 +118,8 @@ class ManageAssets extends Component
         if (! $this->canManage) {
             abort(403);
         }
+
+        $this->price = (string) Rupiah::parse($this->price);
 
         $validated = $this->validate();
         // Ensure the price is cast to float, 0 when empty

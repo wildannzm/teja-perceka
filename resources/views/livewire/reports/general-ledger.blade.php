@@ -18,7 +18,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 {{ $this->isKepalaUnit ? '' : 'md:grid-cols-3' }} gap-3 sm:gap-4">
                 <div class="flex flex-col gap-1.5">
                     <label class="text-sm font-medium text-zinc-700">Kode Akun</label>
-                    <select wire:model.live="account_id" class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none focus:outline-none transition-colors">
+                    <select wire:model.live.debounce.250ms="account_id" class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none focus:outline-none transition-colors">
                         <option value="">-- Pilih Akun --</option>
                         @foreach ($this->accounts as $account)
                             <option value="{{ $account->id }}">{{ $account->code }} - {{ $account->name }}</option>
@@ -29,7 +29,7 @@
                 @unless($this->isKepalaUnit)
                 <div class="flex flex-col gap-1.5">
                     <label class="text-sm font-medium text-zinc-700">Entitas / Unit Usaha</label>
-                    <select wire:model.live="unit_id" class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none focus:outline-none transition-colors font-medium">
+                    <select wire:model.live.debounce.250ms="unit_id" class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none focus:outline-none transition-colors font-medium">
                         <option value="bumdes">BUMDes</option>
                         <option value="all">Semua Unit Usaha</option>
                         <optgroup label="Per Unit Usaha">

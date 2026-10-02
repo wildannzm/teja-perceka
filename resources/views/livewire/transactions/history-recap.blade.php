@@ -11,7 +11,7 @@
             @unless(auth()->user()->hasRole('kepala_unit'))
                 <div class="flex flex-col gap-1.5 w-full md:w-auto md:min-w-48">
                     <label class="text-sm font-medium text-zinc-700">Entitas / Unit Usaha</label>
-                    <select wire:model.live="unit_id"
+                    <select wire:model.live.debounce.250ms="unit_id"
                         class="w-full sm:min-w-48 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors font-medium">
                         <option value="bumdes">BUMDes</option>
                         <option value="all">Semua Unit Usaha</option>
@@ -27,7 +27,7 @@
             {{-- Mode selector --}}
             <div class="flex flex-col gap-1.5 w-full md:w-auto">
                 <label class="text-sm font-medium text-zinc-700">Periode</label>
-                <select wire:model.live="mode"
+                <select wire:model.live.debounce.250ms="mode"
                     class="w-full sm:min-w-40 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                     <option value="daily">Harian</option>
                     <option value="weekly">Mingguan</option>
@@ -90,7 +90,7 @@
                 
                 @elseif($mode === 'semester')
                     <div wire:key="picker-semester" class="flex gap-2">
-                        <select wire:model.live="semester"
+                        <select wire:model.live.debounce.250ms="semester"
                             class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                             <option value="1">Sem 1 (Jan-Jun)</option>
                             <option value="2">Sem 2 (Jul-Des)</option>
@@ -108,7 +108,7 @@
             @if($tab === 'journal')
                 <div class="flex flex-col gap-1.5 w-full md:w-auto">
                     <label class="text-sm font-medium text-zinc-700">Urutkan</label>
-                    <select wire:model.live="sortOption"
+                    <select wire:model.live.debounce.250ms="sortOption"
                         class="w-full sm:min-w-48 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                         <option value="transaction_date-asc">Tanggal · Terlama</option>
                         <option value="transaction_date-desc">Tanggal · Terbaru</option>
@@ -118,7 +118,7 @@
                 </div>
                 <div class="flex flex-col gap-1.5 w-full md:w-auto">
                     <label class="text-sm font-medium text-zinc-700">Tampilan</label>
-                    <select wire:model.live="viewMode"
+                    <select wire:model.live.debounce.250ms="viewMode"
                         class="w-full sm:min-w-40 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                         <option value="summary">Ringkas</option>
                         <option value="detailed">Rinci</option>

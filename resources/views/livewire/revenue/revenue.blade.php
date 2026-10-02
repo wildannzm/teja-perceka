@@ -8,7 +8,7 @@
         @unless($this->isKepalaUnit)
             <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-medium text-zinc-700">Unit Usaha</label>
-                <select wire:model.live="unit_id"
+                <select wire:model.live.debounce.250ms="unit_id"
                     class="w-full sm:max-w-xs rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                     <option value="">Semua Unit</option>
                     @foreach($this->units as $u)
@@ -22,7 +22,7 @@
             {{-- Mode selector --}}
             <div class="flex flex-col gap-1.5 w-full md:w-auto">
                 <label class="text-sm font-medium text-zinc-700">Periode</label>
-                <select wire:model.live="mode"
+                <select wire:model.live.debounce.250ms="mode"
                     class="w-full sm:min-w-40 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                     @if(!$this->isDailyDisabled)
                         <option value="daily">Harian</option>
@@ -55,7 +55,7 @@
                 @elseif($mode === 'weekly')
                     @php $isWeekly = $this->selectedUnit && $this->selectedUnit->input_frequency === 'weekly'; @endphp
                     @if($isWeekly)
-                        <select wire:model.live="week" class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
+                        <select wire:model.live.debounce.250ms="week" class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                             @forelse($this->availableWeeks as $week)
                                 <option value="{{ $week->transaction_date->format('Y-m-d') }}">{{ $week->transaction_date->translatedFormat('d M') }} - {{ $week->end_date->translatedFormat('d M Y') }}</option>
                             @empty
@@ -99,7 +99,7 @@
                 
                 @elseif($mode === 'semester')
                     <div class="flex gap-2">
-                        <select wire:model.live="semester"
+                        <select wire:model.live.debounce.250ms="semester"
                             class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                             <option value="1">Sem 1 (Jan-Jun)</option>
                             <option value="2">Sem 2 (Jul-Des)</option>

@@ -240,13 +240,14 @@
                                 Jumlah <span class="text-red-500">*</span>
                             </label>
                             <input
-                                type="number"
+                                type="text"
+                                inputmode="numeric"
+                                data-rupiah
                                 id="modal-jumlah"
-                                wire:model="amount"
-                                min="1"
-                                class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors @error('amount') border-red-400 @enderror"
+                                wire:model="quantity"
+                                class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors @error('quantity') border-red-400 @enderror"
                             >
-                            @error('amount')
+                            @error('quantity')
                                 <p class="text-xs text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
@@ -275,11 +276,11 @@
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-500 text-sm font-medium pointer-events-none">Rp</span>
                             <input
-                                type="number"
+                                type="text"
+                                inputmode="numeric"
+                                data-rupiah
                                 id="modal-harga"
                                 wire:model="price"
-                                min="0"
-                                step="1000"
                                 placeholder="0"
                                 class="pl-10 w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors @error('price') border-red-400 @enderror"
                             >

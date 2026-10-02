@@ -15,8 +15,20 @@
             @if($this->canPrint)
             <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                 @if($isEditing)
-                    <flux:button variant="danger" wire:click="cancelEditing" class="w-full sm:w-auto shrink-0">Batal</flux:button>
-                    <flux:button variant="primary" wire:click="saveAdjustments" class="w-full sm:w-auto shrink-0" wire:loading.attr="disabled" wire:target="saveAdjustments">Simpan Perubahan</flux:button>
+                    <button type="button" wire:click="cancelEditing"
+                        class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2 bg-red-600 text-white hover:bg-red-700 font-semibold text-sm rounded-xl transition-colors shadow-sm">
+                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                        Batal
+                    </button>
+                    <button type="button" wire:click="saveAdjustments" wire:loading.attr="disabled" wire:target="saveAdjustments"
+                        class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2 bg-brand-600 text-white hover:bg-brand-700 font-semibold text-sm rounded-xl transition-colors shadow-sm">
+                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                        Simpan Perubahan
+                    </button>
                 @else
                     <flux:button variant="primary" icon="pencil" wire:click="startEditing" class="w-full sm:w-auto shrink-0 btn-edit-yellow">Edit</flux:button>
                     <button type="button" wire:click="exportPdf" wire:loading.attr="disabled"
@@ -38,7 +50,7 @@
             @unless($this->isKepalaUnit)
                 <div class="flex flex-col gap-1.5">
                     <label class="text-sm font-medium text-zinc-700">Entitas / Unit Usaha</label>
-                    <select wire:model.live="unit_id" class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none focus:outline-none transition-colors font-medium">
+                    <select wire:model.live.debounce.250ms="unit_id" class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none focus:outline-none transition-colors font-medium">
                         <option value="bumdes">BUMDes</option>
                         <option value="all">Semua Unit Usaha</option>
                         <optgroup label="Per Unit Usaha">
@@ -74,15 +86,14 @@
             </div>
         </div>
 
-        @php $data = $this->reportData; @endphp
+        @php $data = $this->reportData; $isBalanced = $this->isBalanced; @endphp
 
         <div class="bg-white rounded-xl border border-brand-100 shadow-sm overflow-hidden mb-6 pb-6">
             <div class="px-4 sm:px-6 py-4 border-b border-zinc-100 text-center">
                 <p class="text-sm font-bold text-zinc-900 uppercase">NERACA</p>
-                <p class="text-sm text-zinc-600">Per Akhir Bulan: {{ \Carbon\Carbon::parse($this->period ?: now()->format('Y-m'))->translatedFormat('F Y') }}</p>
+                <p class="text-sm text-zinc-600">Periode: {{ $this->periodLabel }}</p>
             </div>
             
-            @php $isBalanced = abs($data['totalAssets'] - $data['totalLiabilitiesEquity']) < 0.5; @endphp
             <div class="flex justify-end px-4 sm:px-6 py-3 {{ $isBalanced ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100' }} border-b">
                 <div class="flex items-center gap-2">
                     <p class="text-xs font-semibold uppercase tracking-wider {{ $isBalanced ? 'text-emerald-600' : 'text-red-600' }}">Status:</p>
@@ -116,7 +127,7 @@
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
                                         @if($isEditing)
                                             <div class="flex justify-end">
-                                                <input type="number" wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
+                                                <input type="text" inputmode="numeric" data-rupiah wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
                                             </div>
                                         @else
                                             {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
@@ -140,7 +151,7 @@
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
                                         @if($isEditing)
                                             <div class="flex justify-end">
-                                                <input type="number" wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
+                                                <input type="text" inputmode="numeric" data-rupiah wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
                                             </div>
                                         @else
                                             {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
@@ -186,7 +197,7 @@
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
                                         @if($isEditing)
                                             <div class="flex justify-end">
-                                                <input type="number" wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
+                                                <input type="text" inputmode="numeric" data-rupiah wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
                                             </div>
                                         @else
                                             {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
@@ -205,7 +216,7 @@
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
                                         @if($isEditing)
                                             <div class="flex justify-end">
-                                                <input type="number" wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
+                                                <input type="text" inputmode="numeric" data-rupiah wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
                                             </div>
                                         @else
                                             {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
@@ -230,7 +241,7 @@
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
                                         @if($isEditing)
                                             <div class="flex justify-end">
-                                                <input type="number" wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
+                                                <input type="text" inputmode="numeric" data-rupiah wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
                                             </div>
                                         @else
                                             {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}

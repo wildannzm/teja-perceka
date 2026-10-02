@@ -67,4 +67,30 @@
             </button>
         </form>
     </div>
+
+    @if ($errors->any())
+        @php $loginErrorField = $errors->has('password') ? 'Kata Sandi' : 'Email'; @endphp
+        <script id="login-swal">
+            (function waitForSwal(attempts) {
+                if (window.Swal) {
+                    window.Swal.fire({
+                        icon: 'error',
+                        title: @json('Kesalahan pada '.$loginErrorField),
+                        text: @json($errors->first()),
+                        confirmButtonText: 'Coba Lagi',
+                        confirmButtonColor: '#f59e0b',
+                        customClass: {
+                            popup: 'rounded-2xl shadow-2xl font-sans',
+                            title: 'text-zinc-900 font-semibold',
+                            htmlContainer: 'text-zinc-600',
+                        },
+                    });
+                    return;
+                }
+                if (attempts > 0) {
+                    setTimeout(() => waitForSwal(attempts - 1), 100);
+                }
+            })(120);
+        </script>
+    @endif
 </x-layouts::auth.split>

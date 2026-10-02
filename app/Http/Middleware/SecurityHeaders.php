@@ -49,13 +49,26 @@ class SecurityHeaders
             return '';
         }
 
-        $host = (string) parse_url($url, PHP_URL_HOST);
-        $scheme = (string) parse_url($url, PHP_URL_SCHEME);
+        $parts = parse_url($url);
 
-        if ($scheme !== 'http' || ! in_array($host, ['localhost', '127.0.0.1'], true)) {
+        if (! is_array($parts)) {
             return '';
         }
 
-        return $url;
+        $scheme = strtolower($parts['scheme'] ?? '');
+        $host = trim(strtolower($parts['host'] ?? ''), '[]');
+        $port = $parts['port'] ?? null;
+
+        if ($scheme !== 'http'
+            || ! in_array($host, ['localhost', '127.0.0.1', '::1'], true)
+            || ! is_int($port) || $port < 1 || $port > 65535) {
+            return '';
+        }
+
+        // Rebuild from validated parts so raw hot-file content is
+        // never interpolated into the CSP header.
+        $hostPart = str_contains($host, ':') ? "[{$host}]" : $host;
+
+        return "http://{$hostPart}:{$port}";
     }
 }

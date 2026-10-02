@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Notifications\CategoryPriceUpdated;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -92,13 +93,21 @@ class ManageRevenue extends Component
 
     private function loadPrices(): void
     {
-        $categories = TransactionCategory::where('business_unit_id', $this->unitId)
+        $categoryIds = TransactionCategory::where('business_unit_id', $this->unitId)
             ->where('direction', TransactionType::Income)
             ->where('type', '!=', CategoryType::Custom->value)
-            ->get();
+            ->pluck('id');
 
-        foreach ($categories as $category) {
-            $this->prices[$category->id] = self::formatRupiah($category->priceAt(now()));
+        // Single query for all latest prices instead of one per category (N+1).
+        $latestPrices = CategoryPriceHistory::whereIn('transaction_category_id', $categoryIds)
+            ->where('effective_from', '<=', now())
+            ->orderBy('effective_from', 'desc')
+            ->get(['transaction_category_id', 'price'])
+            ->groupBy('transaction_category_id')
+            ->map(fn ($rows) => (float) $rows->first()->price);
+
+        foreach ($categoryIds as $categoryId) {
+            $this->prices[$categoryId] = self::formatRupiah($latestPrices->get($categoryId, 0.0));
         }
     }
 
@@ -114,12 +123,14 @@ class ManageRevenue extends Component
 
         if ($newPrice <= 0) {
             $this->addError('prices.'.$categoryId, 'Harga harus berupa angka positif.');
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: 'Harga harus berupa angka positif.');
 
             return;
         }
 
         if ($newPrice > self::MAX_PRICE) {
             $this->addError('prices.'.$categoryId, 'Harga melebihi batas wajar.');
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: 'Harga melebihi batas wajar.');
 
             return;
         }
@@ -128,6 +139,7 @@ class ManageRevenue extends Component
 
         if ($newPrice === $oldPrice) {
             $this->addError('prices.'.$categoryId, 'Harga tidak berubah.');
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: 'Harga tidak berubah.');
 
             return;
         }
@@ -146,6 +158,7 @@ class ManageRevenue extends Component
         });
 
         session()->flash('success_'.$categoryId, 'Harga berhasil diperbarui!');
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Harga berhasil diperbarui!');
         $this->prices[$categoryId] = self::formatRupiah($newPrice);
         $this->resetErrorBag();
     }
@@ -180,14 +193,35 @@ class ManageRevenue extends Component
             $rules['categoryPrice'] = 'required|numeric|min:1|max:'.self::MAX_PRICE;
         }
 
-        $this->validate($rules, [
-            'categoryName.required' => 'Nama kategori wajib diisi.',
-            'categoryType.required' => 'Tipe kategori wajib dipilih.',
-            'categoryAccountId.required' => 'Pilih akun pendapatan untuk kategori ini.',
-            'categoryPrice.required' => 'Harga atau nominal wajib diisi untuk tipe ini.',
-            'categoryPrice.min' => 'Harga tidak boleh negatif.',
-            'categoryPrice.max' => 'Harga melebihi batas wajar.',
-        ]);
+        $validator = Validator::make(
+            [
+                'categoryName' => $this->categoryName,
+                'categoryType' => $this->categoryType,
+                'categoryAccountId' => $this->categoryAccountId,
+                'categoryPrice' => $this->categoryPrice,
+            ],
+            $rules,
+            [
+                'categoryName.required' => 'Nama kategori wajib diisi.',
+                'categoryType.required' => 'Tipe kategori wajib dipilih.',
+                'categoryAccountId.required' => 'Pilih akun pendapatan untuk kategori ini.',
+                'categoryPrice.required' => 'Harga atau nominal wajib diisi untuk tipe ini.',
+                'categoryPrice.min' => 'Harga tidak boleh negatif.',
+                'categoryPrice.max' => 'Harga melebihi batas wajar.',
+            ]
+        );
+
+        if ($validator->fails()) {
+            foreach ($validator->errors()->messages() as $field => $messages) {
+                foreach ($messages as $message) {
+                    $this->addError($field, $message);
+                }
+            }
+
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: $validator->errors()->first());
+
+            return;
+        }
 
         $account = Account::where('id', $this->categoryAccountId)
             ->where('type', 'pendapatan')
@@ -195,6 +229,7 @@ class ManageRevenue extends Component
 
         if (! $account) {
             $this->addError('categoryAccountId', 'Pilih akun pendapatan untuk kategori ini.');
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: 'Pilih akun pendapatan untuk kategori ini.');
 
             return;
         }
@@ -206,6 +241,7 @@ class ManageRevenue extends Component
 
         if ($duplicate) {
             $this->addError('categoryName', 'Nama kategori sudah ada di unit ini.');
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: 'Nama kategori sudah ada di unit ini.');
 
             return;
         }
@@ -242,7 +278,7 @@ class ManageRevenue extends Component
 
         $this->notifyPriceRoles($notifyMessage);
 
-        \Flux::toast(variant: 'success', text: "Kategori \"{$this->categoryName}\" berhasil ditambahkan!");
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: "Kategori \"{$this->categoryName}\" berhasil ditambahkan!");
 
         // Reset the form
         $this->reset(['categoryName', 'categoryPrice', 'categoryAccountId']);
@@ -268,15 +304,35 @@ class ManageRevenue extends Component
 
     public function saveCategoryEdit(): void
     {
-        $this->validate([
-            'editCategoryName' => 'required|string|max:100',
-            'editCategoryType' => ['required', Rule::in(CategoryType::manageableValues())],
-            'editCategoryAccountId' => 'required|exists:accounts,id',
-        ], [
-            'editCategoryName.required' => 'Nama kategori wajib diisi.',
-            'editCategoryType.required' => 'Tipe kategori wajib dipilih.',
-            'editCategoryAccountId.required' => 'Pilih akun pendapatan.',
-        ]);
+        $validator = Validator::make(
+            [
+                'editCategoryName' => $this->editCategoryName,
+                'editCategoryType' => $this->editCategoryType,
+                'editCategoryAccountId' => $this->editCategoryAccountId,
+            ],
+            [
+                'editCategoryName' => 'required|string|max:100',
+                'editCategoryType' => ['required', Rule::in(CategoryType::manageableValues())],
+                'editCategoryAccountId' => 'required|exists:accounts,id',
+            ],
+            [
+                'editCategoryName.required' => 'Nama kategori wajib diisi.',
+                'editCategoryType.required' => 'Tipe kategori wajib dipilih.',
+                'editCategoryAccountId.required' => 'Pilih akun pendapatan.',
+            ]
+        );
+
+        if ($validator->fails()) {
+            foreach ($validator->errors()->messages() as $field => $messages) {
+                foreach ($messages as $message) {
+                    $this->addError($field, $message);
+                }
+            }
+
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: $validator->errors()->first());
+
+            return;
+        }
 
         $account = Account::where('id', $this->editCategoryAccountId)
             ->where('type', 'pendapatan')
@@ -284,6 +340,7 @@ class ManageRevenue extends Component
 
         if (! $account) {
             $this->addError('editCategoryAccountId', 'Pilih akun pendapatan.');
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: 'Pilih akun pendapatan.');
 
             return;
         }
@@ -295,6 +352,7 @@ class ManageRevenue extends Component
 
         if ($duplicate) {
             $this->addError('editCategoryName', 'Nama kategori sudah ada di unit ini.');
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: 'Nama kategori sudah ada di unit ini.');
 
             return;
         }
@@ -318,7 +376,7 @@ class ManageRevenue extends Component
             );
         }
 
-        \Flux::toast(variant: 'success', text: 'Kategori berhasil diperbarui!');
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Kategori berhasil diperbarui!');
 
         $this->showEditModal = false;
         $this->reset(['editId', 'editCategoryName', 'editCategoryType', 'editCategoryAccountId']);
@@ -350,7 +408,7 @@ class ManageRevenue extends Component
         $isUsed = TransactionItem::where('transaction_category_id', $this->deleteId)->exists();
 
         if ($isUsed) {
-            \Flux::toast(variant: 'danger', text: 'Kategori tidak bisa dihapus karena sudah dipakai dalam history transaksi!');
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menghapus', text: 'Kategori tidak bisa dihapus karena sudah dipakai dalam history transaksi!');
             $this->showDeleteModal = false;
 
             return;
@@ -358,7 +416,7 @@ class ManageRevenue extends Component
 
         $id = $this->deleteId;
         $category->delete();
-        \Flux::toast(variant: 'success', text: 'Kategori berhasil dihapus!');
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Kategori berhasil dihapus!');
 
         unset($this->prices[$id]);
         $this->loadPrices();

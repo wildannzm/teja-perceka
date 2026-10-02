@@ -46,21 +46,29 @@
 @if(session('swal'))
     <script>
         const swalData = @json(session('swal'));
-        window.Swal.fire({
-            icon: swalData.icon ?? 'info',
-            title: swalData.title ?? '',
-            text: swalData.text ?? '',
-            timer: swalData.icon === 'success' ? 2500 : undefined,
-            timerProgressBar: swalData.icon === 'success',
-            showConfirmButton: swalData.icon !== 'success',
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#f59e0b',
-            customClass: {
-                popup: 'rounded-2xl shadow-2xl font-sans',
-                title: 'text-zinc-900 font-semibold',
-                htmlContainer: 'text-zinc-600',
-                timerProgressBar: 'bg-amber-400',
-            },
-        });
+        (function waitForSwal(attempts) {
+            if (window.Swal) {
+                window.Swal.fire({
+                    icon: swalData.icon ?? 'info',
+                    title: swalData.title ?? '',
+                    text: swalData.text ?? '',
+                    timer: swalData.icon === 'success' ? 2500 : undefined,
+                    timerProgressBar: swalData.icon === 'success',
+                    showConfirmButton: swalData.icon !== 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#f59e0b',
+                    customClass: {
+                        popup: 'rounded-2xl shadow-2xl font-sans',
+                        title: 'text-zinc-900 font-semibold',
+                        htmlContainer: 'text-zinc-600',
+                        timerProgressBar: 'bg-amber-400',
+                    },
+                });
+                return;
+            }
+            if (attempts > 0) {
+                setTimeout(() => waitForSwal(attempts - 1), 100);
+            }
+        })(120);
     </script>
 @endif

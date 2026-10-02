@@ -7,6 +7,7 @@ use App\Models\DailyTransaction;
 use App\Models\JournalEntry;
 use App\Support\BumdesCashBalance;
 use App\Support\PdfExport;
+use App\Support\Rupiah;
 use App\Support\VoucherNumber;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -623,6 +624,11 @@ class JournalTab extends Component
     {
         if (! $this->canEdit || ! $this->editVoucherNumber) {
             abort(403);
+        }
+
+        foreach ($this->editRows as $i => $row) {
+            $this->editRows[$i]['debit'] = Rupiah::parse($row['debit'] ?? null);
+            $this->editRows[$i]['credit'] = Rupiah::parse($row['credit'] ?? null);
         }
 
         $this->validate([

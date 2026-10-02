@@ -178,7 +178,7 @@
                                 <div
                                     class="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between bg-zinc-50 p-3 rounded-xl border border-zinc-100">
                                     <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" wire:model.live="inputs.{{ $id }}.active"
+                                        <input type="checkbox" wire:model.live.debounce.250ms="inputs.{{ $id }}.active"
                                             class="size-4 rounded border-2 border-brand-500 text-brand-600 focus:ring-0">
                                         <span class="text-sm font-medium text-zinc-700">Ada Pemasukan</span>
                                     </label>
@@ -193,10 +193,9 @@
                                     <div class="w-full relative">
                                         <span
                                             class="absolute inset-y-0 left-0 flex items-center pl-4 text-zinc-500 font-medium pointer-events-none">Rp</span>
-                                        <input type="number" inputmode="numeric" placeholder="0"
+                                        <input type="text" inputmode="numeric" data-rupiah placeholder="0"
                                             wire:model.live.debounce.300ms="inputs.{{ $id }}.amount"
-                                            class="text-base pl-10 w-full font-medium rounded-xl border-2 border-brand-500 px-3.5 py-2.5 text-zinc-900 focus:outline-none focus:border-brand-600 focus:ring-0 transition-colors shadow-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0"
-                                            min="0" />
+                                            class="text-base pl-10 w-full font-medium rounded-xl border-2 border-brand-500 px-3.5 py-2.5 text-zinc-900 focus:outline-none focus:border-brand-600 focus:ring-0 transition-colors shadow-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0" />
                                     </div>
                                 </div>
                             @endif

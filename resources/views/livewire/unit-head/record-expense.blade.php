@@ -43,7 +43,7 @@
                     {{-- Mode selector --}}
                     <div class="flex flex-col gap-1.5 w-full md:w-auto">
                         <label for="filterMode" class="text-xs font-semibold text-zinc-600">Periode</label>
-                        <select id="filterMode" wire:model.live="filterMode"
+                        <select id="filterMode" wire:model.live.debounce.250ms="filterMode"
                             class="w-full sm:min-w-40 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                             <option value="daily">Harian</option>
                             <option value="monthly">Bulanan</option>
@@ -95,7 +95,7 @@
                             <div wire:key="picker-semester" class="flex flex-col sm:flex-row gap-5">
                                 <div class="flex flex-col gap-1.5 w-full sm:w-auto">
                                     <label for="filterSemester" class="text-xs font-semibold text-zinc-600">Semester</label>
-                                    <select wire:model.live="filterSemester"
+                                    <select wire:model.live.debounce.250ms="filterSemester"
                                         class="w-full sm:min-w-40 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                                         <option value="1">1 (Jan-Jun)</option>
                                         <option value="2">2 (Jul-Des)</option>
@@ -410,7 +410,7 @@
                                         <label class="block text-sm font-medium text-zinc-700 mb-1.5">Nominal</label>
                                         <div class="relative">
                                             <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500 font-medium pointer-events-none">Rp</span>
-                                            <input type="number" id="nominal-{{ $index }}" wire:model.live.debounce.300ms="items.{{ $index }}.amount" min="1" max="9999999999999" step="1" placeholder="0"
+                                            <input type="text" inputmode="numeric" data-rupiah id="nominal-{{ $index }}" wire:model.live.debounce.300ms="items.{{ $index }}.amount" placeholder="0"
                                                 class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 pl-10 pr-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors"
                                                 required />
                                         </div>
@@ -580,7 +580,7 @@
                             <label for="editAmount" class="block text-sm font-medium text-zinc-700 mb-1.5">Nominal</label>
                             <div class="relative">
                                 <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500 font-medium pointer-events-none">Rp</span>
-                                <input type="number" id="editAmount" wire:model.live.debounce.300ms="editAmount" min="1" max="9999999999999" step="1" placeholder="0"
+                                <input type="text" inputmode="numeric" data-rupiah id="editAmount" wire:model.live.debounce.300ms="editAmount" placeholder="0"
                                     class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 pl-10 pr-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors"
                                     required />
                             </div>

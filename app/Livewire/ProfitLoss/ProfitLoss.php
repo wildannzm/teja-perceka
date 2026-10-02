@@ -7,6 +7,7 @@ use App\Models\BusinessUnit;
 use App\Models\JournalEntry;
 use App\Support\BumdesCashBalance;
 use App\Support\PdfExport;
+use App\Support\Rupiah;
 use App\Support\SafeDates;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
@@ -113,7 +114,7 @@ class ProfitLoss extends Component
         $batchTime = time();
 
         foreach ($this->editValues as $accountId => $newValue) {
-            $newValue = (float) $newValue;
+            $newValue = Rupiah::parse($newValue);
             $originalRow = $allOriginalRows->firstWhere('id', $accountId);
 
             if ($originalRow) {

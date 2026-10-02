@@ -419,7 +419,7 @@
                                             <label class="text-xs text-zinc-500 font-medium uppercase tracking-wider">Debit</label>
                                             <div class="relative">
                                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400 text-sm pointer-events-none">Rp</span>
-                                                <input type="number" inputmode="numeric" min="0" placeholder="0"
+                                                <input type="text" inputmode="numeric" data-rupiah placeholder="0"
                                                     wire:model.live.debounce.300ms="editRows.{{ $i }}.debit"
                                                     class="pl-8 w-full rounded-lg border border-zinc-200 text-zinc-900 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                                             </div>
@@ -428,7 +428,7 @@
                                             <label class="text-xs text-zinc-500 font-medium uppercase tracking-wider">Kredit</label>
                                             <div class="relative">
                                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400 text-sm pointer-events-none">Rp</span>
-                                                <input type="number" inputmode="numeric" min="0" placeholder="0"
+                                                <input type="text" inputmode="numeric" data-rupiah placeholder="0"
                                                     wire:model.live.debounce.300ms="editRows.{{ $i }}.credit"
                                                     class="pl-8 w-full rounded-lg border border-zinc-200 text-zinc-900 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                                             </div>

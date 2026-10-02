@@ -17,7 +17,7 @@
         
         <div class="flex flex-col gap-1.5 w-full md:w-auto min-w-[160px]">
             <label class="text-sm font-medium text-zinc-700">Mode Periode</label>
-            <select wire:model.live="mode"
+            <select wire:model.live.debounce.250ms="mode"
                 class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer">
                 <option value="monthly">Bulanan</option>
                 <option value="semester">Semester</option>
@@ -52,7 +52,7 @@
                 </div>
             @elseif ($mode === 'semester')
                 <div class="flex gap-2">
-                    <select wire:model.live="semester"
+                    <select wire:model.live.debounce.250ms="semester"
                         class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer">
                         <option value="1">Sem 1 (Jan-Jun)</option>
                         <option value="2">Sem 2 (Jul-Des)</option>

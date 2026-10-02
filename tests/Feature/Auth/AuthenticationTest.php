@@ -19,7 +19,9 @@ test('users can authenticate using the login screen', function () {
 
     $response
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('dashboard', absolute: false));
+        ->assertOk()
+        ->assertSee('id="login-success-swal"', false)
+        ->assertSee('Login Berhasil!');
 
     $this->assertAuthenticated();
 });
@@ -32,7 +34,50 @@ test('users can not authenticate with invalid password', function () {
         'password' => 'wrong-password',
     ]);
 
-    $response->assertSessionHasErrorsIn('email');
+    $response->assertSessionHasErrors(['password' => 'Kata sandi salah. Silakan coba lagi.']);
+
+    $this->assertGuest();
+});
+
+test('login with an unregistered email errors the email field', function () {
+    $response = $this->post(route('login.store'), [
+        'email' => 'tidak-terdaftar@example.com',
+        'password' => 'password',
+    ]);
+
+    $response->assertSessionHasErrors(['email' => 'Email tidak terdaftar. Periksa kembali alamat email Anda.']);
+
+    $this->assertGuest();
+});
+
+test('successful login shows the modal before redirecting', function () {
+    $user = User::factory()->create();
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $response
+        ->assertOk()
+        ->assertSee('id="login-success-swal"', false)
+        ->assertSee('Selamat datang kembali')
+        ->assertSee(route('dashboard', absolute: false), false);
+
+    $this->assertAuthenticated();
+});
+
+test('failed login renders the failure modal', function () {
+    $user = User::factory()->create();
+
+    $response = $this->from(route('login'))->followingRedirects()->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'wrong-password',
+    ]);
+
+    $response->assertOk()->assertSee('id="login-swal"', false);
+
+    $response->assertSee('Kesalahan pada Kata Sandi')->assertSee('Kata sandi salah. Silakan coba lagi.');
 
     $this->assertGuest();
 });

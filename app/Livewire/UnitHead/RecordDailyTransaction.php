@@ -10,6 +10,7 @@ use App\Models\DailyTransaction;
 use App\Models\JournalEntry;
 use App\Models\TransactionCategory;
 use App\Models\TransactionItem;
+use App\Support\Rupiah;
 use App\Support\VoucherNumber;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
@@ -214,7 +215,7 @@ class RecordDailyTransaction extends Component
                     $subtotal = $category->priceAt($date);
                 }
             } elseif ($category->type === CategoryType::Custom) {
-                $subtotal = (float) ($input['amount'] ?: 0);
+                $subtotal = Rupiah::parse($input['amount'] ?? null);
             }
 
             $this->inputs[$id]['subtotal'] = $subtotal;
@@ -244,6 +245,11 @@ class RecordDailyTransaction extends Component
             $category = $this->categoryList->get($categoryId);
             $quantity = $input['quantity'] ?? '';
             $amount = $input['amount'] ?? '';
+
+            if ($amount !== '') {
+                $amount = Rupiah::parse($amount);
+                $this->inputs[$categoryId]['amount'] = $amount;
+            }
 
             if (! $category->type->usesQuantity() && $quantity !== '') {
                 $this->addError("inputs.{$categoryId}.quantity", 'Kuantitas tidak valid.');

@@ -7,10 +7,13 @@ use App\Models\BusinessUnit;
 use App\Models\JournalEntry;
 use App\Support\BumdesCashBalance;
 use App\Support\PdfExport;
+use App\Support\Rupiah;
 use App\Support\SafeDates;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection as BaseCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
@@ -89,7 +92,7 @@ class TrialBalance extends Component
         $batchTime = time();
 
         foreach ($this->editValues as $accountId => $newValue) {
-            $newValue = (float) $newValue;
+            $newValue = Rupiah::parse($newValue);
             $originalRow = $allOriginalRows->firstWhere('id', $accountId);
 
             if ($originalRow) {
@@ -173,6 +176,34 @@ class TrialBalance extends Component
         ];
     }
 
+    private function applyReportScope(Builder $query): void
+    {
+        if ($this->isBumdesScope()) {
+            $query->where(function ($q) {
+                $q->where('voucher_number', 'like', 'KBM%')
+                    ->orWhere(function ($sub) {
+                        $sub->where('voucher_number', 'like', 'DBM%')
+                            ->whereNull('daily_transaction_id')
+                            ->whereNull('business_unit_id');
+                    });
+            });
+        } elseif ($this->unit_id && is_numeric($this->unit_id)) {
+            $query->where('business_unit_id', (int) $this->unit_id);
+        }
+    }
+
+    private function sumDebitCreditPerAccount(Builder $query): BaseCollection
+    {
+        return $query->select(
+            'account_id',
+            DB::raw('SUM(debit) as totalDebit'),
+            DB::raw('SUM(credit) as totalCredit')
+        )
+            ->groupBy('account_id')
+            ->get()
+            ->keyBy('account_id');
+    }
+
     #[Computed]
     public function units(): Collection
     {
@@ -198,6 +229,23 @@ class TrialBalance extends Component
     }
 
     #[Computed]
+    public function periodLabel(): string
+    {
+        // Guard through SafeDates so a crafted user-supplied period string
+        // falls back to the current month instead of throwing a 500.
+        return SafeDates::month($this->period)->translatedFormat('F Y');
+    }
+
+    #[Computed]
+    public function isBalanced(): bool
+    {
+        // Single source of the balanced status for preview & PDF (float rounding tolerance).
+        $data = $this->reportData;
+
+        return abs($data['totalAssets'] - $data['totalLiabilitiesEquity']) < 0.5;
+    }
+
+    #[Computed]
     public function reportData(): array
     {
         $accounts = Account::where('type', '!=', 'header')->orderBy('code')->get();
@@ -219,86 +267,35 @@ class TrialBalance extends Component
 
         if ($this->period) {
             [$startDate, $endDate] = $this->periodRange();
+            $startDay = $startDate->format('Y-m-d');
+            $endDay = $endDate->format('Y-m-d');
 
-            $query = JournalEntry::whereDate('transaction_date', '<=', $endDate->format('Y-m-d'));
+            // Strictly monthly: only the filtered month's movements, no prior accumulation/injection.
+            $monthlyQuery = JournalEntry::whereBetween('transaction_date', [$startDay, $endDay]);
+            $this->applyReportScope($monthlyQuery);
+            $balancePerAccount = $this->sumDebitCreditPerAccount($monthlyQuery);
 
+            // BUMDes scope: current-month unit income (all units) via virtual entries,
+            // because unit journals are filtered out of the base query. No prior balances injected.
             if ($this->isBumdesScope()) {
-                $query->where(function ($q) {
-                    $q->where('voucher_number', 'like', 'KBM%')
-                        ->orWhere(function ($sub) {
-                            $sub->where('voucher_number', 'like', 'DBM%')
-                                ->whereNull('daily_transaction_id')
-                                ->whereNull('business_unit_id');
-                        });
-                });
-            } elseif ($this->unit_id && is_numeric($this->unit_id)) {
-                $query->where('business_unit_id', (int) $this->unit_id);
-            }
-
-            $balancePerAccount = $query->select(
-                'account_id',
-                DB::raw('SUM(debit) as totalDebit'),
-                DB::raw('SUM(credit) as totalCredit')
-            )
-                ->groupBy('account_id')
-                ->get()
-                ->keyBy('account_id');
-
-            // BUMDes scope: add virtual amounts
-            // - Saldo sebelumnya: debit cash 1-1100, credit equity 3-2000
-            // - Net income per unit: debit cash 1-1100, credit revenue 4-2000
-            if ($this->isBumdesScope()) {
-                $openingBalance = BumdesCashBalance::getOpeningBalance($startDate);
                 $netUnitIncome = BumdesCashBalance::getTotalNetUnitIncome($startDate, $endDate);
 
-                // Cash account: opening balance + net unit income (debit)
+                // Cash account: current-month net unit income (debit)
                 $cashAccount = Account::where('code', '1-1100')->first();
-                if ($cashAccount && ($openingBalance + $netUnitIncome) > 0) {
+                if ($cashAccount && $netUnitIncome > 0) {
                     $row = $balancePerAccount->get($cashAccount->id);
                     if ($row) {
-                        $row->totalDebit += ($openingBalance + $netUnitIncome);
+                        $row->totalDebit += $netUnitIncome;
                     } else {
                         $balancePerAccount->put($cashAccount->id, (object) [
                             'account_id' => $cashAccount->id,
-                            'totalDebit' => ($openingBalance + $netUnitIncome),
+                            'totalDebit' => $netUnitIncome,
                             'totalCredit' => 0,
                         ]);
                     }
                 }
 
-                // Equity account (3-2000): opening balance (credit)
-                if ($openingBalance > 0) {
-                    $equityAccount = Account::where('code', '3-2000')->first();
-                    if ($equityAccount) {
-                        $row = $balancePerAccount->get($equityAccount->id);
-                        if ($row) {
-                            $row->totalCredit += $openingBalance;
-                        } else {
-                            $balancePerAccount->put($equityAccount->id, (object) [
-                                'account_id' => $equityAccount->id,
-                                'totalDebit' => 0,
-                                'totalCredit' => $openingBalance,
-                            ]);
-                        }
-                    }
-                }
-
-                // Revenue account (4-2000): net unit income only (credit)
-                if ($netUnitIncome > 0) {
-                    $revenueAccount = Account::where('code', '4-2000')->first();
-                    if ($revenueAccount) {
-                        $row = $balancePerAccount->get($revenueAccount->id);
-                        if ($row) {
-                            $row->totalCredit += $netUnitIncome;
-                        } else {
-                            $balancePerAccount->put($revenueAccount->id, (object) [
-                                'account_id' => $revenueAccount->id,
-                                'totalDebit' => 0,
-                                'totalCredit' => $netUnitIncome,
-                            ]);
-                        }
-                    }
-                }
+                $totalRevenue += $netUnitIncome;
             }
 
             foreach ($accounts as $account) {
@@ -318,16 +315,15 @@ class TrialBalance extends Component
                 $prefix = substr($account->code, 0, 3);
                 $firstDigit = substr($account->code, 0, 1);
 
-                // Calculate Net Income (Laba Bersih) dynamically from nominal accounts
+                // Profit/loss from the filtered month's movements (nominal accounts are already monthly).
                 if ($firstDigit === '4' || $firstDigit === '7') {
-                    $totalRevenue += $closingBalance; // Normal balance is kredit, so saldoAkhir is Kredit-Debit
+                    $totalRevenue += $closingBalance; // Credit-normal balance, so closing is credit minus debit
                 } elseif ($firstDigit === '5' || $firstDigit === '6') {
-                    $totalExpenses += $closingBalance; // Normal balance is debit, so saldoAkhir is Debit-Kredit
+                    $totalExpenses += $closingBalance; // Debit-normal balance, so closing is debit minus credit
                 }
 
                 if ($closingBalance == 0 && $firstDigit !== '3' && $firstDigit !== '1' && $firstDigit !== '2') {
-                    continue; // Skip zero balances unless we want to show them? Actually, let's include them if they are in the balance sheet structure but we can filter zero balance out in view or keep them as '-' like in excel.
-                    // The Excel shows some '-' so we keep them, or we just keep all balance sheet accounts (1, 2, 3)
+                    continue; // Nominal accounts with zero balance are never displayed anyway.
                 }
 
                 $item = (object) [
@@ -398,7 +394,8 @@ class TrialBalance extends Component
         [$start, $end] = $this->periodRange();
         $printDate = strtoupper($end->translatedFormat('d F Y'));
         $signatureDate = PdfExport::signatureDate($end);
-        $periodLabel = SafeDates::month($this->period)->translatedFormat('F Y');
+        $periodLabel = $this->periodLabel;
+        $isBalanced = $this->isBalanced;
 
         $signatory = Auth::user()->name;
         $position = match (true) {
@@ -411,7 +408,7 @@ class TrialBalance extends Component
 
         set_time_limit(120);
 
-        $pdf = Pdf::loadView('pdf.trial-balance', array_merge($data, compact('periodLabel', 'entityName', 'printDate', 'signatureDate', 'signatory', 'position')))
+        $pdf = Pdf::loadView('pdf.trial-balance', array_merge($data, compact('periodLabel', 'entityName', 'printDate', 'signatureDate', 'signatory', 'position', 'isBalanced')))
             ->setPaper('a4', 'portrait');
 
         $unitLabel = $unit ? $unit->name : ($this->isBumdesScope() ? 'BUMDes' : 'Semua Unit');
