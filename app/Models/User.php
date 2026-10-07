@@ -12,6 +12,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Laravel\Fortify\Contracts\PasskeyUser as FortifyPasskeyUser;
+use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -31,10 +33,10 @@ use Spatie\Permission\Traits\HasRoles;
  */
 #[Fillable(['name', 'email', 'password', 'business_unit_id', 'is_active'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements FortifyPasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
      * Get the attributes that should be cast.

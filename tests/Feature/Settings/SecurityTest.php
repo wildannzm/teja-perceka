@@ -2,6 +2,7 @@
 
 use App\Livewire\Settings\Security;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Fortify\Features;
 use Livewire\Livewire;
@@ -27,10 +28,12 @@ test('security settings page can be rendered', function () {
 
     $response->assertOk();
 
-    $response->assertSee('Passkeys');
-    $response->assertSee('No passkeys yet');
-    $response->assertSee('Two-factor authentication');
-    $response->assertSee('Enable 2FA');
+    $response->assertSee('Ubah Kata Sandi');
+    $response->assertSee('Autentikasi Dua Faktor');
+    $response->assertSee('Aktifkan 2FA');
+    $response->assertSee('Tambah Passkey');
+    $response->assertSee('Belum ada passkey');
+    $response->assertSee('Cara pakai');
 });
 
 test('security settings page requires password confirmation when enabled', function () {
@@ -51,10 +54,11 @@ test('security settings page renders without two factor when feature is disabled
         ->withSession(['auth.password_confirmed_at' => time()])
         ->get(route('security.edit'))
         ->assertOk()
-        ->assertSee('Update password')
-        ->assertDontSee('Manage your passkeys for passwordless sign-in')
-        ->assertDontSee('Add a passkey to sign in without a password')
-        ->assertDontSee('Two-factor authentication');
+        ->assertSee('Ubah Kata Sandi')
+        ->assertDontSeeText('Autentikasi Dua Faktor')
+        ->assertDontSeeText('Aktifkan 2FA')
+        ->assertDontSeeText('Tambah Passkey')
+        ->assertDontSeeText('Belum ada passkey');
 });
 
 test('two factor authentication disabled when confirmation abandoned between requests', function () {
@@ -93,6 +97,7 @@ test('password can be updated', function () {
         ->call('updatePassword');
 
     $response->assertHasNoErrors();
+    $response->assertDispatched('swal-alert', icon: 'success', title: 'Berhasil', text: 'Kata sandi berhasil diperbarui.');
 
     expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue();
 });
@@ -111,4 +116,89 @@ test('correct password must be provided to update password', function () {
         ->call('updatePassword');
 
     $response->assertHasErrors(['current_password']);
+    $response->assertDispatched('swal-alert', icon: 'error');
+});
+
+test('passkey management section lists owned passkeys', function () {
+    $user = User::factory()->create();
+
+    $user->passkeys()->create([
+        'name' => 'Laptop Kerja',
+        'credential_id' => 'credential-123',
+        'credential' => ['aaguid' => '00000000-0000-0000-0000-000000000000'],
+    ]);
+
+    $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
+        ->get(route('security.edit'))
+        ->assertOk()
+        ->assertSee('Laptop Kerja');
+});
+
+test('user can delete their own passkey', function () {
+    $user = User::factory()->create();
+
+    $passkey = $user->passkeys()->create([
+        'name' => 'Laptop Kerja',
+        'credential_id' => 'credential-123',
+        'credential' => ['aaguid' => '00000000-0000-0000-0000-000000000000'],
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(Security::class)
+        ->call('confirmDeletePasskey', $passkey->id)
+        ->assertSet('showDeletePasskeyModal', true)
+        ->call('deletePasskey')
+        ->assertHasNoErrors()
+        ->assertDispatched('swal-alert', icon: 'success', title: 'Berhasil', text: 'Passkey berhasil dihapus.');
+
+    $this->assertDatabaseMissing('passkeys', ['id' => $passkey->id]);
+});
+
+test('user cannot delete another user passkey', function () {
+    $owner = User::factory()->create();
+    $intruder = User::factory()->create();
+
+    $passkey = $owner->passkeys()->create([
+        'name' => 'Laptop Kerja',
+        'credential_id' => 'credential-123',
+        'credential' => ['aaguid' => '00000000-0000-0000-0000-000000000000'],
+    ]);
+
+    $this->actingAs($intruder);
+
+    expect(fn () => Livewire::test(Security::class)->call('confirmDeletePasskey', $passkey->id))
+        ->toThrow(ModelNotFoundException::class);
+
+    $this->assertDatabaseHas('passkeys', ['id' => $passkey->id]);
+});
+
+test('user can disable two factor after confirmation', function () {
+    $user = User::factory()->withTwoFactor()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test(Security::class)
+        ->call('confirmDisableTwoFactor')
+        ->assertSet('showDisableTwoFactorModal', true)
+        ->call('disable')
+        ->assertHasNoErrors()
+        ->assertDispatched('swal-alert', icon: 'success', title: 'Berhasil', text: 'Autentikasi dua faktor dinonaktifkan.');
+
+    expect($user->refresh()->hasEnabledTwoFactorAuthentication())->toBeFalse();
+});
+
+test('user can cancel disabling two factor', function () {
+    $user = User::factory()->withTwoFactor()->create();
+
+    $this->actingAs($user);
+
+    Livewire::test(Security::class)
+        ->call('confirmDisableTwoFactor')
+        ->assertSet('showDisableTwoFactorModal', true)
+        ->call('cancelDisableTwoFactor')
+        ->assertSet('showDisableTwoFactorModal', false);
+
+    expect($user->refresh()->hasEnabledTwoFactorAuthentication())->toBeTrue();
 });

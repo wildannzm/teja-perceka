@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Http\Responses\LoginResponse;
+use App\Http\Responses\PasskeyLoginResponse;
 use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -15,6 +16,10 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Fortify;
+use Laravel\Passkeys\Contracts\PasskeyLoginResponse as PasskeyLoginResponseContract;
+use Laravel\Passkeys\Contracts\PasskeyUser as PasskeyUserContract;
+use Laravel\Passkeys\Passkey;
+use Laravel\Passkeys\Passkeys;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -24,6 +29,7 @@ class FortifyServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(LoginResponseContract::class, LoginResponse::class);
+        $this->app->singleton(PasskeyLoginResponseContract::class, PasskeyLoginResponse::class);
     }
 
     /**
@@ -34,6 +40,17 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
+        $this->configurePasskeyGuards();
+    }
+
+    /**
+     * Reject passkey logins for inactive accounts (same rule as password login).
+     */
+    private function configurePasskeyGuards(): void
+    {
+        Passkeys::authorizeLoginUsing(
+            fn (Request $request, PasskeyUserContract $user, Passkey $passkey): bool => (bool) ($user->is_active ?? true)
+        );
     }
 
     /**

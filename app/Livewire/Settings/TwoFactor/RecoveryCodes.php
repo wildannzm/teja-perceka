@@ -26,9 +26,19 @@ class RecoveryCodes extends Component
      */
     public function regenerateRecoveryCodes(GenerateNewRecoveryCodes $generateNewRecoveryCodes): void
     {
-        $generateNewRecoveryCodes(auth()->user());
+        try {
+            $generateNewRecoveryCodes(auth()->user());
+        } catch (Exception) {
+            $this->addError('recoveryCodes', 'Gagal membuat kode baru. Coba lagi.');
+
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal', text: 'Gagal membuat kode pemulihan baru. Coba lagi.');
+
+            return;
+        }
 
         $this->loadRecoveryCodes();
+
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Kode pemulihan baru berhasil dibuat. Simpan di tempat aman.');
     }
 
     /**
@@ -42,7 +52,7 @@ class RecoveryCodes extends Component
             try {
                 $this->recoveryCodes = json_decode(decrypt($user->two_factor_recovery_codes), true);
             } catch (Exception) {
-                $this->addError('recoveryCodes', 'Failed to load recovery codes');
+                $this->addError('recoveryCodes', 'Gagal memuat kode pemulihan.');
 
                 $this->recoveryCodes = [];
             }

@@ -10,7 +10,7 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('settings/profile', Profile::class)->name('profile.edit');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'password.confirm'])->group(function () {
     Route::livewire('settings/security', Security::class)
         ->name('security.edit');
 });

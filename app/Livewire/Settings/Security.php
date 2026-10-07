@@ -3,12 +3,15 @@
 namespace App\Livewire\Settings;
 
 use App\Concerns\PasswordValidationRules;
+use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
 use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
 use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use Laravel\Passkeys\Passkey;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
@@ -19,6 +22,8 @@ use Livewire\Component;
 class Security extends Component
 {
     use PasswordValidationRules;
+
+    public string $current_password = '';
 
     public string $password = '';
 
@@ -43,6 +48,17 @@ class Security extends Component
 
     public bool $showVerificationStep = false;
 
+    public bool $showPasswordModal = false;
+
+    public bool $showPasskeyModal = false;
+
+    public bool $showDeletePasskeyModal = false;
+
+    #[Locked]
+    public ?int $passkeyIdToDelete = null;
+
+    public bool $showDisableTwoFactorModal = false;
+
     #[Validate('required|string|size:6', onUpdate: false)]
     public string $code = '';
 
@@ -65,7 +81,7 @@ class Security extends Component
             $this->requiresConfirmation = Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm');
         }
 
-        $this->canManagePasskeys = false;
+        $this->canManagePasskeys = Features::canManagePasskeys();
     }
 
     /**
@@ -75,21 +91,68 @@ class Security extends Component
     {
         try {
             $validated = $this->validate([
+                'current_password' => $this->currentPasswordRules(),
                 'password' => $this->passwordRules(),
             ]);
         } catch (ValidationException $e) {
-            $this->reset('password', 'password_confirmation');
+            $this->reset('current_password', 'password', 'password_confirmation');
+
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: (string) $e->validator->errors()->first());
 
             throw $e;
         }
 
         Auth::user()->update([
-            'password' => $this->password,
+            'password' => $validated['password'],
         ]);
 
-        $this->reset('password', 'password_confirmation');
+        $this->reset('current_password', 'password', 'password_confirmation');
 
-        session()->flash('status', 'password-updated');
+        $this->showPasswordModal = false;
+
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Kata sandi berhasil diperbarui.');
+    }
+
+    /**
+     * Open the change password modal.
+     */
+    public function openPasswordModal(): void
+    {
+        $this->reset('current_password', 'password', 'password_confirmation');
+
+        $this->resetErrorBag();
+
+        $this->showPasswordModal = true;
+    }
+
+    /**
+     * Close the change password modal.
+     */
+    public function closePasswordModal(): void
+    {
+        $this->reset('current_password', 'password', 'password_confirmation', 'showPasswordModal');
+
+        $this->resetErrorBag();
+    }
+
+    /**
+     * Open the add passkey modal.
+     */
+    public function openPasskeyModal(): void
+    {
+        abort_unless($this->canManagePasskeys, 403);
+
+        $this->showPasskeyModal = true;
+    }
+
+    /**
+     * Close the add passkey modal and refresh the list.
+     */
+    public function closePasskeyModal(): void
+    {
+        $this->reset('showPasskeyModal');
+
+        unset($this->passkeys);
     }
 
     /**
@@ -119,7 +182,7 @@ class Security extends Component
             $this->qrCodeSvg = $user?->twoFactorQrCodeSvg();
             $this->manualSetupKey = decrypt($user->two_factor_secret);
         } catch (Exception) {
-            $this->addError('setupData', 'Failed to fetch setup data.');
+            $this->addError('setupData', 'Gagal memuat data penyiapan. Coba lagi.');
 
             $this->reset('qrCodeSvg', 'manualSetupKey');
         }
@@ -146,13 +209,27 @@ class Security extends Component
      */
     public function confirmTwoFactor(ConfirmTwoFactorAuthentication $confirmTwoFactorAuthentication): void
     {
-        $this->validate();
+        try {
+            $this->validate();
+        } catch (ValidationException $e) {
+            $this->dispatch('swal-alert', icon: 'error', title: 'Kode salah', text: 'Kode verifikasi tidak valid. Periksa kembali kode 6 digit dari aplikasi authenticator.');
 
-        $confirmTwoFactorAuthentication(auth()->user(), $this->code);
+            throw $e;
+        }
+
+        try {
+            $confirmTwoFactorAuthentication(auth()->user(), $this->code);
+        } catch (ValidationException $e) {
+            $this->dispatch('swal-alert', icon: 'error', title: 'Kode salah', text: (string) $e->validator->errors()->first());
+
+            throw $e;
+        }
 
         $this->closeModal();
 
         $this->twoFactorEnabled = true;
+
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Autentikasi dua faktor berhasil diaktifkan.');
     }
 
     /**
@@ -166,6 +243,24 @@ class Security extends Component
     }
 
     /**
+     * Ask for confirmation before disabling 2FA.
+     */
+    public function confirmDisableTwoFactor(): void
+    {
+        abort_unless($this->canManageTwoFactor, 403);
+
+        $this->showDisableTwoFactorModal = true;
+    }
+
+    /**
+     * Cancel disabling 2FA.
+     */
+    public function cancelDisableTwoFactor(): void
+    {
+        $this->reset('showDisableTwoFactorModal');
+    }
+
+    /**
      * Disable two-factor authentication for the user.
      */
     public function disable(DisableTwoFactorAuthentication $disableTwoFactorAuthentication): void
@@ -173,6 +268,10 @@ class Security extends Component
         $disableTwoFactorAuthentication(auth()->user());
 
         $this->twoFactorEnabled = false;
+
+        $this->reset('showDisableTwoFactorModal');
+
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Autentikasi dua faktor dinonaktifkan.');
     }
 
     /**
@@ -196,6 +295,72 @@ class Security extends Component
     }
 
     /**
+     * Passkeys owned by the user (id, name, authenticator info, last used).
+     *
+     * @return array<int, array{id: int, name: string, authenticator: string|null, last_used_at: string|null, created_at: string|null}>
+     */
+    #[Computed]
+    public function passkeys(): array
+    {
+        if (! $this->canManagePasskeys) {
+            return [];
+        }
+
+        return auth()->user()->passkeys()
+            ->latest()
+            ->get(['id', 'name', 'credential', 'last_used_at', 'created_at'])
+            ->map(fn (Passkey $passkey): array => [
+                'id' => $passkey->id,
+                'name' => $passkey->name,
+                'authenticator' => $passkey->authenticator,
+                'last_used_at' => $passkey->last_used_at?->toDateTimeString(),
+                'created_at' => $passkey->created_at?->toDateTimeString(),
+            ])
+            ->all();
+    }
+
+    /**
+     * Ask for confirmation before deleting a passkey.
+     */
+    public function confirmDeletePasskey(int $passkeyId): void
+    {
+        abort_unless($this->canManagePasskeys, 403);
+
+        $passkey = auth()->user()->passkeys()->findOrFail($passkeyId);
+
+        $this->passkeyIdToDelete = $passkey->id;
+
+        $this->showDeletePasskeyModal = true;
+    }
+
+    /**
+     * Cancel passkey deletion.
+     */
+    public function cancelDeletePasskey(): void
+    {
+        $this->reset('showDeletePasskeyModal', 'passkeyIdToDelete');
+    }
+
+    /**
+     * Delete one passkey owned by the current user.
+     */
+    public function deletePasskey(): void
+    {
+        abort_unless($this->canManagePasskeys, 403);
+        abort_if($this->passkeyIdToDelete === null, 404);
+
+        $passkey = auth()->user()->passkeys()->findOrFail($this->passkeyIdToDelete);
+
+        $passkey->delete();
+
+        unset($this->passkeys);
+
+        $this->reset('showDeletePasskeyModal', 'passkeyIdToDelete');
+
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Passkey berhasil dihapus.');
+    }
+
+    /**
      * Get the current modal configuration state.
      *
      * @return array{title: string, description: string, buttonText: string}
@@ -205,24 +370,24 @@ class Security extends Component
     {
         if ($this->twoFactorEnabled) {
             return [
-                'title' => __('Two-factor authentication enabled'),
-                'description' => __('Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.'),
-                'buttonText' => __('Close'),
+                'title' => 'Autentikasi dua faktor aktif',
+                'description' => 'Autentikasi dua faktor sudah aktif. Pindai kode QR atau masukkan kunci penyiapan di aplikasi authenticator Anda.',
+                'buttonText' => 'Tutup',
             ];
         }
 
         if ($this->showVerificationStep) {
             return [
-                'title' => __('Verify authentication code'),
-                'description' => __('Enter the 6-digit code from your authenticator app.'),
-                'buttonText' => __('Continue'),
+                'title' => 'Verifikasi kode autentikasi',
+                'description' => 'Masukkan kode 6 digit dari aplikasi authenticator Anda.',
+                'buttonText' => 'Lanjutkan',
             ];
         }
 
         return [
-            'title' => __('Enable two-factor authentication'),
-            'description' => __('To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app.'),
-            'buttonText' => __('Continue'),
+            'title' => 'Aktifkan autentikasi dua faktor',
+            'description' => 'Untuk menyelesaikan aktivasi, pindai kode QR atau masukkan kunci penyiapan di aplikasi authenticator Anda.',
+            'buttonText' => 'Lanjutkan',
         ];
     }
 }

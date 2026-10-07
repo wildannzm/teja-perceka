@@ -9,6 +9,15 @@ test('login screen can be rendered', function () {
     $response->assertOk();
 });
 
+test('login screen offers passkey sign in when feature is enabled', function () {
+    $this->skipUnlessFortifyHas(Features::passkeys());
+
+    $this->get(route('login'))
+        ->assertOk()
+        ->assertSee('data-test="passkey-login-button"', false)
+        ->assertSee('autocomplete="email webauthn"', false);
+});
+
 test('users can authenticate using the login screen', function () {
     $user = User::factory()->create();
 

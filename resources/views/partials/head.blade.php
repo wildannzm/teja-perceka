@@ -1,3 +1,4 @@
+<meta name="csrf-token" content="{{ csrf_token() }}" />
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
@@ -16,8 +17,7 @@
 
 @fonts
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-@vite(['resources/css/app.css', 'resources/js/app.js'])
+@vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/passkeys.js'])
 
 <script>
     document.addEventListener('livewire:init', () => {

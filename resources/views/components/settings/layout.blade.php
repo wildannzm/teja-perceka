@@ -7,7 +7,7 @@
             </a>
             <a href="{{ route('security.edit') }}" wire:navigate
                 class="px-3 py-2.5 text-sm font-semibold rounded-xl transition-all text-center {{ request()->routeIs('security.edit') ? 'bg-brand-600 text-white shadow-md' : 'text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900' }}">
-                {{ __('Kata Sandi') }}
+                {{ __('Keamanan') }}
             </a>
         </nav>
     </div>
