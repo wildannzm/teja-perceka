@@ -214,16 +214,16 @@ class ProfitLoss extends Component
     private function periodLabel(): string
     {
         if ($this->mode === 'yearly') {
-            return 'Tahun '.SafeDates::year($this->period);
+            return mb_strtoupper('Tahun '.SafeDates::year($this->period), 'UTF-8');
         }
 
         if ($this->mode === 'semester') {
             $year = SafeDates::year($this->semesterYear);
 
-            return 'Semester '.$this->semester.' Tahun '.$year;
+            return mb_strtoupper('Semester '.$this->semester.' Tahun '.$year, 'UTF-8');
         }
 
-        return SafeDates::month($this->period)->translatedFormat('F Y');
+        return mb_strtoupper(SafeDates::month($this->period)->translatedFormat('F Y'), 'UTF-8');
     }
 
     private function buildQuery()

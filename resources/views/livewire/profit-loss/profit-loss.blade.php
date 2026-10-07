@@ -82,7 +82,7 @@
             <div class="flex flex-col gap-1.5">
                 @if($mode === 'monthly')
                     <label class="text-sm font-medium text-zinc-700">Bulan</label>
-                    <div wire:ignore x-data="{ val: $wire.entangle('period').live }">
+                    <div wire:ignore wire:key="picker-bulan-{{ $mode }}" x-data="{ val: $wire.entangle('period').live }">
     <input type="text" x-model="val"
         x-init="window.flatpickr($el, {
             locale: window.flatpickrIndonesian,
@@ -101,19 +101,19 @@
         class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none transition-colors cursor-pointer" />
 </div>
                 @elseif($mode === 'semester')
-                    <label class="text-sm font-medium text-zinc-700">Semester &amp; Tahun</label>
-                    <div class="flex gap-2">
+                    <label class="text-sm font-medium text-zinc-700">Pilih Semester</label>
+                    <div wire:key="picker-semester-{{ $mode }}" class="flex gap-2">
                         <select wire:model.live.debounce.250ms="semester"
-                            class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none transition-colors">
-                            <option value="1">Sem 1 (Jan-Jun)</option>
-                            <option value="2">Sem 2 (Jul-Des)</option>
+                            class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer">
+                            <option value="1">Semester 1 (Jan - Jun)</option>
+                            <option value="2">Semester 2 (Jul - Des)</option>
                         </select>
-                        <input type="number" wire:model.live.debounce.500ms="semesterYear" min="2020" max="2099" placeholder="{{ date('Y') }}"
-                            class="block w-24 max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none transition-colors">
+                        <input type="number" wire:model.live.debounce.500ms="semesterYear" min="2020" max="2099" placeholder="Tahun"
+                            class="block w-28 shrink-0 max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                     </div>
                 @else
                     <label class="text-sm font-medium text-zinc-700">Tahun</label>
-                    <input type="number" wire:model.live.debounce.500ms="period" min="2020" max="2099"
+                    <input wire:key="picker-tahun-{{ $mode }}" type="number" wire:model.live.debounce.500ms="period" min="2020" max="2099"
                         placeholder="{{ date('Y') }}"
                         class="block w-full max-w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-0 focus:outline-none transition-colors">
                 @endif
@@ -144,7 +144,7 @@
         <div class="px-4 sm:px-6 py-4 border-b border-zinc-100 text-center">
             <p class="text-sm font-bold text-zinc-900 uppercase">{{ $entityName }}</p>
             <p class="text-sm font-bold text-zinc-900">LABA RUGI</p>
-            <p class="text-sm text-zinc-600">{{ $printDate }}</p>
+            <p class="text-sm text-zinc-600">{{ $periodLabel }}</p>
         </div>
 
         <div class="overflow-hidden md:overflow-x-auto">

@@ -96,7 +96,7 @@
     <div class="doc-header">
         <div class="entity">{{ $entityName }}</div>
         <div class="title">LABA RUGI</div>
-        <div class="period">{{ $printDate }}</div>
+        <div class="period">{{ $periodLabel }}</div>
     </div>
 
     <table class="data-table">

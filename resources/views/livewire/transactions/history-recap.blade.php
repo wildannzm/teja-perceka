@@ -39,8 +39,15 @@
 
             {{-- Date/period picker --}}
             <div class="flex flex-col gap-1.5 w-full md:w-auto md:min-w-48">
-                <label class="text-sm font-medium text-zinc-700">Pilih {{ ucfirst($mode) }}</label>
-                
+                <label class="text-sm font-medium text-zinc-700">
+                    @if($mode === 'daily') Pilih Tanggal
+                    @elseif($mode === 'weekly') Pilih Minggu
+                    @elseif($mode === 'monthly') Pilih Bulan
+                    @elseif($mode === 'semester') Pilih Semester
+                    @elseif($mode === 'yearly') Pilih Tahun
+                    @else Pilih Periode
+                    @endif
+                </label>
                 @if($mode === 'daily')
                     <div wire:ignore wire:key="picker-harian" x-data="{ val: $wire.entangle('transactionDate').live }">
     <input type="text" x-model="val"
@@ -91,13 +98,12 @@
                 @elseif($mode === 'semester')
                     <div wire:key="picker-semester" class="flex gap-2">
                         <select wire:model.live.debounce.250ms="semester"
-                            class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
-                            <option value="1">Sem 1 (Jan-Jun)</option>
-                            <option value="2">Sem 2 (Jul-Des)</option>
+                            class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer">
+                            <option value="1">Semester 1 (Jan - Jun)</option>
+                            <option value="2">Semester 2 (Jul - Des)</option>
                         </select>
-                        <input type="number" wire:model.live.debounce.500ms="semesterYear" min="2020" max="2099" placeholder="{{ date('Y') }}"
-                            class="w-24 shrink-0 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
-                    </div>
+                        <input type="number" wire:model.live.debounce.500ms="semesterYear" min="2020" max="2099" placeholder="Tahun"
+                            class="w-28 shrink-0 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
 
                 @elseif($mode === 'yearly')
                     <input wire:key="picker-tahunan" type="number" wire:model.live.debounce.500ms="year" min="2020" placeholder="{{ date('Y') }}"

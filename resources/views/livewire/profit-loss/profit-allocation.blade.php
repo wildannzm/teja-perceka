@@ -28,11 +28,11 @@
         <div class="flex flex-col gap-1.5 w-full md:w-auto min-w-[200px]">
             <label class="text-sm font-medium text-zinc-700">
                 @if($mode === 'monthly') Pilih Bulan
-                @elseif($mode === 'semester') Semester &amp; Tahun
+                @elseif($mode === 'semester') Pilih Semester
                 @else Pilih Tahun @endif
             </label>
             @if ($mode === 'monthly')
-                <div wire:ignore x-data="{ val: $wire.entangle('period').live }">
+                <div wire:ignore wire:key="picker-bulan-{{ $mode }}" x-data="{ val: $wire.entangle('period').live }">
                     <input type="text" x-model="val"
                         x-init="window.flatpickr($el, {
                             locale: window.flatpickrIndonesian,
@@ -51,22 +51,21 @@
                         class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer" />
                 </div>
             @elseif ($mode === 'semester')
-                <div class="flex gap-2">
+                <div wire:key="picker-semester-{{ $mode }}" class="flex gap-2">
                     <select wire:model.live.debounce.250ms="semester"
                         class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer">
-                        <option value="1">Sem 1 (Jan-Jun)</option>
-                        <option value="2">Sem 2 (Jul-Des)</option>
+                        <option value="1">Semester 1 (Jan - Jun)</option>
+                        <option value="2">Semester 2 (Jul - Des)</option>
                     </select>
                     <input type="number" wire:model.live.debounce.500ms="semesterYear" min="2020" max="2099" placeholder="Tahun"
-                        class="w-24 shrink-0 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
+                        class="w-28 shrink-0 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
                 </div>
             @else
-                <input type="number" wire:model.live.debounce.500ms="period" min="2020" max="2099" placeholder="Pilih Tahun"
+                <input wire:key="picker-tahun-{{ $mode }}" type="number" wire:model.live.debounce.500ms="period" min="2020" max="2099" placeholder="Pilih Tahun"
                     class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
             @endif
         </div>
     </div>
-
     {{-- Net profit info card --}}
     <div class="bg-brand-500 text-white rounded-2xl p-6 sm:p-8 shadow-lg shadow-brand-500/20 border border-brand-400 flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-w-0">
         <div class="min-w-0 w-full">
