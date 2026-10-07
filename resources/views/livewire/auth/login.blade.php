@@ -113,11 +113,15 @@
                         .catch(() => {});
                 },
                 async login() {
+                    if (this.busy) {
+                        return;
+                    }
                     this.error = '';
                     if (!window.Passkeys || !window.Passkeys.isSupported()) {
                         this.supported = false;
                         return;
                     }
+                    window.Passkeys.cancel();
                     this.busy = true;
                     try {
                         const response = await window.Passkeys.verify();
@@ -126,12 +130,35 @@
                         if (e && (e.name === 'UserCancelledError' || e.name === 'NotAllowedError')) {
                             return;
                         }
-                        this.error = (e && e.message) ? e.message : @json(__('Gagal masuk dengan passkey. Coba lagi.'));
+                        this.error = passkeyLoginErrorMessage(e);
                     } finally {
                         this.busy = false;
                     }
                 },
             };
+        }
+        function passkeyLoginErrorMessage(error) {
+            const name = error && error.name ? error.name : '';
+            const raw = error && error.message ? String(error.message) : '';
+            if (/already pending/i.test(raw)) {
+                return 'Jendela verifikasi sebelumnya masih terbuka. Tutup dulu jendela itu, lalu klik lagi.';
+            }
+            if (name === 'NotSupportedError') {
+                return 'Browser ini belum mendukung passkey.';
+            }
+            if (name === 'InvalidDomainError' || /invalid domain/i.test(raw)) {
+                return 'Passkey tidak bisa dipakai di alamat ini. Untuk pengembangan lokal, buka lewat localhost.';
+            }
+            if (/expired/i.test(raw)) {
+                return 'Sesi verifikasi kedaluwarsa. Muat ulang halaman ini, lalu coba lagi.';
+            }
+            if (/not recognized|removed from your account/i.test(raw)) {
+                return 'Passkey tidak dikenali. Mungkin sudah dihapus dari akun Anda.';
+            }
+            if (/Unable to sign in with this account/i.test(raw)) {
+                return 'Tidak bisa masuk dengan akun ini.';
+            }
+            return 'Gagal masuk dengan passkey. Coba lagi.';
         }
         </script>
 

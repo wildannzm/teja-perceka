@@ -406,6 +406,9 @@ function passkeyManager() {
             }
         },
         async register() {
+            if (this.busy) {
+                return;
+            }
             this.error = '';
             if (!this.name.trim()) {
                 return;
@@ -414,6 +417,7 @@ function passkeyManager() {
                 this.supported = false;
                 return;
             }
+            window.Passkeys.cancel();
             this.busy = true;
             try {
                 await window.Passkeys.register({ name: this.name.trim() });
@@ -429,7 +433,7 @@ function passkeyManager() {
                 }
                 window.location.reload();
             } catch (e) {
-                const message = (e && e.message) ? e.message : 'Gagal mendaftarkan passkey. Coba lagi.';
+                const message = passkeyErrorMessage(e, 'Gagal mendaftarkan passkey. Coba lagi.');
                 this.error = message;
                 if (window.Swal) {
                     window.Swal.fire({
@@ -445,6 +449,38 @@ function passkeyManager() {
             }
         },
     };
+}
+function passkeyErrorMessage(error, fallback) {
+    const name = error && error.name ? error.name : '';
+    const raw = error && error.message ? String(error.message) : '';
+    if (name === 'UserCancelledError' || name === 'NotAllowedError' || /already pending/i.test(raw)) {
+        return 'Jendela verifikasi sebelumnya masih terbuka. Tutup dulu jendela itu, lalu klik Daftarkan lagi.';
+    }
+    if (name === 'NotSupportedError') {
+        return 'Browser ini belum mendukung passkey. Coba Chrome, Edge, atau Safari versi terbaru.';
+    }
+    if (name === 'PasskeyExistsError' || name === 'InvalidStateError') {
+        return 'Perangkat ini sudah terdaftar sebagai passkey.';
+    }
+    if (name === 'InvalidDomainError' || /invalid domain/i.test(raw)) {
+        return 'Passkey tidak bisa dipakai di alamat ini. Untuk pengembangan lokal, buka lewat localhost.';
+    }
+    if (/expired/i.test(raw)) {
+        return 'Sesi pendaftaran kedaluwarsa. Muat ulang halaman ini, lalu coba lagi.';
+    }
+    if (/not recognized|removed from your account/i.test(raw)) {
+        return 'Passkey tidak dikenali. Mungkin sudah dihapus dari akun Anda.';
+    }
+    if (/Unable to sign in with this account/i.test(raw)) {
+        return 'Tidak bisa masuk dengan akun ini.';
+    }
+    if (/Unable to (register|verify)/i.test(raw)) {
+        return fallback;
+    }
+    if (/Invalid credential format/i.test(raw)) {
+        return 'Format kredensial tidak valid.';
+    }
+    return fallback;
 }
 </script>
 @endif
