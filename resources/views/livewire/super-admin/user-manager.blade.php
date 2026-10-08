@@ -20,7 +20,7 @@
             >
                 <option value="">Semua Role</option>
                 @foreach($roles as $role)
-                    <option value="{{ $role }}">{{ str_replace('_', ' ', Str::title($role)) }}</option>
+                    <option value="{{ $role }}">{{ \App\Support\RoleLabels::label($role) }}</option>
                 @endforeach
             </select>
         </div>
@@ -55,7 +55,7 @@
                             </td>
                             <td class="px-5 py-4">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                    {{ $user->getRoleNames()->first() ?? 'Tidak ada Role' }}
+                                    {{ \App\Support\RoleLabels::label($user->getRoleNames()->first()) }}
                                 </span>
                             </td>
                             <td class="px-5 py-4">

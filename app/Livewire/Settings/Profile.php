@@ -3,9 +3,9 @@
 namespace App\Livewire\Settings;
 
 use App\Concerns\ProfileValidationRules;
-use Flux\Flux;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -19,6 +19,8 @@ class Profile extends Component
 
     public string $email = '';
 
+    public bool $showProfileModal = false;
+
     /**
      * Mount the component.
      */
@@ -29,13 +31,49 @@ class Profile extends Component
     }
 
     /**
+     * Open the edit profile modal.
+     */
+    public function openProfileModal(): void
+    {
+        $user = Auth::user();
+
+        $this->name = $user->name;
+        $this->email = $user->email;
+
+        $this->resetErrorBag();
+
+        $this->showProfileModal = true;
+    }
+
+    /**
+     * Close the edit profile modal.
+     */
+    public function closeProfileModal(): void
+    {
+        $user = Auth::user();
+
+        $this->name = $user->name;
+        $this->email = $user->email;
+
+        $this->reset('showProfileModal');
+
+        $this->resetErrorBag();
+    }
+
+    /**
      * Update the profile information for the currently authenticated user.
      */
     public function updateProfileInformation(): void
     {
         $user = Auth::user();
 
-        $validated = $this->validate($this->profileRules($user->id));
+        try {
+            $validated = $this->validate($this->profileRules($user->id));
+        } catch (ValidationException $e) {
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: (string) $e->validator->errors()->first());
+
+            throw $e;
+        }
 
         $user->fill($validated);
 
@@ -45,7 +83,9 @@ class Profile extends Component
 
         $user->save();
 
-        Flux::toast(variant: 'success', text: __('Profile updated.'));
+        $this->reset('showProfileModal');
+
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Profil berhasil diperbarui.');
     }
 
     /**
@@ -63,7 +103,7 @@ class Profile extends Component
 
         $user->sendEmailVerificationNotification();
 
-        Flux::toast(text: __('A new verification link has been sent to your email address.'));
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: __('A new verification link has been sent to your email address.'));
     }
 
     #[Computed]

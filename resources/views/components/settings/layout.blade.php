@@ -1,5 +1,5 @@
 <div class="flex items-start max-md:flex-col gap-8">
-    <div class="w-full pb-4 md:w-[220px] shrink-0">
+    <div class="w-full pb-4 md:w-[220px] shrink-0" wire:ignore>
         <nav aria-label="{{ __('Pengaturan') }}" class="flex flex-col gap-1">
             <a href="{{ route('profile.edit') }}" wire:navigate
                 class="px-3 py-2.5 text-sm font-semibold rounded-xl transition-all text-center {{ request()->routeIs('profile.edit') ? 'bg-brand-600 text-white shadow-md' : 'text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900' }}">

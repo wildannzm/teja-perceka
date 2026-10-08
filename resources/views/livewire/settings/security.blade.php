@@ -37,9 +37,18 @@
                             <div class="flex flex-wrap items-center gap-2">
                                 <h3 class="text-base font-semibold text-zinc-900">Autentikasi Dua Faktor</h3>
                                 @if ($twoFactorEnabled)
-                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">Aktif</span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                                        <span class="relative flex size-1.5">
+                                            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60"></span>
+                                            <span class="relative inline-flex size-1.5 rounded-full bg-emerald-500"></span>
+                                        </span>
+                                        Aktif
+                                    </span>
                                 @else
-                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 border border-zinc-200 px-2.5 py-0.5 text-xs font-semibold text-zinc-600">Nonaktif</span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-zinc-500/10 border border-zinc-500/20 px-2.5 py-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                                        <span class="size-1.5 rounded-full bg-zinc-400"></span>
+                                        Nonaktif
+                                    </span>
                                 @endif
                             </div>
                             <p class="text-sm text-zinc-500 mt-0.5">Lapisan keamanan tambahan. Setiap masuk, Anda diminta kode 6 digit dari aplikasi authenticator selain kata sandi.</p>
@@ -82,7 +91,12 @@
                             <div class="flex flex-wrap items-center gap-2">
                                 <h3 class="text-base font-semibold text-zinc-900">Passkey</h3>
                                 @if (count($this->passkeys) > 0)
-                                    <span class="inline-flex items-center rounded-full bg-brand-50 border border-brand-200 px-2.5 py-0.5 text-xs font-semibold text-brand-700">{{ count($this->passkeys) }} terdaftar</span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-brand-500/10 border border-brand-500/20 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:text-brand-300">
+                                        <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
+                                        </svg>
+                                        {{ count($this->passkeys) }} terdaftar
+                                    </span>
                                 @endif
                             </div>
                             <p class="text-sm text-zinc-500 mt-0.5">Masuk tanpa kata sandi memakai fingerprint, Face ID, atau PIN perangkat Anda.</p>

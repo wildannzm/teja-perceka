@@ -3,9 +3,9 @@
 namespace App\Livewire\SuperAdmin;
 
 use App\Models\User;
+use App\Support\RoleLabels;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Spatie\Permission\Models\Role;
 
 class UserManager extends Component
 {
@@ -27,6 +27,9 @@ class UserManager extends Component
 
     public function render()
     {
+        // ponytail: CASE sort in SQL, single source in RoleLabels
+        [$roleOrder, $bindings] = RoleLabels::caseSql(User::class);
+
         $users = User::with(['roles', 'businessUnit'])
             ->when($this->search !== '', function ($query) {
                 $query->where(function ($q) {
@@ -39,10 +42,11 @@ class UserManager extends Component
                     $q->where('name', $this->selectedRole);
                 });
             })
-            ->orderBy('id', 'asc')
+            ->orderByRaw($roleOrder, $bindings)
+            ->orderBy('name', 'asc')
             ->paginate(12);
 
-        $roles = Role::pluck('name');
+        $roles = RoleLabels::existingOrdered();
 
         return view('livewire.super-admin.user-manager', [
             'users' => $users,
