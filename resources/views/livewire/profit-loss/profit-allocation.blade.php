@@ -96,76 +96,16 @@
             </div>
             
             @if($this->canEdit)
-                <button type="button" wire:click="$toggle('showForm')"
+                <button type="button" wire:click="openCreate"
                     class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-brand-50 border border-brand-200 text-brand-700 rounded-xl text-xs font-bold hover:bg-brand-100 transition-colors shadow-sm active:scale-95">
-                    @if($showForm)
-                        <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        Batal
-                    @else
-                        <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                        Tambah Alokasi
-                    @endif
+                    <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Tambah Alokasi
                 </button>
             @endif
         </div>
 
-        {{-- Add form --}}
-        @if($showForm && $this->canEdit)
-            <div class="p-5 border-b border-brand-100 bg-brand-50/40">
-                <form wire:submit.prevent="saveRow" class="flex flex-col gap-4">
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        {{-- Description --}}
-                        <div class="flex flex-col gap-1.5 flex-1">
-                            <label class="text-xs font-bold text-zinc-700">Keterangan (Pos Alokasi)</label>
-                            <input type="text" wire:model="formDescription" placeholder="Contoh: Pajak, Dana Desa, Bonus Pengurus..."
-                                class="w-full rounded-xl border-2 border-zinc-200 px-3.5 py-2.5 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none">
-                            @error('formDescription') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
-                        </div>
-
-                        {{-- Group --}}
-                        <div class="flex flex-col gap-1.5 w-full sm:w-56">
-                            <label class="text-xs font-bold text-zinc-700">Kelompok</label>
-                            <select wire:model="formGroup"
-                                class="w-full rounded-xl border-2 border-zinc-200 px-3.5 py-2.5 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer">
-                                <option value="pengurang">Pengurang (dari Laba Bersih)</option>
-                                <option value="ad_art">AD/ART (dari Laba Setelah Pengurang)</option>
-                            </select>
-                            @error('formGroup') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
-                        </div>
-
-                        {{-- Percentage --}}
-                        <div class="flex flex-col gap-1.5 w-full sm:w-36">
-                            <label class="text-xs font-bold text-zinc-700">Persentase (%)</label>
-                            <input type="number" step="0.01" wire:model="formPercentage" placeholder="Contoh: 12.5"
-                                class="w-full rounded-xl border-2 border-zinc-200 px-3.5 py-2.5 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none">
-                            @error('formPercentage') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
-                        </div>
-                    </div>
-
-                    {{-- Contextual info --}}
-                    <div class="text-xs text-zinc-600 bg-white rounded-xl px-4 py-2.5 border border-brand-200">
-                        @if($formGroup === 'pengurang')
-                            <span class="font-semibold text-brand-900">Pengurang:</span>
-                            Nominal dihitung dari Laba Bersih (Rp {{ number_format($this->netIncome, 0, ',', '.') }}).
-                        @else
-                            <span class="font-semibold text-brand-900">AD/ART:</span>
-                            Nominal dihitung dari Laba Bersih setelah Pengurang (Rp {{ number_format($this->netIncomeAfterDeductions, 0, ',', '.') }}).
-                        @endif
-                    </div>
-
-                    <div>
-                        <button type="submit"
-                            class="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-sm font-bold transition-colors shadow-sm active:scale-95">
-                            Simpan Pos Alokasi
-                        </button>
-                    </div>
-                </form>
-            </div>
-        @endif
 
         {{-- Table --}}
         <div class="overflow-x-auto">
@@ -173,10 +113,10 @@
                 <thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-semibold">
                     <tr>
                         <th class="px-4 sm:px-5 py-3">Keterangan</th>
-                        <th class="px-4 sm:px-5 py-3 text-right">%</th>
-                        <th class="px-4 sm:px-5 py-3 text-right">Nominal (Rp)</th>
+                        <th class="px-4 sm:px-5 py-3 text-center">%</th>
+                        <th class="px-4 sm:px-5 py-3 text-left">Nominal</th>
                         @if($this->canEdit)
-                            <th class="px-4 sm:px-5 py-3 text-right">Aksi</th>
+                            <th class="px-4 sm:px-5 py-3 text-center">Aksi</th>
                         @endif
                     </tr>
                 </thead>
@@ -184,8 +124,8 @@
                     {{-- ── Initial NET PROFIT ─────────────────────────────────── --}}
                     <tr class="bg-brand-50 border-b border-brand-100">
                         <td class="px-4 sm:px-5 py-3.5 font-bold text-brand-900" colspan="2">LABA BERSIH</td>
-                        <td class="px-4 sm:px-5 py-3.5 text-right font-mono font-bold text-brand-900">
-                            {{ number_format($this->netIncome, 0, ',', '.') }}
+                        <td class="px-4 sm:px-5 py-3.5 text-left font-sans font-bold text-brand-900">
+                            Rp {{ number_format($this->netIncome, 0, ',', '.') }}
                         </td>
                         @if($this->canEdit)<td></td>@endif
                     </tr>
@@ -194,21 +134,28 @@
                     @forelse ($this->deductionRows as $row)
                         <tr class="hover:bg-zinc-50 transition-colors border-b border-zinc-100">
                             <td class="px-4 sm:px-5 py-3 text-zinc-800 pl-8 sm:pl-10">{{ $row['description'] }}</td>
-                            <td class="px-4 sm:px-5 py-3 text-right font-mono text-zinc-600">
-                                {{ number_format($row['percentage'], 2, ',', '.') }}%
+                            <td class="px-4 sm:px-5 py-3 text-center font-sans text-zinc-600">
+                                {{ number_format($row['percentage'], 2, '.', '') }}%
                             </td>
-                            <td class="px-4 sm:px-5 py-3 text-right font-mono text-zinc-800">
-                                ({{ number_format($row['amount'], 0, ',', '.') }})
+                            <td class="px-4 sm:px-5 py-3 text-left font-sans text-zinc-800">
+                                Rp {{ number_format($row['amount'], 0, ',', '.') }}
                             </td>
                             @if($this->canEdit)
-                                <td class="px-4 sm:px-5 py-3 text-right">
-                                    <button type="button" wire:click="confirmDelete('{{ $row['description'] }}')"
-                                        class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-md transition-colors inline-flex items-center gap-1 text-xs font-semibold whitespace-nowrap">
-                                        <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                        </svg>
-                                        Hapus
-                                    </button>
+                                <td class="px-4 sm:px-5 py-3 text-center whitespace-nowrap">
+                                    <div class="flex flex-row justify-center gap-1.5 items-center">
+                                        <button wire:click="openEdit('{{ $row['description'] }}')"
+                                            type="button"
+                                            style="background-color:#fbbf24;color:#1c1917;"
+                                            title="Edit"
+                                            class="inline-flex items-center justify-center size-7 rounded-lg transition-colors hover:opacity-90">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-3.5">
+                                                <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.263a1.75 1.75 0 0 0 0-2.474Z" />
+                                                <path d="M4.75 3.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h6.5c.69 0 1.25-.56 1.25-1.25V9A.75.75 0 0 1 13 9v2.25A2.75 2.75 0 0 1 10.25 14h-6.5A2.75 2.75 0 0 1 1 11.25v-6.5A2.75 2.75 0 0 1 3.75 2H6a.75.75 0 0 1 0 1.5H3.75Z" />
+                                            </svg>
+                                        </button>
+                                        <flux:button wire:click="confirmDelete('{{ $row['description'] }}')"
+                                            variant="danger" size="xs" icon="trash" title="Hapus" />
+                                    </div>
                                 </td>
                             @endif
                         </tr>
@@ -223,10 +170,10 @@
                     {{-- ── Profit row after deductions ─────────────────────── --}}
                     <tr class="bg-zinc-100 border-y-2 border-zinc-300">
                         <td class="px-4 sm:px-5 py-3.5 font-bold text-zinc-900" colspan="2">
-                            Laba/Rugi Bersih setelah Pengurang
+                            Laba/Rugi Bersih setelah {{ $this->deductionLabel }}
                         </td>
-                        <td class="px-4 sm:px-5 py-3.5 text-right font-mono font-bold {{ $this->netIncomeAfterDeductions >= 0 ? 'text-brand-800' : 'text-red-700' }}">
-                            {{ number_format($this->netIncomeAfterDeductions, 0, ',', '.') }}
+                        <td class="px-4 sm:px-5 py-3.5 text-left font-sans font-bold {{ $this->netIncomeAfterDeductions >= 0 ? 'text-brand-800' : 'text-red-700' }}">
+                            Rp {{ number_format($this->netIncomeAfterDeductions, 0, ',', '.') }}
                         </td>
                         @if($this->canEdit)<td></td>@endif
                     </tr>
@@ -242,21 +189,28 @@
                     @forelse ($this->adArtRows as $row)
                         <tr class="hover:bg-zinc-50 transition-colors border-b border-zinc-100">
                             <td class="px-4 sm:px-5 py-3 text-zinc-800 pl-8 sm:pl-10">{{ $row['description'] }}</td>
-                            <td class="px-4 sm:px-5 py-3 text-right font-mono text-zinc-600">
-                                {{ number_format($row['percentage'], 2, ',', '.') }}%
+                            <td class="px-4 sm:px-5 py-3 text-center font-sans text-zinc-600">
+                                {{ number_format($row['percentage'], 2, '.', '') }}%
                             </td>
-                            <td class="px-4 sm:px-5 py-3 text-right font-mono text-zinc-800">
-                                {{ number_format($row['amount'], 0, ',', '.') }}
+                            <td class="px-4 sm:px-5 py-3 text-left font-sans text-zinc-800">
+                                Rp {{ number_format($row['amount'], 0, ',', '.') }}
                             </td>
                             @if($this->canEdit)
-                                <td class="px-4 sm:px-5 py-3 text-right">
-                                    <button type="button" wire:click="confirmDelete('{{ $row['description'] }}')"
-                                        class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-md transition-colors inline-flex items-center gap-1 text-xs font-semibold whitespace-nowrap">
-                                        <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                        </svg>
-                                        Hapus
-                                    </button>
+                                <td class="px-4 sm:px-5 py-3 text-center whitespace-nowrap">
+                                    <div class="flex flex-row justify-center gap-1.5 items-center">
+                                        <button wire:click="openEdit('{{ $row['description'] }}')"
+                                            type="button"
+                                            style="background-color:#fbbf24;color:#1c1917;"
+                                            title="Edit"
+                                            class="inline-flex items-center justify-center size-7 rounded-lg transition-colors hover:opacity-90">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-3.5">
+                                                <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.263a1.75 1.75 0 0 0 0-2.474Z" />
+                                                <path d="M4.75 3.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h6.5c.69 0 1.25-.56 1.25-1.25V9A.75.75 0 0 1 13 9v2.25A2.75 2.75 0 0 1 10.25 14h-6.5A2.75 2.75 0 0 1 1 11.25v-6.5A2.75 2.75 0 0 1 3.75 2H6a.75.75 0 0 1 0 1.5H3.75Z" />
+                                            </svg>
+                                        </button>
+                                        <flux:button wire:click="confirmDelete('{{ $row['description'] }}')"
+                                            variant="danger" size="xs" icon="trash" title="Hapus" />
+                                    </div>
                                 </td>
                             @endif
                         </tr>
@@ -271,22 +225,22 @@
                     {{-- ── Total Articles of Association allocation ─────────────────────────────────────── --}}
                     @if($this->adArtRows->count() > 0)
                         <tr class="bg-zinc-50 border-t-2 border-zinc-300">
-                            <td class="px-4 sm:px-5 py-3.5 font-bold text-zinc-900 text-right">TOTAL AD/ART</td>
-                            <td class="px-4 sm:px-5 py-3.5 text-right font-mono font-bold {{ $this->totalAdArtPercent > 100 ? 'text-red-600' : 'text-brand-700' }}">
-                                {{ number_format($this->totalAdArtPercent, 2, ',', '.') }}%
+                            <td class="px-4 sm:px-5 py-3.5 font-bold text-zinc-900 text-left">TOTAL AD/ART</td>
+                            <td class="px-4 sm:px-5 py-3.5 text-center font-sans font-bold {{ $this->totalAdArtPercent > 100 ? 'text-red-600' : 'text-brand-700' }}">
+                                {{ number_format($this->totalAdArtPercent, 2, '.', '') }}%
                                 @if($this->totalAdArtPercent > 100)
                                     <div class="text-[10px] text-red-500 font-sans font-normal">Melebihi 100%</div>
                                 @endif
                             </td>
-                            <td class="px-4 sm:px-5 py-3.5 text-right font-mono font-bold text-zinc-900">
-                                {{ number_format($this->totalAdArtAmount, 0, ',', '.') }}
+                            <td class="px-4 sm:px-5 py-3.5 text-left font-sans font-bold text-zinc-900">
+                                Rp {{ number_format($this->totalAdArtAmount, 0, ',', '.') }}
                             </td>
                             @if($this->canEdit)<td></td>@endif
                         </tr>
                     @endif
 
                     {{-- Empty state when there is no data at all --}}
-                    @if($this->allocationRows->count() === 0 && !$showForm)
+                    @if($this->allocationRows->count() === 0)
                         <tr>
                             <td colspan="{{ $this->canEdit ? 4 : 3 }}" class="px-5 py-8 text-center text-zinc-500">
                                 Belum ada pos alokasi yang diatur. Silakan tambah alokasi.
@@ -297,6 +251,64 @@
             </table>
         </div>
     </div>
+    {{-- Add/edit allocation modal --}}
+    @if($showModal && $this->canEdit)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4" @keydown.escape.window="$wire.closeModal()">
+            <div wire:click="closeModal" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden z-10">
+                <div class="px-6 py-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
+                    <h2 class="text-base font-semibold text-zinc-900">{{ $editingDescription ? 'Edit Alokasi' : 'Tambah Alokasi' }}</h2>
+                    <button wire:click="closeModal" class="size-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-200 transition-colors">
+                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <form wire:submit="saveRow" class="px-6 py-5 flex flex-col gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-sm font-medium text-zinc-700">Keterangan (Pos Alokasi) <span class="text-red-500">*</span></label>
+                        <input type="text" wire:model="formDescription" placeholder="Contoh: Pajak, Dana Desa, Bonus Pengurus..." autofocus
+                            class="w-full rounded-xl border-2 border-zinc-200 px-3.5 py-2.5 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none @error('formDescription') border-red-400 @enderror">
+                        @error('formDescription') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-sm font-medium text-zinc-700">Kelompok Alokasi</label>
+                            <select wire:model.live="formGroup"
+                                class="w-full rounded-xl border-2 border-zinc-200 px-3.5 py-2.5 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors cursor-pointer">
+                                <option value="pengurang">Laba Bersih</option>
+                                <option value="ad_art">AD/ART</option>
+                            </select>
+                            @error('formGroup') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-sm font-medium text-zinc-700">Persentase (%) <span class="text-red-500">*</span></label>
+                            <input type="number" step="0.01" min="0.01" max="100" wire:model="formPercentage" placeholder="12.5"
+                                class="w-full rounded-xl border-2 border-zinc-200 px-3.5 py-2.5 text-sm text-zinc-900 bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none @error('formPercentage') border-red-400 @enderror">
+                            @error('formPercentage') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                    <div class="text-xs text-zinc-600 bg-brand-50/60 rounded-xl px-4 py-2.5 border border-brand-200">
+                        @if($formGroup === 'pengurang')
+                            <span class="font-semibold text-brand-900">Laba Bersih:</span>
+                            Nilai pos ini dihitung dari total Laba Bersih (Rp {{ number_format($this->netIncome, 0, ',', '.') }}), misalnya pajak atau iuran wajib.
+                        @else
+                            <span class="font-semibold text-brand-900">AD/ART:</span>
+                            Nilai pos ini dihitung dari sisa Laba setelah semua potongan (Rp {{ number_format($this->netIncomeAfterDeductions, 0, ',', '.') }}), sesuai pembagian yang tercantum di AD/ART.
+                        @endif
+                    </div>
+                    <div class="flex gap-3 pt-1">
+                        <button type="button" wire:click="closeModal" class="flex-1 py-2.5 rounded-xl border-2 border-zinc-200 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">Batal</button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="saveRow" class="flex-1 py-2.5 rounded-xl bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-wait">
+                            <span wire:loading.remove wire:target="saveRow">{{ $editingDescription ? 'Simpan Perubahan' : 'Tambah Alokasi' }}</span>
+                            <span wire:loading wire:target="saveRow">Menyimpan...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
 
     {{-- Delete confirmation modal --}}
     @if ($showDeleteModal)

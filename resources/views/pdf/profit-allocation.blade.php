@@ -10,7 +10,7 @@
         body {
             font-family: 'Times New Roman', Times, serif;
             font-size: 12px;
-            color: #000;
+            color: #171717;
             background: #fff;
             margin: 40px;
             line-height: 1.5;
@@ -19,83 +19,84 @@
         /* ── HEADER ── */
         .doc-header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
-        .doc-header .entity  { font-size: 14px; font-weight: bold; text-transform: uppercase; }
-        .doc-header .title   { font-size: 13px; font-weight: bold; text-transform: uppercase; margin-top: 4px; margin-bottom: 4px; }
-        .doc-header .periode { font-size: 12px; }
+        .doc-header .entity  { font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .doc-header .title   { font-size: 13px; font-weight: bold; text-transform: uppercase; margin-top: 4px; }
+        .doc-header .periode { font-size: 12px; color: #525252; margin-top: 2px; }
 
         /* ── TABLE ── */
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
-            margin-top: 10px;
-        }
-
-        .data-table th,
-        .data-table td {
-            border: 1px solid #000;
-            padding: 6px 10px;
-            vertical-align: middle;
         }
 
         .data-table th {
-            text-align: center;
+            font-size: 10px;
             font-weight: bold;
             text-transform: uppercase;
-            background-color: #f4f4f5;
+            letter-spacing: 0.8px;
+            color: #525252;
+            text-align: left;
+            padding: 8px 10px;
+            border-bottom: 2px solid #171717;
+        }
+        .data-table th.c { text-align: center; }
+
+        .data-table td {
+            padding: 7px 10px;
+            border-bottom: 1px solid #e5e5e5;
+            vertical-align: middle;
         }
 
-        .text-right  { text-align: right !important; }
-        .text-center { text-align: center !important; }
-        .font-mono   { font-family: 'Courier New', Courier, monospace; }
+        .c { text-align: center; }
 
-        /* Baris LABA BERSIH awal */
-        .row-laba-bersih td {
+        /* LABA BERSIH - baris pembuka tebal */
+        .row-laba td {
             font-weight: bold;
             font-size: 13px;
-            background-color: #e5f3e5;
+            border-bottom: 2px solid #171717;
         }
 
-        /* Baris Pengurang (indent) */
-        .row-pengurang td {
-            padding-left: 22px;
+        /* Baris pos alokasi (indent) */
+        .row-item td:first-child {
+            padding-left: 24px;
         }
 
-        /* Baris sub-total pengurang / laba setelah pengurang */
-        .row-laba-setelah td {
+        /* Laba setelah pengurang - penutup seksi */
+        .row-setelah td {
             font-weight: bold;
-            background-color: #f4f4f5;
-            border-top: 2px solid #555;
-            border-bottom: 2px solid #555;
+            border-top: 1px solid #a3a3a3;
+            border-bottom: 2px solid #171717;
         }
 
-        /* Header section AD/ART */
-        .row-section-header td {
+        /* Judul seksi AD/ART */
+        .row-section td {
             font-weight: bold;
-            background-color: #eeeeee;
             text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 0.5px;
-        }
-
-        /* Baris AD/ART (indent) */
-        .row-ad-art td {
-            padding-left: 22px;
+            font-size: 10px;
+            letter-spacing: 0.8px;
+            color: #525252;
+            padding-top: 16px;
+            border-bottom: 1px solid #e5e5e5;
         }
 
         /* Total AD/ART */
         .row-total td {
             font-weight: bold;
-            background-color: #f4f4f5;
-            border-top: 2px solid #000;
+            border-bottom: none;
+            border-top: 2px solid #171717;
+        }
+
+        .empty {
+            font-style: italic;
+            color: #737373;
         }
 
         /* ── FOOTER ── */
         .footer-sig {
             width: 100%;
-            margin-top: 50px;
+            margin-top: 48px;
         }
         .sig-box {
             float: right;
@@ -115,77 +116,77 @@
 
     <div class="doc-header">
         <div class="entity">{{ $entityName }}</div>
-        <div class="title">LAPORAN ALOKASI LABA</div>
-        <div class="period">{{ $periodLabel }}</div>
+        <div class="title">Laporan Alokasi Laba</div>
+        <div class="periode">{{ $periodLabel }}</div>
     </div>
 
     <table class="data-table">
         <thead>
             <tr>
-                <th style="width: 8%;">NO</th>
-                <th style="width: 42%; text-align: left;">KETERANGAN</th>
-                <th style="width: 20%;" class="text-right">PERSENTASE</th>
-                <th style="width: 30%;" class="text-right">NOMINAL (Rp)</th>
+                <th>Keterangan</th>
+                <th class="c" style="width: 18%;">%</th>
+                <th style="width: 32%;">Nominal</th>
             </tr>
         </thead>
         <tbody>
-            {{-- Net profit row --}}
-            <tr class="row-laba-bersih">
-                <td class="text-center">—</td>
+            {{-- Laba bersih --}}
+            <tr class="row-laba">
                 <td>LABA BERSIH</td>
-                <td class="text-right font-mono">100%</td>
-                <td class="text-right font-mono">{{ number_format($netIncome, 0, ',', '.') }}</td>
+                <td class="c">-</td>
+                <td>Rp {{ number_format($netIncome, 0, ',', '.') }}</td>
             </tr>
 
-            {{-- Deduction section --}}
-            @forelse($deductionRows as $index => $row)
-                <tr class="row-pengurang">
-                    <td class="text-center">{{ $index + 1 }}</td>
+            {{-- Pos pengurang --}}
+            @forelse($deductionRows as $row)
+                <tr class="row-item">
                     <td>{{ $row['description'] }}</td>
-                    <td class="text-right font-mono">{{ number_format($row['percentage'], 2, ',', '.') }}%</td>
-                    <td class="text-right font-mono">({{ number_format($row['amount'], 0, ',', '.') }})</td>
+                    <td class="c">{{ number_format($row['percentage'], 2, '.', '') }}%</td>
+                    <td>Rp {{ number_format($row['amount'], 0, ',', '.') }}</td>
                 </tr>
             @empty
-                <tr class="row-pengurang">
-                    <td class="text-center">—</td>
-                    <td colspan="3" style="font-style: italic; color: #555;">Tidak ada pos Pengurang.</td>
+                <tr>
+                    <td colspan="3" class="empty">Belum ada pos Pengurang.</td>
                 </tr>
             @endforelse
 
-            {{-- Profit row after deductions --}}
-            <tr class="row-laba-setelah">
-                <td class="text-center">—</td>
-                <td>Laba/Rugi Bersih setelah Pengurang</td>
-                <td class="text-right font-mono">—</td>
-                <td class="text-right font-mono">{{ number_format($netIncomeAfterDeductions, 0, ',', '.') }}</td>
+            {{-- Laba setelah pengurang --}}
+            <tr class="row-setelah">
+                <td>Laba/Rugi Bersih setelah {{ $deductionLabel }}</td>
+                <td class="c">-</td>
+                <td>Rp {{ number_format($netIncomeAfterDeductions, 0, ',', '.') }}</td>
             </tr>
 
-            {{-- Articles of Association header section --}}
-            <tr class="row-section-header">
-                <td colspan="4">Alokasi Laba Bersih sesuai AD/ART</td>
+            {{-- Seksi AD/ART --}}
+            <tr class="row-section">
+                <td colspan="3">Alokasi Laba Bersih sesuai AD/ART</td>
             </tr>
 
-            {{-- Articles of Association section --}}
-            @forelse($adArtRows as $index => $row)
-                <tr class="row-ad-art">
-                    <td class="text-center">{{ $index + 1 }}</td>
+            @forelse($adArtRows as $row)
+                <tr class="row-item">
                     <td>{{ $row['description'] }}</td>
-                    <td class="text-right font-mono">{{ number_format($row['percentage'], 2, ',', '.') }}%</td>
-                    <td class="text-right font-mono">{{ number_format($row['amount'], 0, ',', '.') }}</td>
+                    <td class="c">{{ number_format($row['percentage'], 2, '.', '') }}%</td>
+                    <td>Rp {{ number_format($row['amount'], 0, ',', '.') }}</td>
                 </tr>
             @empty
-                <tr class="row-ad-art">
-                    <td class="text-center">—</td>
-                    <td colspan="3" style="font-style: italic; color: #555;">Tidak ada pos AD/ART.</td>
+                <tr>
+                    <td colspan="3" class="empty">Belum ada pos AD/ART.</td>
                 </tr>
             @endforelse
 
-            {{-- Total Articles of Association allocation --}}
+            {{-- Total AD/ART --}}
             @if(count($adArtRows) > 0)
                 <tr class="row-total">
-                    <td colspan="2" class="text-right">JUMLAH ALOKASI AD/ART</td>
-                    <td class="text-right font-mono">{{ number_format($totalAdArtPercent, 2, ',', '.') }}%</td>
-                    <td class="text-right font-mono">{{ number_format($totalAdArtAmount, 0, ',', '.') }}</td>
+                    <td>TOTAL AD/ART</td>
+                    <td class="c">{{ number_format($totalAdArtPercent, 2, '.', '') }}%</td>
+                    <td>Rp {{ number_format($totalAdArtAmount, 0, ',', '.') }}</td>
+                </tr>
+            @endif
+
+            @if(count($deductionRows) === 0 && count($adArtRows) === 0)
+                <tr>
+                    <td colspan="3" class="empty" style="text-align: center; padding: 16px;">
+                        Belum ada pos alokasi yang diatur.
+                    </td>
                 </tr>
             @endif
         </tbody>

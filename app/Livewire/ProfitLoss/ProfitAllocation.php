@@ -11,6 +11,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -29,8 +30,10 @@ class ProfitAllocation extends Component
 
     public string $semesterYear = '';
 
-    // Add Row Form
-    public bool $showForm = false;
+    // Add/Edit Row Modal
+    public bool $showModal = false;
+
+    public ?string $editingDescription = null;
 
     public string $formDescription = '';
 
@@ -167,16 +170,12 @@ class ProfitAllocation extends Component
     }
 
     /**
-     * Get all active allocation rows (latest per description) within period.
-     * Returns raw collection with category grouping column.
+     * Get all active allocation rows (latest per description, global for all periods).
      */
     #[Computed]
     public function allocationRows(): Collection
     {
-        [$start, $end] = $this->periodRange();
-
-        $latestRecords = ProfitAllocationRecord::where('effective_from', '<=', $end->format('Y-m-d'))
-            ->orderBy('effective_from', 'desc')
+        $latestRecords = ProfitAllocationRecord::orderBy('effective_from', 'desc')
             ->orderBy('id', 'desc')
             ->get()
             ->unique('description');
@@ -213,6 +212,30 @@ class ProfitAllocation extends Component
     public function totalDeductions(): float
     {
         return $this->deductionRows->sum('amount');
+    }
+
+    /**
+     * Names of all deduction rows joined for display, e.g. "A", "A dan B", "A, B, dan C".
+     */
+    #[Computed]
+    public function deductionLabel(): string
+    {
+        $names = $this->deductionRows->pluck('description')->all();
+        $count = count($names);
+
+        if ($count === 0) {
+            return 'Pengurang';
+        }
+
+        if ($count === 1) {
+            return $names[0];
+        }
+
+        if ($count === 2) {
+            return $names[0].' dan '.$names[1];
+        }
+
+        return implode(', ', array_slice($names, 0, -1)).', dan '.end($names);
     }
 
     /**
@@ -272,31 +295,90 @@ class ProfitAllocation extends Component
 
     // ─── Actions ─────────────────────────────────────────────────────────
 
+    public function openCreate(): void
+    {
+        if (! $this->canEdit) {
+            abort(403);
+        }
+
+        $this->reset(['formDescription', 'formGroup', 'formPercentage', 'editingDescription']);
+        $this->formGroup = 'pengurang';
+        $this->showModal = true;
+        $this->resetErrorBag();
+    }
+
+    public function openEdit(string $description): void
+    {
+        if (! $this->canEdit) {
+            abort(403);
+        }
+
+        $row = $this->allocationRows->firstWhere('description', $description);
+        if (! $row) {
+            return;
+        }
+
+        $this->editingDescription = $row->description;
+        $this->formDescription = $row->description;
+        $this->formGroup = $row->allocation_group;
+        $this->formPercentage = (string) $row->percentage;
+        $this->showModal = true;
+        $this->resetErrorBag();
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->reset(['formDescription', 'formGroup', 'formPercentage', 'editingDescription']);
+        $this->formGroup = 'pengurang';
+        $this->resetErrorBag();
+    }
+
     public function saveRow(): void
     {
         if (! $this->canEdit) {
             abort(403);
         }
 
-        $this->validate([
-            'formDescription' => 'required|string|max:100',
-            'formGroup' => 'required|in:pengurang,ad_art',
-            'formPercentage' => 'required|numeric|min:0.01|max:100',
-        ]);
+        try {
+            $this->validate([
+                'formDescription' => 'required|string|max:100',
+                'formGroup' => 'required|in:pengurang,ad_art',
+                'formPercentage' => 'required|numeric|min:0.01|max:100',
+            ]);
+        } catch (ValidationException $e) {
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: (string) $e->validator->errors()->first());
 
-        [$start, $end] = $this->periodRange();
+            throw $e;
+        }
+
+        $today = Carbon::now()->format('Y-m-d');
+
+        // Rename: retire old description globally so it disappears for all periods
+        if ($this->editingDescription !== null && $this->formDescription !== $this->editingDescription) {
+            ProfitAllocationRecord::create([
+                'description' => $this->editingDescription,
+                'percentage' => 0,
+                'allocation_group' => 'pengurang',
+                'effective_from' => $today,
+                'business_unit_id' => null,
+            ]);
+        }
 
         ProfitAllocationRecord::create([
             'description' => $this->formDescription,
             'percentage' => (float) $this->formPercentage,
             'allocation_group' => $this->formGroup,
-            'effective_from' => $start->format('Y-m-d'),
+            'effective_from' => $today,
             'business_unit_id' => null, // Global level
         ]);
 
-        $this->reset(['formDescription', 'formGroup', 'formPercentage', 'showForm']);
+        $isEdit = $this->editingDescription !== null;
+
+        $this->reset(['formDescription', 'formGroup', 'formPercentage', 'showModal', 'editingDescription']);
         $this->formGroup = 'pengurang'; // Reset to default
-        \Flux::toast(variant: 'success', text: 'Baris alokasi berhasil ditambahkan.');
+        $this->resetErrorBag();
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: $isEdit ? 'Baris alokasi berhasil diperbarui.' : 'Baris alokasi berhasil ditambahkan.');
     }
 
     public function confirmDelete(string $description): void
@@ -311,18 +393,18 @@ class ProfitAllocation extends Component
             abort(403);
         }
 
-        [$start, $end] = $this->periodRange();
+        $today = Carbon::now()->format('Y-m-d');
 
-        // Set percentage = 0 to mark as deleted (immutable audit history)
+        // Set percentage = 0 to mark as deleted globally (immutable audit history)
         ProfitAllocationRecord::create([
             'description' => $this->deleteDescription,
             'percentage' => 0,
             'allocation_group' => 'pengurang', // Category is irrelevant on deletion
-            'effective_from' => $start->format('Y-m-d'),
+            'effective_from' => $today,
             'business_unit_id' => null,
         ]);
 
-        \Flux::toast(variant: 'success', text: 'Baris alokasi berhasil dihapus untuk periode ini.');
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Baris alokasi berhasil dihapus.');
 
         $this->showDeleteModal = false;
         $this->deleteDescription = null;
@@ -350,6 +432,7 @@ class ProfitAllocation extends Component
         $netIncome = $this->netIncome;
         $deductionRows = $this->deductionRows;
         $totalDeductions = $this->totalDeductions;
+        $deductionLabel = $this->deductionLabel;
         $netIncomeAfterDeductions = $this->netIncomeAfterDeductions;
         $adArtRows = $this->adArtRows;
         $totalAdArtPercent = $this->totalAdArtPercent;
@@ -359,7 +442,7 @@ class ProfitAllocation extends Component
 
         $pdf = Pdf::loadView('pdf.profit-allocation', compact(
             'entityName', 'printDate', 'signatureDate', 'periodLabel', 'signatory', 'position',
-            'netIncome', 'deductionRows', 'totalDeductions', 'netIncomeAfterDeductions',
+            'netIncome', 'deductionRows', 'totalDeductions', 'deductionLabel', 'netIncomeAfterDeductions',
             'adArtRows', 'totalAdArtPercent', 'totalAdArtAmount'
         ))->setPaper('a4', 'portrait');
 

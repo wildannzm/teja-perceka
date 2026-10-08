@@ -5,6 +5,7 @@ namespace App\Livewire\Assets;
 use App\Models\Asset;
 use App\Support\Rupiah;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -120,17 +121,23 @@ class ManageAssets extends Component
         }
 
         $this->price = (string) Rupiah::parse($this->price);
+        $this->quantity = (int) Rupiah::parse($this->quantity);
+        try {
+            $validated = $this->validate();
+        } catch (ValidationException $e) {
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: (string) $e->validator->errors()->first());
 
-        $validated = $this->validate();
+            throw $e;
+        }
         // Ensure the price is cast to float, 0 when empty
         $validated['price'] = (float) ($this->price ?: 0);
 
         if ($this->editingId) {
             Asset::findOrFail($this->editingId)->update($validated);
-            session()->flash('toast_success', 'Aset berhasil diperbarui.');
+            $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Aset berhasil diperbarui.');
         } else {
             Asset::create($validated);
-            session()->flash('toast_success', 'Aset berhasil ditambahkan.');
+            $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Aset berhasil ditambahkan.');
         }
 
         $this->showModal = false;
@@ -153,7 +160,7 @@ class ManageAssets extends Component
         }
 
         Asset::findOrFail($this->deleteId)->delete();
-        session()->flash('toast_success', 'Aset berhasil dihapus.');
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Aset berhasil dihapus.');
 
         $this->showDeleteModal = false;
         $this->deleteId = null;

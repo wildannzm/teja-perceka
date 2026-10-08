@@ -55,15 +55,15 @@
             {{-- Desktop table --}}
             <div class="hidden sm:block overflow-x-auto">
                 <table class="w-full text-sm text-left">
-                    <thead class="bg-zinc-50 border-b border-zinc-200">
+                    <thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-500">
                         <tr>
-                            <th class="px-5 py-3.5 font-semibold text-zinc-500 uppercase tracking-wider text-xs">No</th>
-                            <th class="px-5 py-3.5 font-semibold text-zinc-500 uppercase tracking-wider text-xs">Nama Aset</th>
-                            <th class="px-5 py-3.5 font-semibold text-zinc-500 uppercase tracking-wider text-xs text-center">Jumlah</th>
-                            <th class="px-5 py-3.5 font-semibold text-zinc-500 uppercase tracking-wider text-xs">Harga Perolehan</th>
-                            <th class="px-5 py-3.5 font-semibold text-zinc-500 uppercase tracking-wider text-xs">Keterangan</th>
+                            <th class="px-5 py-3 font-semibold uppercase tracking-wider text-xs w-12">No</th>
+                            <th class="px-5 py-3 font-semibold uppercase tracking-wider text-xs">Nama Aset</th>
+                            <th class="px-5 py-3 font-semibold uppercase tracking-wider text-xs text-center w-28">Jumlah</th>
+                            <th class="px-5 py-3 font-semibold uppercase tracking-wider text-xs">Harga Perolehan</th>
+                            <th class="px-5 py-3 font-semibold uppercase tracking-wider text-xs">Keterangan</th>
                             @if($this->canManage)
-                                <th class="px-5 py-3.5 font-semibold text-zinc-500 uppercase tracking-wider text-xs text-center">Aksi</th>
+                                <th class="px-5 py-3 font-semibold uppercase tracking-wider text-xs text-center w-24">Aksi</th>
                             @endif
                         </tr>
                     </thead>
@@ -77,9 +77,8 @@
                                     <p class="font-semibold text-zinc-900">{{ $asset->name }}</p>
                                 </td>
                                 <td class="px-5 py-4 text-center">
-                                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-brand-50 text-brand-700 font-bold text-sm border border-brand-200">
-                                        {{ number_format($asset->amount, 0, ',', '.') }}
-                                        <span class="font-normal text-xs text-brand-500">{{ $asset->unit }}</span>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-zinc-100 text-zinc-700 font-semibold text-xs border border-zinc-200">
+                                        {{ number_format($asset->quantity, 0, ',', '.') }} {{ $asset->unit }}
                                     </span>
                                 </td>
                                 <td class="px-5 py-4">
@@ -93,27 +92,22 @@
                                     {{ $asset->description ?? '-' }}
                                 </td>
                                 @if($this->canManage)
-                                    <td class="px-5 py-4">
-                                        <div class="flex items-center justify-center gap-2">
+                                    <td class="px-5 py-4 text-center whitespace-nowrap">
+                                        <div class="flex flex-row justify-center gap-1.5 items-center">
                                             <button
                                                 wire:click="openEdit({{ $asset->id }})"
-                                                id="btn-edit-aset-{{ $asset->id }}"
-                                                class="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-700 bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 px-3 py-1.5 rounded-lg transition-all active:scale-95"
+                                                type="button"
+                                                style="background-color:#fbbf24;color:#1c1917;"
+                                                title="Edit"
+                                                class="inline-flex items-center justify-center size-7 rounded-lg transition-colors hover:opacity-90"
                                             >
-                                                <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
-                                                </svg>
-                                                Edit
-                                            </button>
-                                            <button
-                                                wire:click="confirmDelete({{ $asset->id }})"
-                                                id="btn-hapus-aset-{{ $asset->id }}"
-                                                class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 p-1.5 rounded-lg transition-all active:scale-95"
-                                            >
-                                                <svg class="size-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.34 9m-4.72 0L9 9m1.74-2.82h6.52M10 11v6M14 11v6m4.33-9.52-.77 10.8c-.08 1.1-1 1.95-2.1 1.95H8.54c-1.1 0-2.02-.85-2.1-1.95L5.67 8.28m11.23-.78V5.3c0-1.11-.9-2-2-2h-3.8c-1.1 0-2 .89-2 2v2.2" />
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-3.5">
+                                                    <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.263a1.75 1.75 0 0 0 0-2.474Z" />
+                                                    <path d="M4.75 3.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h6.5c.69 0 1.25-.56 1.25-1.25V9A.75.75 0 0 1 13 9v2.25A2.75 2.75 0 0 1 10.25 14h-6.5A2.75 2.75 0 0 1 1 11.25v-6.5A2.75 2.75 0 0 1 3.75 2H6a.75.75 0 0 1 0 1.5H3.75Z" />
                                                 </svg>
                                             </button>
+                                            <flux:button wire:click="confirmDelete({{ $asset->id }})"
+                                                variant="danger" size="xs" icon="trash" title="Hapus" />
                                         </div>
                                     </td>
                                 @endif
@@ -130,9 +124,9 @@
                         <div class="flex-1 min-w-0">
                             <p class="font-semibold text-zinc-900 text-sm">{{ $asset->name }}</p>
                             <p class="text-xs text-zinc-500 mt-0.5">{{ $asset->description ?? 'Tidak ada keterangan' }}</p>
-                            <div class="flex items-center gap-2 mt-2 flex-wrap">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 font-bold text-xs border border-brand-200">
-                                    {{ number_format($asset->amount, 0, ',', '.') }} {{ $asset->unit }}
+                            <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-zinc-100 text-zinc-700 font-semibold text-xs border border-zinc-200">
+                                    {{ number_format($asset->quantity, 0, ',', '.') }} {{ $asset->unit }}
                                 </span>
                                 @if($asset->price > 0)
                                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-zinc-100 text-zinc-700 text-xs border border-zinc-200">
@@ -142,23 +136,21 @@
                             </div>
                         </div>
                         @if($this->canManage)
-                            <div class="flex items-center gap-2 shrink-0">
+                            <div class="flex gap-1.5 shrink-0">
                                 <button
                                     wire:click="openEdit({{ $asset->id }})"
-                                    class="inline-flex items-center justify-center size-8 rounded-lg border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 transition-all active:scale-95"
+                                    type="button"
+                                    style="background-color:#fbbf24;color:#1c1917;"
+                                    title="Edit"
+                                    class="inline-flex items-center justify-center size-7 rounded-lg transition-colors hover:opacity-90"
                                 >
-                                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-3.5">
+                                        <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.263a1.75 1.75 0 0 0 0-2.474Z" />
+                                        <path d="M4.75 3.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h6.5c.69 0 1.25-.56 1.25-1.25V9A.75.75 0 0 1 13 9v2.25A2.75 2.75 0 0 1 10.25 14h-6.5A2.75 2.75 0 0 1 1 11.25v-6.5A2.75 2.75 0 0 1 3.75 2H6a.75.75 0 0 1 0 1.5H3.75Z" />
                                     </svg>
                                 </button>
-                                <button
-                                    wire:click="confirmDelete({{ $asset->id }})"
-                                    class="inline-flex items-center justify-center size-8 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-all active:scale-95"
-                                >
-                                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.34 9m-4.72 0L9 9m1.74-2.82h6.52M10 11v6M14 11v6m4.33-9.52-.77 10.8c-.08 1.1-1 1.95-2.1 1.95H8.54c-1.1 0-2.02-.85-2.1-1.95L5.67 8.28m11.23-.78V5.3c0-1.11-.9-2-2-2h-3.8c-1.1 0-2 .89-2 2v2.2" />
-                                    </svg>
-                                </button>
+                                <flux:button wire:click="confirmDelete({{ $asset->id }})"
+                                    variant="danger" size="xs" icon="trash" title="Hapus" />
                             </div>
                         @endif
                     </div>
@@ -341,8 +333,8 @@
                     <div>
                         <h2 class="text-lg font-semibold text-zinc-900">Konfirmasi Hapus</h2>
                         <div class="mt-2 text-sm text-zinc-600">
-                            <p>Yakin ingin menghapus data ini?</p>
-                            <p>Data yang dihapus tidak dapat dikembalikan dan mungkin mempengaruhi kalkulasi laporan.</p>
+                            <p>Yakin ingin menghapus aset ini?</p>
+                            <p>Data yang dihapus tidak dapat dikembalikan.</p>
                         </div>
                     </div>
                     <div class="flex justify-end gap-2 pt-2">
