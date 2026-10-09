@@ -1,48 +1,5 @@
 <div class="flex h-full w-full flex-col gap-4 sm:gap-6 max-w-full mx-auto pb-10">
-    <style>
-            .btn-edit-yellow {
-                background-color: #f59e0b !important;
-                color: #ffffff !important;
-                border: 1px solid #f59e0b !important;
-            }
-            .btn-edit-yellow:hover {
-                background-color: #d97706 !important;
-                border-color: #d97706 !important;
-            }
-        </style>
-    <x-page-header title="Neraca Saldo" description="Ringkasan saldo akun untuk memastikan keseimbangan debit & kredit.">
-        <x-slot:actions>
-            @if($this->canPrint)
-            <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-                @if($isEditing)
-                    <button type="button" wire:click="cancelEditing"
-                        class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2 bg-red-600 text-white hover:bg-red-700 font-semibold text-sm rounded-xl transition-colors shadow-sm">
-                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                        </svg>
-                        Batal
-                    </button>
-                    <button type="button" wire:click="saveAdjustments" wire:loading.attr="disabled" wire:target="saveAdjustments"
-                        class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2 bg-brand-600 text-white hover:bg-brand-700 font-semibold text-sm rounded-xl transition-colors shadow-sm">
-                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                        </svg>
-                        Simpan Perubahan
-                    </button>
-                @else
-                    <flux:button variant="primary" icon="pencil" wire:click="startEditing" class="w-full sm:w-auto shrink-0 btn-edit-yellow">Edit</flux:button>
-                    <button type="button" wire:click="exportPdf" wire:loading.attr="disabled"
-                        class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2 bg-brand-600 text-white hover:bg-brand-700 font-semibold text-sm rounded-xl transition-colors shadow-sm">
-                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                        </svg>
-                        Cetak PDF
-                    </button>
-                @endif
-            </div>
-            @endif
-        </x-slot:actions>
-    </x-page-header>
+    <x-page-header title="Neraca Saldo" description="Ringkasan saldo akun untuk memastikan keseimbangan debit & kredit." />
 
     <div class="bg-white p-4 sm:p-6 rounded-xl border border-brand-100 shadow-sm">
         <h2 class="text-base sm:text-lg font-semibold mb-4 text-zinc-900">Filter Laporan</h2>
@@ -86,27 +43,12 @@
             </div>
         </div>
 
-        @php $data = $this->reportData; $isBalanced = $this->isBalanced; @endphp
+        @php $data = $this->reportData; @endphp
 
         <div class="bg-white rounded-xl border border-brand-100 shadow-sm overflow-hidden mb-6 pb-6">
             <div class="px-4 sm:px-6 py-4 border-b border-zinc-100 text-center">
-                <p class="text-sm font-bold text-zinc-900 uppercase">NERACA</p>
-                <p class="text-sm text-zinc-600">Periode: {{ $this->periodLabel }}</p>
-            </div>
-            
-            <div class="flex justify-end px-4 sm:px-6 py-3 {{ $isBalanced ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100' }} border-b">
-                <div class="flex items-center gap-2">
-                    <p class="text-xs font-semibold uppercase tracking-wider {{ $isBalanced ? 'text-emerald-600' : 'text-red-600' }}">Status:</p>
-                    <p class="text-sm font-bold flex items-center gap-1.5 {{ $isBalanced ? 'text-emerald-700' : 'text-red-700' }}">
-                        @if($isBalanced)
-                            <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                            SEIMBANG
-                        @else
-                            <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2.m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3Z" /></svg>
-                            TIDAK SEIMBANG
-                        @endif
-                    </p>
-                </div>
+                <p class="text-sm font-bold text-zinc-900 uppercase">{{ $entityName }}</p>
+                <p class="text-sm font-bold text-zinc-900 uppercase">NERACA SALDO</p>
             </div>
 
             <div class="flex flex-col md:flex-row w-full text-sm text-zinc-700">
@@ -125,13 +67,7 @@
                                     <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 whitespace-nowrap">{{ $item->code }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->name }}</td>
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
-                                        @if($isEditing)
-                                            <div class="flex justify-end">
-                                                <input type="text" inputmode="numeric" data-rupiah wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
-                                            </div>
-                                        @else
-                                            {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
-                                        @endif
+                                        {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
                                     </td>
                                 </tr>
                                 @endforeach
@@ -149,13 +85,7 @@
                                     <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 whitespace-nowrap">{{ $item->code }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->name }}</td>
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
-                                        @if($isEditing)
-                                            <div class="flex justify-end">
-                                                <input type="text" inputmode="numeric" data-rupiah wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
-                                            </div>
-                                        @else
                                             {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
-                                        @endif
                                     </td>
                                 </tr>
                                 @endforeach
@@ -195,13 +125,7 @@
                                     <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 whitespace-nowrap pl-6">{{ $item->code }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->name }}</td>
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
-                                        @if($isEditing)
-                                            <div class="flex justify-end">
-                                                <input type="text" inputmode="numeric" data-rupiah wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
-                                            </div>
-                                        @else
-                                            {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
-                                        @endif
+                                        {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
                                     </td>
                                 </tr>
                                 @endforeach
@@ -214,13 +138,7 @@
                                     <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 whitespace-nowrap pl-6">{{ $item->code }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->name }}</td>
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
-                                        @if($isEditing)
-                                            <div class="flex justify-end">
-                                                <input type="text" inputmode="numeric" data-rupiah wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
-                                            </div>
-                                        @else
-                                            {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
-                                        @endif
+                                        {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
                                     </td>
                                 </tr>
                                 @endforeach
@@ -239,13 +157,7 @@
                                     <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 whitespace-nowrap pl-6">{{ $item->code }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800 {{ $item->name === 'LABA BERSIH' ? 'uppercase' : '' }}">{{ $item->name }}</td>
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
-                                        @if($isEditing)
-                                            <div class="flex justify-end">
-                                                <input type="text" inputmode="numeric" data-rupiah wire:model="editValues.{{ $item->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal text-zinc-900" />
-                                            </div>
-                                        @else
-                                            {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
-                                        @endif
+                                        {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
                                     </td>
                                 </tr>
                                 @endforeach
@@ -269,4 +181,8 @@
                 </div>
             </div>
         </div>
+
+        @if($this->canPrint)
+            <x-report-actions :preview-url="route('reports.preview', ['report' => 'neraca-saldo', 'unit' => $unit_id, 'period' => $period])" sticky />
+        @endif
     </div>

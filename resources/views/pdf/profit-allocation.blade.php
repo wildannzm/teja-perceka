@@ -23,7 +23,7 @@
         }
         .doc-header .entity  { font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
         .doc-header .title   { font-size: 13px; font-weight: bold; text-transform: uppercase; margin-top: 4px; }
-        .doc-header .periode { font-size: 12px; color: #525252; margin-top: 2px; }
+        .doc-header .period { font-size: 12px; font-weight: bold; text-transform: uppercase; color: #000; margin-top: 2px; }
 
         /* ── TABLE ── */
         .data-table {
@@ -117,7 +117,7 @@
     <div class="doc-header">
         <div class="entity">{{ $entityName }}</div>
         <div class="title">Laporan Alokasi Laba</div>
-        <div class="periode">{{ $periodLabel }}</div>
+        <div class="period">{{ $periodLabel }}</div>
     </div>
 
     <table class="data-table">
@@ -192,6 +192,7 @@
         </tbody>
     </table>
 
+    @if($showSignature ?? true)
     <div class="footer-sig">
         <div class="sig-box">
             <p style="margin-bottom: 60px;">TEJA, {{ $signatureDate }}</p>
@@ -202,6 +203,7 @@
         </div>
         <div style="clear: both;"></div>
     </div>
+    @endif
 
 </body>
 </html>

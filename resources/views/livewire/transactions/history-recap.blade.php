@@ -104,7 +104,7 @@
                         </select>
                         <input type="number" wire:model.live.debounce.500ms="semesterYear" min="2020" max="2099" placeholder="Tahun"
                             class="w-28 shrink-0 rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">
-
+                    </div>
                 @elseif($mode === 'yearly')
                     <input wire:key="picker-tahunan" type="number" wire:model.live.debounce.500ms="year" min="2020" placeholder="{{ date('Y') }}"
                         class="w-full rounded-xl border-2 border-zinc-200 text-zinc-900 px-3.5 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:outline-none transition-colors">

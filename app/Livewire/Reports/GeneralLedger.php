@@ -97,6 +97,15 @@ class GeneralLedger extends Component
         return Auth::user()->hasAnyRole(['kepala_unit', 'sekretaris', 'bendahara', 'direktur_bumdes']);
     }
 
+    /**
+     * Kepala desa dan pengawas hanya melihat angka: tanpa blok tanda tangan.
+     */
+    #[Computed]
+    public function showSignature(): bool
+    {
+        return ! Auth::user()->hasAnyRole(['kepala_desa', 'pengawas']);
+    }
+
     #[Computed]
     public function selectedUnit(): ?BusinessUnit
     {
@@ -197,12 +206,15 @@ class GeneralLedger extends Component
         return compact('transactions', 'openingBalance', 'selectedAccount', 'normalBalance', 'totalDebit', 'totalCredit');
     }
 
-    public function exportPdf()
-    {
-        if (! $this->canPrint) {
-            abort(403);
-        }
+    // ─── Preview PDF (inline, via ReportPreviewController) ────────────────
 
+    /**
+     * Build the ledger PDF for inline preview.
+     *
+     * @return array{0: \Barryvdh\DomPDF\PDF, 1: string}
+     */
+    public function buildReportPdf(): array
+    {
         $data = $this->reportData;
         if (! $data['selectedAccount']) {
             abort(404, 'Kode Akun tidak ditemukan.');
@@ -227,13 +239,12 @@ class GeneralLedger extends Component
 
         set_time_limit(120);
 
-        $pdf = Pdf::loadView('pdf.general-ledger', array_merge($data, compact('periodLabel', 'entityName', 'printDate', 'signatureDate', 'signatory', 'position')))
+        $pdf = Pdf::loadView('pdf.general-ledger', array_merge($data, compact('periodLabel', 'entityName', 'printDate', 'signatureDate', 'signatory', 'position'), ['showSignature' => $this->showSignature]))
             ->setPaper('a4', 'portrait');
 
         $unitLabel = $unit ? $unit->name : ($this->isBumdesScope() ? 'BUMDes' : 'Semua Unit');
-        $filename = PdfExport::filename('Buku Besar', $unitLabel, $data['selectedAccount']->code.' '.$data['selectedAccount']->name, $periodLabel);
 
-        return response()->streamDownload(fn () => print ($pdf->output()), $filename);
+        return [$pdf, PdfExport::filename('Buku Besar', $unitLabel, $data['selectedAccount']->code.' '.$data['selectedAccount']->name, $periodLabel)];
     }
 
     public function updatingUnitId($value): void
@@ -251,6 +262,10 @@ class GeneralLedger extends Component
             $this->unit_id = $user->business_unit_id;
         }
 
-        return view('livewire.reports.general-ledger');
+        $unit = $this->selectedUnit;
+
+        return view('livewire.reports.general-ledger', [
+            'entityName' => $unit ? strtoupper($unit->name) : 'BUMDESA TEJA PERCEKA',
+        ]);
     }
 }

@@ -7,7 +7,7 @@
     {{ filled($title ?? null) ? 'Teja Perceka - ' . $title : 'Teja Perceka' }}
 </title>
 
-<link rel="icon" type="image/png" href="{{ asset('assets/images/logo-bumdes-teja-perceka.png') }}">
+<link rel="icon" type="image/png" href="{{ asset('assets/images/logo-sidebar-bumdes-teja-perceka.png') }}">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,6 +39,36 @@
                     timerProgressBar: 'bg-amber-400',
                 },
             });
+        });
+        // Best-effort device cleanup after a passkey row is deleted server-side.
+        // signalAllAcceptedCredentials tells the platform's credential manager
+        // which ids are still valid; supporting managers drop the deleted one.
+        // Unsupported browsers (no signal API) skip silently — login with the
+        // deleted passkey already fails server-side, so nothing breaks.
+        Livewire.on('passkey-deleted', (events) => {
+            (async () => {
+                try {
+                    const event = Array.isArray(events) ? events[0] : events;
+                    const credentials = Array.isArray(event?.remaining) ? event.remaining : [];
+                    const signal = window.PublicKeyCredential && window.PublicKeyCredential.signalAllAcceptedCredentials;
+                    if (typeof signal !== 'function' || typeof event?.userHandle !== 'string' || !event.userHandle) {
+                        return;
+                    }
+                    const rpId = window.location.hostname;
+                    const toBytes = (base64url) => {
+                        let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+                        base64 += '='.repeat((4 - (base64.length % 4)) % 4);
+                        return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+                    };
+                    await signal.call(window.PublicKeyCredential, {
+                        rpId,
+                        userId: toBytes(event.userHandle),
+                        allAcceptedCredentialIds: credentials.map((id) => ({ type: 'public-key', id: toBytes(id) })),
+                    });
+                } catch {
+                    // Signal is only a hint; deletion already succeeded server-side.
+                }
+            })();
         });
     });
 </script>

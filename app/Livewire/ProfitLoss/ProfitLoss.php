@@ -7,7 +7,6 @@ use App\Models\BusinessUnit;
 use App\Models\JournalEntry;
 use App\Support\BumdesCashBalance;
 use App\Support\PdfExport;
-use App\Support\Rupiah;
 use App\Support\SafeDates;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
@@ -65,116 +64,9 @@ class ProfitLoss extends Component
         }
     }
 
-    // ─── Inline Edit ─────────────────────────────────────────────────────
-
-    public bool $isEditing = false;
-
-    public array $editValues = [];
-
-    public function startEditing(): void
-    {
-        if (! Auth::user()->hasAnyRole(['kepala_unit', 'sekretaris', 'bendahara', 'direktur_bumdes'])) {
-            abort(403);
-        }
-
-        $this->isEditing = true;
-
-        // Populate editValues with current totals
-        $data = $this->reportData;
-        foreach (['revenueRows', 'cogsRows', 'expenseRows', 'otherRevenueRows', 'otherExpenseRows'] as $group) {
-            foreach ($data[$group] as $row) {
-                $this->editValues[$row->id] = $row->amount;
-            }
-        }
-    }
-
-    public function cancelEditing(): void
-    {
-        $this->isEditing = false;
-        $this->editValues = [];
-    }
-
-    public function saveAdjustments(): void
-    {
-        if (! Auth::user()->hasAnyRole(['kepala_unit', 'sekretaris', 'bendahara', 'direktur_bumdes'])) {
-            abort(403);
-        }
-
-        $data = $this->reportData;
-        $allOriginalRows = collect();
-        foreach (['revenueRows', 'cogsRows', 'expenseRows', 'otherRevenueRows', 'otherExpenseRows'] as $group) {
-            foreach ($data[$group] as $row) {
-                // Attach the group name so we know the normalDirection
-                $row->groupName = $group;
-                $allOriginalRows->push($row);
-            }
-        }
-
-        [$start, $end] = $this->periodRange();
-        $batchTime = time();
-
-        foreach ($this->editValues as $accountId => $newValue) {
-            $newValue = Rupiah::parse($newValue);
-            $originalRow = $allOriginalRows->firstWhere('id', $accountId);
-
-            if ($originalRow) {
-                $difference = $newValue - $originalRow->amount;
-
-                if ($difference != 0) {
-                    // Determine normal balance based on group
-                    $normalDirection = in_array($originalRow->groupName, ['revenueRows', 'otherRevenueRows']) ? 'credit' : 'debit';
-
-                    $debit = 0;
-                    $credit = 0;
-
-                    if ($normalDirection === 'credit') {
-                        if ($difference > 0) {
-                            $credit = abs($difference);
-                        } else {
-                            $debit = abs($difference);
-                        }
-                    } else { // arah normal debet
-                        if ($difference > 0) {
-                            $debit = abs($difference);
-                        } else {
-                            $credit = abs($difference);
-                        }
-                    }
-
-                    if (! Account::whereKey($accountId)->exists()) {
-                        continue;
-                    }
-
-                    JournalEntry::create([
-                        'voucher_number' => 'ADJ-'.$batchTime.'-'.$accountId,
-                        'transaction_date' => $end->format('Y-m-d'),
-                        'description' => 'Penyesuaian Manual Laba Rugi',
-                        'account_id' => $accountId,
-                        'debit' => $debit,
-                        'credit' => $credit,
-                        'business_unit_id' => $this->resolveAdjustmentUnitId(),
-                    ]);
-                }
-            }
-        }
-
-        $this->isEditing = false;
-        $this->editValues = [];
-        unset($this->reportData);
-    }
-
     public function isBumdesScope(): bool
     {
         return ! Auth::user()?->hasRole('kepala_unit') && ($this->unit_id === 'bumdes' || empty($this->unit_id));
-    }
-
-    private function resolveAdjustmentUnitId(): ?int
-    {
-        if (Auth::user()?->hasRole('kepala_unit')) {
-            return Auth::user()->business_unit_id;
-        }
-
-        return ($this->unit_id && is_numeric($this->unit_id)) ? (int) $this->unit_id : null;
     }
 
     private function periodRange(): array
@@ -344,20 +236,30 @@ class ProfitLoss extends Component
         return Auth::user()->hasAnyRole(['kepala_unit', 'sekretaris', 'bendahara', 'direktur_bumdes']);
     }
 
+    /**
+     * Kepala desa dan pengawas hanya melihat angka: tanpa blok tanda tangan.
+     */
+    #[Computed]
+    public function showSignature(): bool
+    {
+        return ! Auth::user()->hasAnyRole(['kepala_desa', 'pengawas']);
+    }
+
     #[Computed]
     public function selectedUnit(): ?BusinessUnit
     {
         return ($this->unit_id && is_numeric($this->unit_id)) ? BusinessUnit::find($this->unit_id) : null;
     }
 
-    // ─── Export PDF ──────────────────────────────────────────────────────
+    // ─── Preview PDF (inline, via ReportPreviewController) ────────────────
 
-    public function exportPdf()
+    /**
+     * Build the profit-loss PDF for inline preview.
+     *
+     * @return array{0: \Barryvdh\DomPDF\PDF, 1: string}
+     */
+    public function buildReportPdf(): array
     {
-        if (! $this->canPrint) {
-            abort(403);
-        }
-
         $data = $this->reportData;
         $periodLabel = $this->periodLabel();
         $unit = $this->selectedUnit;
@@ -378,13 +280,12 @@ class ProfitLoss extends Component
 
         set_time_limit(120);
 
-        $pdf = Pdf::loadView('pdf.profit-loss', array_merge($data, compact('periodLabel', 'entityName', 'printDate', 'signatureDate', 'signatory', 'position')))
+        $pdf = Pdf::loadView('pdf.profit-loss', array_merge($data, compact('periodLabel', 'entityName', 'printDate', 'signatureDate', 'signatory', 'position'), ['showSignature' => $this->showSignature]))
             ->setPaper('a4', 'portrait');
 
         $unitLabel = $unit ? $unit->name : ($this->isBumdesScope() ? 'BUMDes' : 'Semua Unit');
-        $filename = PdfExport::filename('Laporan Laba Rugi', $unitLabel, $periodLabel);
 
-        return response()->streamDownload(fn () => print ($pdf->output()), $filename);
+        return [$pdf, PdfExport::filename('Laporan Laba Rugi', $unitLabel, $periodLabel)];
     }
 
     public function updatingUnitId($value): void
@@ -419,8 +320,8 @@ class ProfitLoss extends Component
             default => '',
         };
 
-        return view('livewire.profit-loss.profit-loss', compact(
+        return view('livewire.profit-loss.profit-loss', array_merge(compact(
             'entityName', 'printDate', 'signatureDate', 'periodLabel', 'signatory', 'position'
-        ));
+        ), ['showSignature' => $this->showSignature]));
     }
 }

@@ -5,7 +5,7 @@ namespace App\Livewire\BumdesDirector;
 use App\Models\BusinessUnit;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -14,19 +14,38 @@ use Livewire\Component;
 #[Title('Kelola Akun Kepala Unit')]
 class ManageUnitAccounts extends Component
 {
-    // Edit state
+    // Edit modal state
+    public bool $showModal = false;
+
     public ?int $editingUserId = null;
 
     public string $editName = '';
+
+    public string $editEmail = '';
 
     public ?int $editBusinessUnitId = null;
 
     public string $editPassword = '';
 
-    // Reset password state
-    public ?int $resetPasswordUserId = null;
+    public string $editPassword_confirmation = '';
 
-    public ?string $generatedPassword = null;
+    // Create modal state
+    public bool $showCreateModal = false;
+
+    public string $createName = '';
+
+    public string $createEmail = '';
+
+    public string $createPassword = '';
+
+    public string $createPassword_confirmation = '';
+
+    public ?int $createBusinessUnitId = null;
+
+    // Delete modal state
+    public bool $showDeleteModal = false;
+
+    public ?int $deleteId = null;
 
     public function mount(): void
     {
@@ -35,84 +54,155 @@ class ManageUnitAccounts extends Component
         }
     }
 
-    // ── EDIT USER ─────────────────────────────────────────────────────────────
-
-    public function startEdit(int $userId): void
+    /**
+     * Unit heads manageable here: same boundary as the list.
+     */
+    private function manageableUsers()
     {
-        $user = User::role('kepala_unit')->findOrFail($userId);
-        $this->editingUserId = $user->id;
-        $this->editName = $user->name;
-        $this->editBusinessUnitId = $user->business_unit_id;
-        $this->editPassword = '';
-        $this->generatedPassword = null;
+        return User::role('kepala_unit');
     }
 
-    public function cancelEdit(): void
+    // ── CREATE ──────────────────────────────────────────────────────────────
+
+    public function openCreate(): void
     {
-        $this->reset(['editingUserId', 'editName', 'editBusinessUnitId', 'editPassword']);
+        $this->reset(['createName', 'createEmail', 'createPassword', 'createPassword_confirmation', 'createBusinessUnitId']);
+        $this->resetErrorBag();
+        $this->showCreateModal = true;
+    }
+
+    public function closeCreate(): void
+    {
+        $this->reset(['showCreateModal', 'createName', 'createEmail', 'createPassword', 'createPassword_confirmation', 'createBusinessUnitId']);
+        $this->resetErrorBag();
+    }
+
+    public function storeUser(): void
+    {
+        try {
+            $validated = $this->validate([
+                'createName' => 'required|string|max:255',
+                'createEmail' => 'required|email|max:255|unique:users,email',
+                'createPassword' => 'required|string|min:8|confirmed',
+                'createBusinessUnitId' => 'nullable|exists:business_units,id',
+            ], [], [
+                'createName' => 'nama',
+                'createEmail' => 'email',
+                'createPassword' => 'password',
+                'createBusinessUnitId' => 'unit usaha',
+            ]);
+        } catch (ValidationException $e) {
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: (string) $e->validator->errors()->first());
+
+            throw $e;
+        }
+
+        $user = User::create([
+            'name' => $validated['createName'],
+            'email' => $validated['createEmail'],
+            'password' => $validated['createPassword'],
+            'business_unit_id' => $validated['createBusinessUnitId'],
+            'is_active' => true,
+        ]);
+        $user->assignRole('kepala_unit');
+
+        $this->closeCreate();
+
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Akun Kepala Unit berhasil ditambahkan.');
+    }
+
+    // ── EDIT ────────────────────────────────────────────────────────────────
+
+    public function openEdit(int $userId): void
+    {
+        $user = $this->manageableUsers()->findOrFail($userId);
+        $this->editingUserId = $user->id;
+        $this->editName = $user->name;
+        $this->editEmail = $user->email;
+        $this->editBusinessUnitId = $user->business_unit_id;
+        $this->editPassword = '';
+        $this->editPassword_confirmation = '';
+        $this->resetErrorBag();
+        $this->showModal = true;
+    }
+
+    public function closeModal(): void
+    {
+        $this->reset(['showModal', 'editingUserId', 'editName', 'editEmail', 'editBusinessUnitId', 'editPassword', 'editPassword_confirmation']);
+        $this->resetErrorBag();
     }
 
     public function saveEdit(): void
     {
-        $this->validate([
-            'editName' => 'required|string|max:255',
-            'editBusinessUnitId' => 'nullable|exists:business_units,id',
-            'editPassword' => 'nullable|string|min:8',
-        ]);
+        try {
+            $validated = $this->validate([
+                'editName' => 'required|string|max:255',
+                'editEmail' => 'required|email|max:255|unique:users,email,'.$this->editingUserId,
+                'editBusinessUnitId' => 'nullable|exists:business_units,id',
+                'editPassword' => 'nullable|string|min:8|confirmed',
+            ], [], [
+                'editName' => 'nama',
+                'editEmail' => 'email',
+                'editBusinessUnitId' => 'unit usaha',
+                'editPassword' => 'password baru',
+            ]);
+        } catch (ValidationException $e) {
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal menyimpan', text: (string) $e->validator->errors()->first());
 
-        $user = User::role('kepala_unit')->findOrFail($this->editingUserId);
+            throw $e;
+        }
+
+        $user = $this->manageableUsers()->findOrFail($this->editingUserId);
 
         $data = [
-            'name' => $this->editName,
-            'business_unit_id' => $this->editBusinessUnitId,
+            'name' => $validated['editName'],
+            'email' => $validated['editEmail'],
+            'business_unit_id' => $validated['editBusinessUnitId'],
         ];
 
-        if (! empty($this->editPassword)) {
-            $data['password'] = $this->editPassword;
+        if (! empty($validated['editPassword'])) {
+            $data['password'] = $validated['editPassword'];
         }
 
         $user->update($data);
 
-        \Flux::toast(variant: 'success', text: 'Data akun berhasil diperbarui.');
-        $this->cancelEdit();
+        $this->closeModal();
+
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Data akun berhasil diperbarui.');
     }
 
-    // ── RESET PASSWORD ─────────────────────────────────────────────────────────
+    // ── DELETE ──────────────────────────────────────────────────────────────
 
-    public function startResetPassword(int $userId): void
+    public function confirmDelete(int $userId): void
     {
-        $this->resetPasswordUserId = $userId;
-        $this->generatedPassword = null;
-        $this->cancelEdit();
+        $this->manageableUsers()->findOrFail($userId);
+        $this->deleteId = $userId;
+        $this->showDeleteModal = true;
     }
 
-    public function generatePassword(): void
+    public function executeDelete(): void
     {
-        $user = User::role('kepala_unit')->findOrFail($this->resetPasswordUserId);
+        if (! $this->deleteId) {
+            abort(403);
+        }
 
-        $newPassword = Str::random(10);
-        $user->update(['password' => $newPassword]);
+        $user = $this->manageableUsers()->findOrFail($this->deleteId);
 
-        $this->generatedPassword = $newPassword;
+        if ($user->id === Auth::id()) {
+            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal', text: 'Tidak dapat menghapus akun sendiri.');
+            $this->reset(['showDeleteModal', 'deleteId']);
+
+            return;
+        }
+
+        $user->delete();
+
+        $this->reset(['showDeleteModal', 'deleteId']);
+
+        $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Akun Kepala Unit berhasil dihapus.');
     }
 
-    public function cancelResetPassword(): void
-    {
-        $this->reset(['resetPasswordUserId', 'generatedPassword']);
-    }
-
-    // ── TOGGLE STATUS ─────────────────────────────────────────────────────────
-
-    public function toggleStatus(int $userId): void
-    {
-        $user = User::role('kepala_unit')->findOrFail($userId);
-        $user->update(['is_active' => ! $user->is_active]);
-
-        $status = $user->is_active ? 'diaktifkan' : 'dinonaktifkan';
-        \Flux::toast(variant: 'success', text: "Akun {$user->name} berhasil {$status}.");
-    }
-
-    // ── RENDER ────────────────────────────────────────────────────────────────
+    // ── RENDER ──────────────────────────────────────────────────────────────
 
     public function render()
     {

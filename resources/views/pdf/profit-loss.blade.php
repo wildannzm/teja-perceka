@@ -23,7 +23,7 @@
         }
         .doc-header .entity  { font-size: 14px; font-weight: bold; text-transform: uppercase; }
         .doc-header .title   { font-size: 13px; font-weight: bold; text-transform: uppercase; }
-        .doc-header .periode { font-size: 11px; }
+        .doc-header .period { font-size: 11px; font-weight: bold; }
 
         /* ── TABLE ── */
         .data-table {
@@ -205,6 +205,7 @@
         </tbody>
     </table>
 
+    @if($showSignature ?? true)
     <div class="footer-sig">
         <div class="sig-box">
             <p style="margin-bottom: 60px;">TEJA, {{ $signatureDate }}</p>
@@ -215,6 +216,7 @@
         </div>
         <div style="clear: both;"></div>
     </div>
+    @endif
 
 </body>
 </html>

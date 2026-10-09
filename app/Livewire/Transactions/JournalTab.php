@@ -7,7 +7,6 @@ use App\Models\DailyTransaction;
 use App\Models\JournalEntry;
 use App\Support\BumdesCashBalance;
 use App\Support\PdfExport;
-use App\Support\Rupiah;
 use App\Support\VoucherNumber;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -15,7 +14,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Reactive;
 use Livewire\Component;
@@ -121,26 +119,6 @@ class JournalTab extends Component
     public ?int $deleteId = null;
 
     public bool $showDeleteModal = false;
-
-    // ── Edit state ────────────────────────────────────────────────────────────
-    public ?int $editJournalId = null;
-
-    public string $editVoucherNumber = '';
-
-    public bool $showEditModal = false;
-
-    /** Editable header fields */
-    public string $editDate = '';
-
-    public string $editDescription = '';
-
-    /**
-     * Editable rows per journal entry within the voucher group.
-     * Each row: ['id' => int, 'account_id' => int, 'account_label' => string, 'debit' => string, 'credit' => string]
-     *
-     * @var array<int, array{id: int, account_id: int, account_label: string, debit: string, credit: string}>
-     */
-    public array $editRows = [];
 
     #[Computed]
     public function dateRange(): array
@@ -508,15 +486,6 @@ class JournalTab extends Component
         return Auth::user()->hasAnyRole(['sekretaris', 'bendahara', 'direktur_bumdes', 'kepala_unit']);
     }
 
-    /**
-     * Same authorization as canDelete.
-     */
-    #[Computed]
-    public function canEdit(): bool
-    {
-        return Auth::user()->hasAnyRole(['sekretaris', 'bendahara', 'direktur_bumdes', 'kepala_unit']);
-    }
-
     // ── Delete ────────────────────────────────────────────────────────────────
 
     public function confirmDelete(int $id): void
@@ -547,7 +516,7 @@ class JournalTab extends Component
             if ($journal->daily_transaction_id) {
                 DailyTransaction::where('id', $journal->daily_transaction_id)->delete();
             }
-            // Same voucher scope as openEdit: number + month + unit.
+            // Same voucher scope: number + month + unit (numbers reset monthly).
             $monthStart = $journal->transaction_date->copy()->startOfMonth()->format('Y-m-d');
             $monthEnd = $journal->transaction_date->copy()->endOfMonth()->format('Y-m-d');
             JournalEntry::where('voucher_number', $journal->voucher_number)
@@ -574,205 +543,13 @@ class JournalTab extends Component
         $this->deleteId = null;
     }
 
-    // ── Edit ──────────────────────────────────────────────────────────────────
-
-    public function openEdit(int $journalId): void
+    /**
+     * Build the journal PDF for inline preview.
+     *
+     * @return array{0: \Barryvdh\DomPDF\PDF, 1: string}
+     */
+    public function buildReportPdf(): array
     {
-        if (! $this->canEdit) {
-            abort(403);
-        }
-
-        $journal = JournalEntry::findOrFail($journalId);
-
-        // Unit heads: only edit own unit's journals
-        if (Auth::user()->hasRole('kepala_unit')) {
-            if ($journal->business_unit_id !== Auth::user()->business_unit_id) {
-                abort(403);
-            }
-        }
-
-        // Load the voucher group: same number + same month + same unit
-        // (numbers reset monthly, so the number alone is not unique).
-        $monthStart = $journal->transaction_date->copy()->startOfMonth()->format('Y-m-d');
-        $monthEnd = $journal->transaction_date->copy()->endOfMonth()->format('Y-m-d');
-        $group = JournalEntry::with('account')
-            ->where('voucher_number', $journal->voucher_number)
-            ->whereBetween('transaction_date', [$monthStart, $monthEnd])
-            ->when($journal->business_unit_id !== null,
-                fn ($query) => $query->where('business_unit_id', $journal->business_unit_id),
-                fn ($query) => $query->whereNull('business_unit_id'))
-            ->orderBy('id', 'asc')
-            ->get();
-
-        $this->editJournalId = $journalId;
-        $this->editVoucherNumber = $journal->voucher_number;
-        $this->editDate = $journal->transaction_date->format('Y-m-d');
-        $this->editDescription = $journal->description;
-
-        $this->editRows = $group->map(fn ($row) => [
-            'id' => $row->id,
-            'account_id' => $row->account_id,
-            'account_label' => ($row->account?->code ?? '-').' - '.($row->account?->name ?? '?'),
-            'debit' => $row->debit > 0 ? (string) (int) $row->debit : '',
-            'credit' => $row->credit > 0 ? (string) (int) $row->credit : '',
-        ])->toArray();
-
-        $this->showEditModal = true;
-    }
-
-    public function executeEdit(): void
-    {
-        if (! $this->canEdit || ! $this->editVoucherNumber) {
-            abort(403);
-        }
-
-        foreach ($this->editRows as $i => $row) {
-            $this->editRows[$i]['debit'] = Rupiah::parse($row['debit'] ?? null);
-            $this->editRows[$i]['credit'] = Rupiah::parse($row['credit'] ?? null);
-        }
-
-        $this->validate([
-            'editDate' => 'required|date',
-            'editDescription' => 'required|string|max:500',
-            'editRows' => 'required|array|min:1',
-            'editRows.*.debit' => 'nullable|numeric|min:0|max:999999999999',
-            'editRows.*.credit' => 'nullable|numeric|min:0|max:999999999999',
-        ]);
-
-        $totals = collect($this->editRows)->reduce(function (array $carry, array $row): array {
-            $debit = (float) ($row['debit'] ?: 0);
-            $credit = (float) ($row['credit'] ?: 0);
-
-            if ($debit > 0 && $credit > 0) {
-                throw ValidationException::withMessages(['editRows' => 'Setiap baris hanya boleh diisi debit atau kredit, tidak keduanya.']);
-            }
-
-            if ($debit <= 0 && $credit <= 0) {
-                throw ValidationException::withMessages(['editRows' => 'Setiap baris harus memiliki nominal debit atau kredit.']);
-            }
-
-            $carry[0] += $debit;
-            $carry[1] += $credit;
-
-            return $carry;
-        }, [0.0, 0.0]);
-
-        if (abs($totals[0] - $totals[1]) > 0.01) {
-            throw ValidationException::withMessages(['editRows' => 'Total debit harus sama dengan total kredit.']);
-        }
-
-        try {
-            DB::transaction(function () {
-                $editedIds = collect($this->editRows)->pluck('id')->all();
-                $oldMonth = JournalEntry::whereIn('id', $editedIds)->min('transaction_date');
-                $oldMonth = $oldMonth ? Carbon::parse($oldMonth)->format('Y-m') : null;
-                $oldDebitTotal = JournalEntry::whereIn('id', $editedIds)->sum('debit');
-
-                foreach ($this->editRows as $row) {
-                    $journal = JournalEntry::findOrFail($row['id']);
-
-                    // Authorization check per-row
-                    if (Auth::user()->hasRole('kepala_unit')) {
-                        if ($journal->business_unit_id !== Auth::user()->business_unit_id) {
-                            abort(403);
-                        }
-                    }
-
-                    $debit = (float) ($row['debit'] ?: 0);
-                    $credit = (float) ($row['credit'] ?: 0);
-
-                    $journal->update([
-                        'transaction_date' => $this->editDate,
-                        'description' => $this->editDescription,
-                        'debit' => $debit,
-                        'credit' => $credit,
-                    ]);
-                }
-
-                // Sync the linked DailyTransaction from the edited rows only
-                // (the voucher number alone is not unique across months).
-                $editedIds = collect($this->editRows)->pluck('id')->all();
-                $firstJournal = JournalEntry::whereIn('id', $editedIds)->first();
-                if ($firstJournal && $firstJournal->daily_transaction_id) {
-                    $totalDebit = JournalEntry::whereIn('id', $editedIds)->sum('debit');
-                    DailyTransaction::where('id', $firstJournal->daily_transaction_id)
-                        ->update(['transaction_date' => $this->editDate]);
-                    if (str_starts_with($firstJournal->voucher_number, 'K')) {
-                        // Expense voucher: keep header expense in step with journals.
-                        DailyTransaction::where('id', $firstJournal->daily_transaction_id)
-                            ->increment('total_expense', $totalDebit - $oldDebitTotal);
-                    } else {
-                        DailyTransaction::where('id', $firstJournal->daily_transaction_id)
-                            ->update(['total_income' => $totalDebit]);
-                    }
-                }
-
-                // A cross-month move leaves a gap behind: close it on both sides.
-                $newMonth = substr($this->editDate, 0, 7);
-                if ($firstJournal) {
-                    $prefix = VoucherNumber::prefixOf($firstJournal->voucher_number);
-                    if ($prefix !== null && $oldMonth !== null && $newMonth !== $oldMonth) {
-                        VoucherNumber::renumberScope($prefix, $oldMonth, $firstJournal->business_unit_id);
-                        VoucherNumber::renumberScope($prefix, $newMonth, $firstJournal->business_unit_id);
-                    }
-                }
-            });
-
-            $this->dispatch('swal-alert', icon: 'success', title: 'Berhasil', text: 'Jurnal berhasil diperbarui.');
-
-            $this->showEditModal = false;
-            $this->resetEditState();
-            unset($this->transactions);
-        } catch (ValidationException $e) {
-            throw $e;
-        } catch (\Exception $e) {
-            report($e);
-            $this->dispatch('swal-alert', icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan saat menyimpan perubahan.');
-        }
-    }
-
-    public function cancelEdit(): void
-    {
-        $this->showEditModal = false;
-        $this->resetEditState();
-    }
-
-    private function resetEditState(): void
-    {
-        $this->editJournalId = null;
-        $this->editVoucherNumber = '';
-        $this->editDate = '';
-        $this->editDescription = '';
-        $this->editRows = [];
-    }
-
-    #[Computed]
-    public function canExport(): bool
-    {
-        return (bool) Auth::user();
-    }
-
-    public function exportPdf()
-    {
-        if (! $this->canExport) {
-            abort(403);
-        }
-
-        if (! $this->canExportPdf) {
-            $this->dispatch('swal-alert', icon: 'warning', title: 'Perhatian', text: 'Cetak PDF hanya tersedia untuk mode Bulanan, Semester, dan Tahunan.');
-
-            return;
-        }
-
-        if (! class_exists(Pdf::class)) {
-            $this->dispatch('swal-alert', icon: 'error', title: 'Error', text: 'Package PDF belum terinstall.');
-
-            return;
-        }
-
-        // Guard against runaway exports: bounded page size keeps memory flat.
-        set_time_limit(120);
-
         $unit = ($this->unitId && is_numeric($this->unitId)) ? BusinessUnit::find($this->unitId) : null;
         $period = $this->periodLabel;
         $unitLabel = $unit ? $unit->name : ($this->isBumdesScope() ? 'BUMDes' : 'Semua Unit');
@@ -791,11 +568,7 @@ class JournalTab extends Component
                 'totalCredit'
             ))->setPaper('a4', 'landscape');
 
-            $filename = PdfExport::filename('Jurnal Umum', $unitLabel, 'Ringkas', $period);
-
-            return response()->streamDownload(function () use ($pdf) {
-                echo $pdf->output();
-            }, $filename);
+            return [$pdf, PdfExport::filename('Jurnal Umum', $unitLabel, 'Ringkas', $period)];
         }
 
         [$start, $end] = $this->dateRange;
@@ -834,11 +607,7 @@ class JournalTab extends Component
             'totalCredit'
         ))->setPaper('a4', 'landscape');
 
-        $filename = PdfExport::filename('Jurnal Umum', $unitLabel, 'Rinci', $period);
-
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
-        }, $filename);
+        return [$pdf, PdfExport::filename('Jurnal Umum', $unitLabel, 'Rinci', $period)];
     }
 
     public function render()

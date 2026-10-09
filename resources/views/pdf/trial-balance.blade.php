@@ -38,8 +38,10 @@
             text-transform: uppercase;
         }
 
-        .doc-header .periode {
+        .doc-header .period {
             font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
         }
 
         .data-table {
@@ -99,11 +101,6 @@
             margin-bottom: 2px;
         }
 
-        .status {
-            margin-bottom: 10px;
-            font-weight: bold;
-            text-align: right;
-        }
     </style>
 </head>
 
@@ -111,12 +108,8 @@
     <div class="doc-header">
         <div class="entity">{{ $entityName }}</div>
         <div class="title">NERACA SALDO</div>
-        <div class="period">Periode: {{ $periodLabel }}</div>
+        <div class="period">{{ $periodLabel }}</div>
     </div>
-    <div class="status">
-        Status: {{ $isBalanced ? 'SEIMBANG (BALANCE)' : 'TIDAK SEIMBANG' }}
-    </div>
-
     <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 20px;">
         <thead>
             <tr>
@@ -278,6 +271,7 @@
             </tr>
         </tbody>
     </table>
+    @if($showSignature ?? true)
     <div class="footer-sig">
         <div class="sig-box">
             <p style="margin-bottom: 60px;">TEJA, {{ $signatureDate }}</p>
@@ -286,6 +280,7 @@
         </div>
         <div style="clear: both;"></div>
     </div>
+    @endif
 </body>
 
 </html>

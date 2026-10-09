@@ -7,6 +7,7 @@ use App\Models\JournalEntry;
 use App\Models\ProfitAllocationRecord;
 use App\Support\BumdesCashBalance;
 use App\Support\PdfExport;
+use App\Support\SafeDates;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -102,7 +103,7 @@ class ProfitAllocation extends Component
             }
         }
 
-        $date = Carbon::parse($this->period ?: Carbon::now()->format('Y-m'));
+        $date = SafeDates::month($this->period);
 
         return [
             $date->copy()->startOfMonth(),
@@ -122,7 +123,7 @@ class ProfitAllocation extends Component
             return 'Semester '.$this->semester.' Tahun '.$year;
         }
 
-        return Carbon::parse($this->period ?: Carbon::now()->format('Y-m'))->translatedFormat('F Y');
+        return SafeDates::month($this->period)->translatedFormat('F Y');
     }
 
     // ─── Calculation Data ────────────────────────────────────────────────
@@ -293,6 +294,15 @@ class ProfitAllocation extends Component
         return Auth::user()->hasAnyRole(['direktur_bumdes', 'sekretaris', 'bendahara']);
     }
 
+    /**
+     * Kepala desa dan pengawas hanya melihat angka: tanpa blok tanda tangan.
+     */
+    #[Computed]
+    public function showSignature(): bool
+    {
+        return ! Auth::user()->hasAnyRole(['kepala_desa', 'pengawas']);
+    }
+
     // ─── Actions ─────────────────────────────────────────────────────────
 
     public function openCreate(): void
@@ -410,9 +420,14 @@ class ProfitAllocation extends Component
         $this->deleteDescription = null;
     }
 
-    // ─── Export PDF ──────────────────────────────────────────────────────
+    // ─── Preview PDF (inline, via ReportPreviewController) ────────────────
 
-    public function exportPdf()
+    /**
+     * Build the allocation PDF for inline preview.
+     *
+     * @return array{0: \Barryvdh\DomPDF\PDF, 1: string}
+     */
+    public function buildReportPdf(): array
     {
         $entityName = 'BUMDESA TEJA PERCEKA';
 
@@ -440,15 +455,13 @@ class ProfitAllocation extends Component
 
         set_time_limit(120);
 
-        $pdf = Pdf::loadView('pdf.profit-allocation', compact(
+        $pdf = Pdf::loadView('pdf.profit-allocation', array_merge(compact(
             'entityName', 'printDate', 'signatureDate', 'periodLabel', 'signatory', 'position',
             'netIncome', 'deductionRows', 'totalDeductions', 'deductionLabel', 'netIncomeAfterDeductions',
             'adArtRows', 'totalAdArtPercent', 'totalAdArtAmount'
-        ))->setPaper('a4', 'portrait');
+        ), ['showSignature' => $this->showSignature]))->setPaper('a4', 'portrait');
 
-        $filename = PdfExport::filename('Alokasi Laba', 'BUMDes', $periodLabel);
-
-        return response()->streamDownload(fn () => print ($pdf->output()), $filename);
+        return [$pdf, PdfExport::filename('Alokasi Laba', 'BUMDes', $periodLabel)];
     }
 
     public function render()

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ImpersonationController;
+use App\Http\Controllers\ReportPreviewController;
 use App\Livewire\Assets\ManageAssets;
 use App\Livewire\BumdesDirector\Dashboard as BumdesDirectorDashboard;
 use App\Livewire\BumdesDirector\ManageUnitAccounts;
@@ -125,11 +126,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('laporan/laba-rugi', ProfitLoss::class)->name('reports.profit-loss');
         Route::get('laporan/buku-besar', GeneralLedger::class)->name('reports.general-ledger');
         Route::get('laporan/neraca-saldo', TrialBalance::class)->name('reports.trial-balance');
+        // Report PDF previews (inline): new tab, printable via Ctrl+P without downloading.
+        // Same 4 print roles as canPrint; read-only roles must not export.
+        Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes'])
+            ->get('laporan/{report}/print', ReportPreviewController::class)
+            ->whereIn('report', ['laba-rugi', 'buku-besar', 'neraca-saldo'])
+            ->name('reports.preview');
     });
 
     // ===== Profit allocation (excluding unit heads) =====
     Route::middleware(['role:sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])->group(function () {
         Route::get('laporan/alokasi-laba', ProfitAllocation::class)->name('reports.profit-allocation');
+        Route::middleware(['role:sekretaris|bendahara|direktur_bumdes'])
+            ->get('laporan/alokasi-laba/print', ReportPreviewController::class)
+            ->defaults('report', 'alokasi-laba')
+            ->name('reports.profit-allocation.preview');
     });
 
     // ===== Assets (Direktur, Secretary, Treasurer can CRUD; others read-only via policy) =====
@@ -147,10 +158,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->get('riwayat-rekap', HistoryRecap::class)
         ->name('history-recap');
 
-    // Legacy redirect: unit/riwayat-transaksi → history-recap
-    Route::middleware(['role:kepala_unit'])
-        ->get('unit/riwayat-transaksi-lama', fn () => redirect()->route('history-recap'))
-        ->name('unit.transaction-history.redirect');
+    // Journal PDF preview (inline): opens in a new tab, printable via Ctrl+P without downloading.
+    Route::middleware(['role:kepala_unit|sekretaris|bendahara|direktur_bumdes|kepala_desa|pengawas'])
+        ->get('riwayat-rekap/jurnal/print', ReportPreviewController::class)
+        ->defaults('report', 'jurnal-umum')
+        ->name('history-recap.journal-preview');
 
     // ===== Super Admin =====
     Route::middleware(['role:super_admin'])->prefix('super-admin')->group(function () {

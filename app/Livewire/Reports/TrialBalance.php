@@ -7,7 +7,6 @@ use App\Models\BusinessUnit;
 use App\Models\JournalEntry;
 use App\Support\BumdesCashBalance;
 use App\Support\PdfExport;
-use App\Support\Rupiah;
 use App\Support\SafeDates;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,10 +30,6 @@ class TrialBalance extends Component
     /** Format Y-m */
     public string $period = '';
 
-    public bool $isEditing = false;
-
-    public array $editValues = [];
-
     public function mount(): void
     {
         $user = Auth::user();
@@ -47,99 +42,6 @@ class TrialBalance extends Component
         }
 
         $this->period = Carbon::now()->format('Y-m');
-    }
-
-    public function startEditing(): void
-    {
-        if (! Auth::user()->hasAnyRole(['kepala_unit', 'sekretaris', 'bendahara', 'direktur_bumdes'])) {
-            abort(403);
-        }
-
-        $this->isEditing = true;
-        $this->editValues = [];
-        $data = $this->reportData;
-        foreach (['currentAssets', 'fixedAssets', 'currentLiabilities', 'longTermLiabilities', 'equity'] as $key) {
-            foreach ($data[$key] as $row) {
-                $this->editValues[$row->id] = $row->balance;
-            }
-        }
-    }
-
-    public function cancelEditing(): void
-    {
-        $this->isEditing = false;
-        $this->editValues = [];
-    }
-
-    public function saveAdjustments(): void
-    {
-        if (! Auth::user()->hasAnyRole(['kepala_unit', 'sekretaris', 'bendahara', 'direktur_bumdes'])) {
-            abort(403);
-        }
-
-        $unitId = $this->resolveAdjustmentUnitId();
-
-        $data = $this->reportData;
-        $allOriginalRows = collect();
-
-        foreach (['currentAssets', 'fixedAssets', 'currentLiabilities', 'longTermLiabilities', 'equity'] as $group) {
-            foreach ($data[$group] as $row) {
-                $allOriginalRows->push($row);
-            }
-        }
-
-        [$start, $end] = $this->periodRange();
-        $batchTime = time();
-
-        foreach ($this->editValues as $accountId => $newValue) {
-            $newValue = Rupiah::parse($newValue);
-            $originalRow = $allOriginalRows->firstWhere('id', $accountId);
-
-            if ($originalRow) {
-                $difference = $newValue - $originalRow->balance;
-
-                if ($difference != 0) {
-                    if (! is_numeric($accountId) || ! Account::whereKey($accountId)->exists()) {
-                        continue;
-                    }
-
-                    $account = Account::find($accountId);
-
-                    $normalDirection = $this->getNormalBalanceType($account->type);
-
-                    $debit = 0;
-                    $credit = 0;
-
-                    if ($normalDirection === 'credit') {
-                        if ($difference > 0) {
-                            $credit = abs($difference);
-                        } else {
-                            $debit = abs($difference);
-                        }
-                    } else { // arah normal debet
-                        if ($difference > 0) {
-                            $debit = abs($difference);
-                        } else {
-                            $credit = abs($difference);
-                        }
-                    }
-
-                    JournalEntry::create([
-                        'voucher_number' => 'ADJ-'.$batchTime.'-'.$accountId,
-                        'transaction_date' => $end->format('Y-m-d'),
-                        'description' => 'Penyesuaian Manual Neraca Saldo',
-                        'account_id' => $accountId,
-                        'debit' => $debit,
-                        'credit' => $credit,
-                        'business_unit_id' => $unitId,
-                    ]);
-                }
-            }
-        }
-
-        $this->isEditing = false;
-        $this->editValues = [];
-        unset($this->reportData);
     }
 
     private function getNormalBalanceType(string $type): string
@@ -155,15 +57,6 @@ class TrialBalance extends Component
     public function isBumdesScope(): bool
     {
         return ! Auth::user()?->hasRole('kepala_unit') && ($this->unit_id === 'bumdes' || empty($this->unit_id));
-    }
-
-    private function resolveAdjustmentUnitId(): ?int
-    {
-        if (Auth::user()?->hasRole('kepala_unit')) {
-            return Auth::user()->business_unit_id;
-        }
-
-        return ($this->unit_id && is_numeric($this->unit_id)) ? (int) $this->unit_id : null;
     }
 
     private function periodRange(): array
@@ -222,6 +115,15 @@ class TrialBalance extends Component
         return Auth::user()->hasAnyRole(['kepala_unit', 'sekretaris', 'bendahara', 'direktur_bumdes']);
     }
 
+    /**
+     * Kepala desa dan pengawas hanya melihat angka: tanpa blok tanda tangan.
+     */
+    #[Computed]
+    public function showSignature(): bool
+    {
+        return ! Auth::user()->hasAnyRole(['kepala_desa', 'pengawas']);
+    }
+
     #[Computed]
     public function selectedUnit(): ?BusinessUnit
     {
@@ -234,15 +136,6 @@ class TrialBalance extends Component
         // Guard through SafeDates so a crafted user-supplied period string
         // falls back to the current month instead of throwing a 500.
         return SafeDates::month($this->period)->translatedFormat('F Y');
-    }
-
-    #[Computed]
-    public function isBalanced(): bool
-    {
-        // Single source of the balanced status for preview & PDF (float rounding tolerance).
-        $data = $this->reportData;
-
-        return abs($data['totalAssets'] - $data['totalLiabilitiesEquity']) < 0.5;
     }
 
     #[Computed]
@@ -381,12 +274,13 @@ class TrialBalance extends Component
         );
     }
 
-    public function exportPdf()
+    /**
+     * Build the trial-balance PDF for inline preview.
+     *
+     * @return array{0: \Barryvdh\DomPDF\PDF, 1: string}
+     */
+    public function buildReportPdf(): array
     {
-        if (! $this->canPrint) {
-            abort(403);
-        }
-
         $data = $this->reportData;
         $unit = $this->selectedUnit;
         $entityName = $unit ? strtoupper($unit->name) : 'BUMDESA TEJA PERCEKA';
@@ -395,7 +289,6 @@ class TrialBalance extends Component
         $printDate = strtoupper($end->translatedFormat('d F Y'));
         $signatureDate = PdfExport::signatureDate($end);
         $periodLabel = $this->periodLabel;
-        $isBalanced = $this->isBalanced;
 
         $signatory = Auth::user()->name;
         $position = match (true) {
@@ -408,13 +301,12 @@ class TrialBalance extends Component
 
         set_time_limit(120);
 
-        $pdf = Pdf::loadView('pdf.trial-balance', array_merge($data, compact('periodLabel', 'entityName', 'printDate', 'signatureDate', 'signatory', 'position', 'isBalanced')))
+        $pdf = Pdf::loadView('pdf.trial-balance', array_merge($data, compact('periodLabel', 'entityName', 'printDate', 'signatureDate', 'signatory', 'position'), ['showSignature' => $this->showSignature]))
             ->setPaper('a4', 'portrait');
 
         $unitLabel = $unit ? $unit->name : ($this->isBumdesScope() ? 'BUMDes' : 'Semua Unit');
-        $filename = PdfExport::filename('Neraca Saldo', $unitLabel, $periodLabel);
 
-        return response()->streamDownload(fn () => print ($pdf->output()), $filename);
+        return [$pdf, PdfExport::filename('Neraca Saldo', $unitLabel, $periodLabel)];
     }
 
     public function updatingUnitId($value): void
@@ -432,6 +324,10 @@ class TrialBalance extends Component
             $this->unit_id = $user->business_unit_id;
         }
 
-        return view('livewire.reports.trial-balance');
+        $unit = $this->selectedUnit;
+
+        return view('livewire.reports.trial-balance', [
+            'entityName' => $unit ? strtoupper($unit->name) : 'BUMDESA TEJA PERCEKA',
+        ]);
     }
 }

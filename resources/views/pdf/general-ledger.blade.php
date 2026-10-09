@@ -10,7 +10,7 @@
         .doc-header { text-align: center; margin-bottom: 20px; }
         .doc-header .entity  { font-size: 14px; font-weight: bold; text-transform: uppercase; }
         .doc-header .title   { font-size: 13px; font-weight: bold; text-transform: uppercase; }
-        .doc-header .periode { font-size: 11px; }
+        .doc-header .period { font-size: 11px; font-weight: bold; text-transform: uppercase; }
         .doc-sub { margin-bottom: 10px; font-size: 11px; font-weight: bold; }
         .data-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         .data-table th, .data-table td { border: 1px solid #000; padding: 4px 8px; font-size: 11px; vertical-align: middle; }
@@ -29,7 +29,7 @@
     <div class="doc-header">
         <div class="entity">{{ $entityName }}</div>
         <div class="title">BUKU BESAR - {{ $selectedAccount->name }}</div>
-        <div class="period">{{ $printDate }}</div>
+        <div class="period">{{ $periodLabel }}</div>
     </div>
     <div class="doc-sub">
         Kode Akun: {{ $selectedAccount->code }} | Saldo Normal: {{ strtoupper($normalBalance) }} | Saldo Awal: Rp {{ number_format($openingBalance, 0, ',', '.') }}
@@ -83,6 +83,7 @@
             @endif
         </tbody>
     </table>
+    @if($showSignature ?? true)
     <div class="footer-sig">
         <div class="sig-box">
             <p style="margin-bottom: 60px;">TEJA, {{ $signatureDate }}</p>
@@ -91,5 +92,6 @@
         </div>
         <div style="clear: both;"></div>
     </div>
+    @endif
 </body>
 </html>

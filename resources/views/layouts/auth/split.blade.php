@@ -17,7 +17,7 @@
             <!-- Logo panel: top on mobile, left on md+ -->
             <div class="flex flex-col items-center justify-center gap-4 border-b border-zinc-100 bg-gradient-to-b from-brand-50/90 to-white p-6 sm:p-8 md:border-b-0 md:border-r md:p-10">
                 <a href="{{ route('home') }}" wire:navigate>
-                    <img src="{{ asset('assets/images/logo-bumdes-teja-perceka.png') }}" alt="Logo BUMDes Teja Perceka"
+                    <img src="{{ asset('assets/images/logo-sidebar-bumdes-teja-perceka.png') }}" alt="Logo BUMDes Teja Perceka"
                         class="h-28 w-auto max-w-[280px] object-contain sm:h-32 md:h-44 md:max-w-[320px] lg:h-52">
                 </a>
                 @php

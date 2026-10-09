@@ -1,49 +1,6 @@
 <div class="flex h-full w-full flex-col gap-4 sm:gap-6 max-w-full mx-auto pb-10">
 
-    <style>
-            .btn-edit-yellow {
-                background-color: #f59e0b !important;
-                color: #ffffff !important;
-                border: 1px solid #f59e0b !important;
-            }
-            .btn-edit-yellow:hover {
-                background-color: #d97706 !important;
-                border-color: #d97706 !important;
-            }
-        </style>
-    <x-page-header title="Laporan Laba Rugi" description="Rekap pendapatan dan biaya operasional per periode.">
-        <x-slot:actions>
-            @if($this->canPrint)
-            <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-                @if($isEditing)
-                    <button type="button" wire:click="cancelEditing"
-                        class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2 bg-red-600 text-white hover:bg-red-700 font-semibold text-sm rounded-xl transition-colors shadow-sm">
-                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                        </svg>
-                        Batal
-                    </button>
-                    <button type="button" wire:click="saveAdjustments" wire:loading.attr="disabled" wire:target="saveAdjustments"
-                        class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2 bg-brand-600 text-white hover:bg-brand-700 font-semibold text-sm rounded-xl transition-colors shadow-sm">
-                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                        </svg>
-                        Simpan Perubahan
-                    </button>
-                @else
-                    <flux:button variant="primary" icon="pencil" wire:click="startEditing" class="w-full sm:w-auto shrink-0 btn-edit-yellow">Edit</flux:button>
-                    <button type="button" wire:click="exportPdf" wire:loading.attr="disabled"
-                        class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2 bg-brand-600 text-white hover:bg-brand-700 font-semibold text-sm rounded-xl transition-colors shadow-sm">
-                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                        </svg>
-                        Cetak PDF
-                    </button>
-                @endif
-            </div>
-            @endif
-        </x-slot:actions>
-    </x-page-header>
+    <x-page-header title="Laporan Laba Rugi" description="Rekap pendapatan dan biaya operasional per periode." />
 
     {{-- Filter --}}
     <div class="bg-white p-4 sm:p-6 rounded-xl border border-brand-100 shadow-sm">
@@ -144,7 +101,6 @@
         <div class="px-4 sm:px-6 py-4 border-b border-zinc-100 text-center">
             <p class="text-sm font-bold text-zinc-900 uppercase">{{ $entityName }}</p>
             <p class="text-sm font-bold text-zinc-900">LABA RUGI</p>
-            <p class="text-sm text-zinc-600">{{ $periodLabel }}</p>
         </div>
 
         <div class="overflow-hidden md:overflow-x-auto">
@@ -170,13 +126,7 @@
                             <td class="block md:table-cell md:px-6 md:py-3 font-mono text-xs text-zinc-500 order-2 md:order-none">{{ $row->code }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-base md:text-sm font-semibold md:font-normal text-zinc-900 order-1 md:order-none mb-1 md:mb-0">{{ $row->name }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-left md:text-right font-bold md:font-medium text-brand-700 md:text-zinc-800 order-3 md:order-none mt-2 md:mt-0 text-base md:text-sm">
-                                @if($isEditing)
-                                    <div class="flex justify-end">
-                                        <input type="text" inputmode="numeric" data-rupiah wire:model="editValues.{{ $row->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal" />
-                                    </div>
-                                @else
-                                    {{ $row->amount != 0 ? 'Rp '.number_format($row->amount, 0, ',', '.') : '-' }}
-                                @endif
+                                {{ $row->amount != 0 ? 'Rp '.number_format($row->amount, 0, ',', '.') : '-' }}
                             </td>
                             <td class="hidden md:table-cell px-4 sm:px-6 py-3"></td>
                         </tr>
@@ -204,13 +154,7 @@
                             <td class="block md:table-cell md:px-6 md:py-3 font-mono text-xs text-zinc-500 order-2 md:order-none">{{ $row->code }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-base md:text-sm font-semibold md:font-normal text-zinc-900 order-1 md:order-none mb-1 md:mb-0">{{ $row->name }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-left md:text-right font-bold md:font-medium text-brand-700 md:text-zinc-800 order-3 md:order-none mt-2 md:mt-0 text-base md:text-sm">
-                                @if($isEditing)
-                                    <div class="flex justify-end">
-                                        <input type="text" inputmode="numeric" data-rupiah wire:model="editValues.{{ $row->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal" />
-                                    </div>
-                                @else
-                                    {{ $row->amount != 0 ? 'Rp '.number_format($row->amount, 0, ',', '.') : '-' }}
-                                @endif
+                                {{ $row->amount != 0 ? 'Rp '.number_format($row->amount, 0, ',', '.') : '-' }}
                             </td>
                             <td class="hidden md:table-cell px-4 sm:px-6 py-3"></td>
                         </tr>
@@ -249,13 +193,7 @@
                             <td class="block md:table-cell md:px-6 md:py-3 font-mono text-xs text-zinc-500 order-2 md:order-none">{{ $row->code }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-base md:text-sm font-semibold md:font-normal text-zinc-900 order-1 md:order-none mb-1 md:mb-0">{{ $row->name }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-left md:text-right font-bold md:font-medium text-red-700 md:text-zinc-800 order-3 md:order-none mt-2 md:mt-0 text-base md:text-sm">
-                                @if($isEditing)
-                                    <div class="flex justify-end">
-                                        <input type="text" inputmode="numeric" data-rupiah wire:model="editValues.{{ $row->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal" />
-                                    </div>
-                                @else
-                                    {{ $row->amount != 0 ? 'Rp '.number_format($row->amount, 0, ',', '.') : '-' }}
-                                @endif
+                                {{ $row->amount != 0 ? 'Rp '.number_format($row->amount, 0, ',', '.') : '-' }}
                             </td>
                             <td class="hidden md:table-cell px-4 sm:px-6 py-3"></td>
                         </tr>
@@ -283,13 +221,7 @@
                             <td class="block md:table-cell md:px-6 md:py-3 font-mono text-xs text-zinc-500 order-2 md:order-none">{{ $row->code }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-base md:text-sm font-semibold md:font-normal text-zinc-900 order-1 md:order-none mb-1 md:mb-0">{{ $row->name }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-left md:text-right font-bold md:font-medium text-brand-700 md:text-zinc-800 order-3 md:order-none mt-2 md:mt-0 text-base md:text-sm">
-                                @if($isEditing)
-                                    <div class="flex justify-end">
-                                        <input type="text" inputmode="numeric" data-rupiah wire:model="editValues.{{ $row->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal" />
-                                    </div>
-                                @else
-                                    {{ $row->amount != 0 ? 'Rp '.number_format($row->amount, 0, ',', '.') : '-' }}
-                                @endif
+                                {{ $row->amount != 0 ? 'Rp '.number_format($row->amount, 0, ',', '.') : '-' }}
                             </td>
                             <td class="hidden md:table-cell px-4 sm:px-6 py-3"></td>
                         </tr>
@@ -299,13 +231,7 @@
                             <td class="block md:table-cell md:px-6 md:py-3 font-mono text-xs text-zinc-500 order-2 md:order-none">{{ $row->code }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-base md:text-sm font-semibold md:font-normal text-zinc-900 order-1 md:order-none mb-1 md:mb-0">{{ $row->name }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-left md:text-right font-bold md:font-medium text-red-700 md:text-zinc-800 order-3 md:order-none mt-2 md:mt-0 text-base md:text-sm">
-                                @if($isEditing)
-                                    <div class="flex justify-end">
-                                        <input type="text" inputmode="numeric" data-rupiah wire:model="editValues.{{ $row->id }}" class="w-32 rounded-lg border-2 border-brand-500 text-sm px-2 py-1 focus:ring-0 focus:outline-none text-right font-normal" />
-                                    </div>
-                                @else
-                                    {{ $row->amount != 0 ? 'Rp '.number_format($row->amount, 0, ',', '.') : '-' }}
-                                @endif
+                                {{ $row->amount != 0 ? 'Rp '.number_format($row->amount, 0, ',', '.') : '-' }}
                             </td>
                             <td class="hidden md:table-cell px-4 sm:px-6 py-3"></td>
                         </tr>
@@ -329,6 +255,7 @@
         </div>
         
         {{-- Footer --}}
+        @if($showSignature ?? true)
         <div class="mt-8 pt-8 px-4 sm:px-6 flex justify-end">
             <div class="text-center">
                 <p class="text-sm text-zinc-700 mb-16">TEJA, {{ $signatureDate }}</p>
@@ -336,5 +263,10 @@
                 <p class="text-sm text-zinc-600 mt-1">{{ $position }}</p>
             </div>
         </div>
+        @endif
     </div>
+
+    @if($this->canPrint)
+        <x-report-actions :preview-url="route('reports.preview', ['report' => 'laba-rugi', 'unit' => $unit_id, 'mode' => $mode, 'period' => $period, 'semester' => $semester, 'semester_year' => $semesterYear])" sticky />
+    @endif
 </div>

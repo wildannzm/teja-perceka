@@ -1,17 +1,5 @@
 <div class="flex h-full w-full flex-col gap-4 sm:gap-6 max-w-full mx-auto pb-10">
-    <x-page-header title="Laporan Buku Besar" description="Rincian mutasi transaksi per kode akun.">
-        <x-slot:actions>
-            @if($this->canPrint)
-            <button type="button" wire:click="exportPdf" wire:loading.attr="disabled"
-                class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2 bg-brand-600 text-white hover:bg-brand-700 font-semibold text-sm rounded-xl transition-colors shadow-sm">
-                <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                </svg>
-                Cetak PDF
-            </button>
-        @endif
-        </x-slot:actions>
-    </x-page-header>
+    <x-page-header title="Laporan Buku Besar" description="Rincian mutasi transaksi per kode akun." />
 
     <div class="bg-white p-4 sm:p-6 rounded-xl border border-brand-100 shadow-sm">
         <h2 class="text-base sm:text-lg font-semibold mb-4 text-zinc-900">Filter Laporan</h2>
@@ -70,6 +58,7 @@
         @if($data['selectedAccount'])
         <div class="bg-white rounded-xl border border-brand-100 shadow-sm overflow-hidden mb-6 pb-6">
             <div class="px-4 sm:px-6 py-4 border-b border-zinc-100 text-center">
+                <p class="text-sm font-bold text-zinc-900 uppercase">{{ $entityName }}</p>
                 <p class="text-sm font-bold text-zinc-900 uppercase">BUKU BESAR - {{ $data['selectedAccount']->name }}</p>
                 <p class="text-sm text-zinc-600">Kode Akun: {{ $data['selectedAccount']->code }} | Saldo Normal: <span class="uppercase">{{ $data['normalBalance'] }}</span></p>
             </div>
@@ -163,5 +152,9 @@
             <h3 class="text-lg font-bold text-zinc-900">Pilih Kode Akun</h3>
             <p class="text-sm text-zinc-500 mt-1 max-w-sm">Silakan pilih Kode Akun pada filter di atas untuk melihat rincian Buku Besar.</p>
         </div>
+        @endif
+
+        @if($this->canPrint && $this->account_id)
+            <x-report-actions :preview-url="route('reports.preview', ['report' => 'buku-besar', 'unit' => $unit_id, 'period' => $period, 'account' => $account_id])" sticky />
         @endif
     </div>
