@@ -54,13 +54,13 @@
                                     <tr class="hover:bg-zinc-50 transition-colors" wire:key="summary-{{ $row->id }}-{{ $row->account_id }}">
                                         @if($loop->first)
                                             <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 align-top border-r border-zinc-100">{{ \Carbon\Carbon::parse($groupDisplayDate)->translatedFormat('d F Y') }}</td>
-                                            <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 font-mono text-xs text-zinc-500 align-top border-r border-zinc-100">{{ $groupFirst->firstVoucher }}</td>
+                                            <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 text-xs text-zinc-500 align-top border-r border-zinc-100">{{ $groupFirst->firstVoucher }}</td>
                                             @if($unitId === 'all')
                                                 <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 text-xs font-semibold text-zinc-600 align-top border-r border-zinc-100">{{ $groupFirst->unitName ?? 'BUMDes' }}</td>
                                             @endif
                                             <td rowspan="{{ $groupRows->count() }}" class="py-3 px-4 text-wrap leading-relaxed align-top border-r border-zinc-100">{{ $groupFirst->description }}</td>
                                         @endif
-                                        <td class="py-3 px-4 font-mono text-xs border-l border-zinc-100">{{ $row->code ?? '-' }} - {{ $row->accountName ?? '?' }}</td>
+                                        <td class="py-3 px-4 text-xs border-l border-zinc-100">{{ $row->code ?? '-' }} - {{ $row->accountName ?? '?' }}</td>
                                         <td class="py-3 px-4 text-right font-medium text-brand-700 border-l border-zinc-100">{{ $row->totalDebit > 0 ? number_format($row->totalDebit, 0, ',', '.') : '-' }}</td>
                                         <td class="py-3 px-4 text-right font-medium text-red-600 border-l border-zinc-100">{{ $row->totalCredit > 0 ? number_format($row->totalCredit, 0, ',', '.') : '-' }}</td>
                                         @if($loop->first)
@@ -85,7 +85,7 @@
                     <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden" wire:key="summary-m-{{ $groupFirst->firstVoucher }}-{{ $loop->index }}">
                         <div class="bg-brand-50/60 border-b border-brand-100 px-4 py-3 flex items-start justify-between gap-2">
                             <div>
-                                <p class="text-xs font-mono text-zinc-500">{{ $groupFirst->firstVoucher }}</p>
+                                <p class="text-xs text-zinc-500">{{ $groupFirst->firstVoucher }}</p>
                                 <p class="text-sm font-semibold text-zinc-800 mt-0.5">{{ \Carbon\Carbon::parse($groupDisplayDate)->translatedFormat('d F Y') }}</p>
                                 @if($unitId === 'all')
                                     <span class="inline-block mt-1 text-[11px] font-medium bg-brand-100 text-brand-800 px-2 py-0.5 rounded-md">
@@ -105,7 +105,7 @@
                             @foreach($groupRows as $row)
                                 <div class="px-4 py-3 flex items-center justify-between gap-3">
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-xs font-mono text-zinc-500 truncate">{{ $row->code ?? '-' }}</p>
+                                        <p class="text-xs text-zinc-500 truncate">{{ $row->code ?? '-' }}</p>
                                         <p class="text-sm text-zinc-700 font-medium truncate">{{ $row->accountName ?? '?' }}</p>
                                     </div>
                                     <div class="text-right shrink-0">
@@ -150,13 +150,13 @@
                                 <tr class="hover:bg-zinc-50 transition-colors">
                                     @if($loop->first)
                                         <td rowspan="{{ $group->count() }}" class="py-3 px-4 align-top border-r border-zinc-100">{{ $journal->transaction_date->translatedFormat('d F Y') }}</td>
-                                        <td rowspan="{{ $group->count() }}" class="py-3 px-4 font-mono text-xs text-zinc-500 align-top border-r border-zinc-100">{{ $journal->voucher_number }}</td>
+                                        <td rowspan="{{ $group->count() }}" class="py-3 px-4 text-xs text-zinc-500 align-top border-r border-zinc-100">{{ $journal->voucher_number }}</td>
                                         @if($unitId === 'all')
                                             <td rowspan="{{ $group->count() }}" class="py-3 px-4 text-xs font-semibold text-zinc-600 align-top border-r border-zinc-100">{{ $journal->businessUnit?->name ?? 'BUMDes' }}</td>
                                         @endif
                                         <td rowspan="{{ $group->count() }}" class="py-3 px-4 text-wrap leading-relaxed align-top border-r border-zinc-100">{{ $journal->description }}</td>
                                     @endif
-                                    <td class="py-3 px-4 font-mono text-xs border-l border-zinc-100">{{ $journal->account?->code ?? '-' }} - {{ $journal->account?->name ?? '?' }}</td>
+                                    <td class="py-3 px-4 text-xs border-l border-zinc-100">{{ $journal->account?->code ?? '-' }} - {{ $journal->account?->name ?? '?' }}</td>
                                     <td class="py-3 px-4 text-right font-medium text-brand-700 border-l border-zinc-100">{{ $journal->debit > 0 ? number_format($journal->debit, 0, ',', '.') : '-' }}</td>
                                     <td class="py-3 px-4 text-right font-medium text-red-600 border-l border-zinc-100">{{ $journal->credit > 0 ? number_format($journal->credit, 0, ',', '.') : '-' }}</td>
                                     @if($this->canDelete)
@@ -187,7 +187,7 @@
                     {{-- Card header --}}
                     <div class="bg-brand-50/60 border-b border-brand-100 px-4 py-3 flex items-start justify-between gap-2">
                         <div>
-                            <p class="text-xs font-mono text-zinc-500">{{ $firstJournal->voucher_number }}</p>
+                            <p class="text-xs text-zinc-500">{{ $firstJournal->voucher_number }}</p>
                             <p class="text-sm font-semibold text-zinc-800 mt-0.5">{{ $firstJournal->transaction_date->translatedFormat('d F Y') }}</p>
                             @if($unitId === 'all')
                                 <span class="inline-block mt-1 text-[11px] font-medium bg-brand-100 text-brand-800 px-2 py-0.5 rounded-md">
@@ -214,7 +214,7 @@
                         @foreach($group as $journal)
                             <div class="px-4 py-3 flex items-center justify-between gap-3">
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-xs font-mono text-zinc-500 truncate">{{ $journal->account?->code ?? '-' }}</p>
+                                    <p class="text-xs text-zinc-500 truncate">{{ $journal->account?->code ?? '-' }}</p>
                                     <p class="text-sm text-zinc-700 font-medium truncate">{{ $journal->account?->name ?? '?' }}</p>
                                 </div>
                                 <div class="text-right shrink-0">

@@ -32,7 +32,7 @@
         }
 
         .data-table th {
-            font-size: 10px;
+            font-size: 13px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.8px;
@@ -74,7 +74,7 @@
         .row-section td {
             font-weight: bold;
             text-transform: uppercase;
-            font-size: 10px;
+            font-size: 12px;
             letter-spacing: 0.8px;
             color: #525252;
             padding-top: 16px;

@@ -79,7 +79,7 @@
         }
 
         .font-mono {
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         .footer-sig {
@@ -243,15 +243,15 @@
                     </table>
                 </td>
             </tr>
-            <tr style="background-color: #78a2a8;">
+            <tr>
                 <td style="border: 1px solid #000; padding: 0;">
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr>
                             <td
-                                style="width: 70%; padding: 8px; font-weight: bold; text-align: center; text-transform: uppercase;">
+                                style="width: 70%; padding: 8px; font-weight: bold; text-align: center; text-transform: uppercase; background-color: #f4f4f5;">
                                 TOTAL AKTIVA</td>
                             <td class="text-right"
-                                style="width: 30%; padding: 8px; padding-right: 8px; font-weight: bold;">
+                                style="width: 30%; padding: 8px; padding-right: 8px; font-weight: bold; background-color: #f4f4f5;">
                                 {{ number_format($totalAssets, 0, ',', '.') }}</td>
                         </tr>
                     </table>
@@ -260,10 +260,10 @@
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr>
                             <td
-                                style="width: 70%; padding: 8px; font-weight: bold; text-align: center; text-transform: uppercase;">
+                                style="width: 70%; padding: 8px; font-weight: bold; text-align: center; text-transform: uppercase; background-color: #f4f4f5;">
                                 TOTAL PASIVA</td>
                             <td class="text-right"
-                                style="width: 30%; padding: 8px; padding-right: 8px; font-weight: bold;">
+                                style="width: 30%; padding: 8px; padding-right: 8px; font-weight: bold; background-color: #f4f4f5;">
                                 {{ number_format($totalLiabilitiesEquity, 0, ',', '.') }}</td>
                         </tr>
                     </table>

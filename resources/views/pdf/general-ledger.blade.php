@@ -11,14 +11,14 @@
         .doc-header .entity  { font-size: 14px; font-weight: bold; text-transform: uppercase; }
         .doc-header .title   { font-size: 13px; font-weight: bold; text-transform: uppercase; }
         .doc-header .period { font-size: 11px; font-weight: bold; text-transform: uppercase; }
-        .doc-sub { margin-bottom: 10px; font-size: 11px; font-weight: bold; }
+        .doc-sub { width: 100%; margin-bottom: 10px; font-size: 11px; font-weight: bold; }
+        .doc-sub td { padding: 0; }
         .data-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         .data-table th, .data-table td { border: 1px solid #000; padding: 4px 8px; font-size: 11px; vertical-align: middle; }
         .data-table th { text-align: center; font-weight: bold; text-transform: uppercase; background-color: #f4f4f5; }
         .row-subtotal td { font-weight: bold; background-color: #f4f4f5; }
         .text-right { text-align: right !important; }
         .text-center { text-align: center !important; }
-        .font-mono { font-family: 'Courier New', Courier, monospace; }
         .nowrap { white-space: nowrap; }
         .footer-sig { width: 100%; margin-top: 40px; }
         .sig-box { float: right; text-align: center; width: 250px; }
@@ -28,12 +28,15 @@
 <body>
     <div class="doc-header">
         <div class="entity">{{ $entityName }}</div>
-        <div class="title">BUKU BESAR - {{ $selectedAccount->name }}</div>
+        <div class="title">BUKU BESAR</div>
         <div class="period">{{ $periodLabel }}</div>
     </div>
-    <div class="doc-sub">
-        Kode Akun: {{ $selectedAccount->code }} | Saldo Normal: {{ strtoupper($normalBalance) }} | Saldo Awal: Rp {{ number_format($openingBalance, 0, ',', '.') }}
-    </div>
+    <table class="doc-sub">
+        <tr>
+            <td>Nama Akun : {{ $selectedAccount->name }}</td>
+            <td style="text-align: right;">Kode Akun : {{ $selectedAccount->code }}</td>
+        </tr>
+    </table>
     <table class="data-table">
         <thead>
             <tr>
@@ -57,13 +60,8 @@
                 @endphp
                 <tr>
                     <td class="text-center nowrap">{{ $journal->transaction_date->translatedFormat('d F Y') }}</td>
-                    <td class="font-mono text-center">{{ $journal->voucher_number }}</td>
-                    <td>
-                        {{ $journal->description }}
-                        @if($journal->businessUnit)
-                            <br><small>({{ $journal->businessUnit->name }})</small>
-                        @endif
-                    </td>
+                    <td class="text-center">{{ $journal->voucher_number }}</td>
+                    <td>{{ $journal->description }}</td>
                     <td class="text-right nowrap">{{ $journal->debit > 0 ? number_format($journal->debit, 0, ',', '.') : '-' }}</td>
                     <td class="text-right nowrap">{{ $journal->credit > 0 ? number_format($journal->credit, 0, ',', '.') : '-' }}</td>
                     <td class="text-right nowrap">{{ number_format($runningBalance, 0, ',', '.') }}</td>

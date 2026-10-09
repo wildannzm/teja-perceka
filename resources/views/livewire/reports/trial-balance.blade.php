@@ -64,7 +64,7 @@
                                 </tr>
                                 @foreach($data['currentAssets'] as $item)
                                 <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
-                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 whitespace-nowrap">{{ $item->code }}</td>
+                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs text-zinc-500 whitespace-nowrap">{{ $item->code }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->name }}</td>
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
                                         {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
@@ -82,7 +82,7 @@
                                 </tr>
                                 @foreach($data['fixedAssets'] as $item)
                                 <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
-                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 whitespace-nowrap">{{ $item->code }}</td>
+                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs text-zinc-500 whitespace-nowrap">{{ $item->code }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->name }}</td>
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
                                             {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
@@ -97,7 +97,7 @@
                         </table>
                     </div>
                     {{-- TOTAL ASSETS pinned to the bottom with margin-top auto to stay aligned --}}
-                    <div class="mt-auto border-t-2 border-zinc-400 bg-[#78a2a8] text-zinc-900">
+                    <div class="mt-auto border-t-2 border-zinc-400 bg-zinc-200/60 text-zinc-900">
                         <table class="w-full min-w-[300px]">
                             <tr>
                                 <td class="px-3 py-4 font-extrabold text-center uppercase text-sm" style="width: 70%;">TOTAL AKTIVA</td>
@@ -122,7 +122,7 @@
                                 </tr>
                                 @foreach($data['currentLiabilities'] as $item)
                                 <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
-                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 whitespace-nowrap pl-6">{{ $item->code }}</td>
+                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs text-zinc-500 whitespace-nowrap pl-6">{{ $item->code }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->name }}</td>
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
                                         {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
@@ -135,7 +135,7 @@
                                 </tr>
                                 @foreach($data['longTermLiabilities'] as $item)
                                 <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
-                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 whitespace-nowrap pl-6">{{ $item->code }}</td>
+                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs text-zinc-500 whitespace-nowrap pl-6">{{ $item->code }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800">{{ $item->name }}</td>
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
                                         {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
@@ -154,7 +154,7 @@
                                 </tr>
                                 @foreach($data['equity'] as $item)
                                 <tr class="border-b border-zinc-100 border-dashed hover:bg-zinc-50 transition-colors">
-                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs font-mono text-zinc-500 whitespace-nowrap pl-6">{{ $item->code }}</td>
+                                    <td class="px-3 py-1.5 w-[15%] min-w-[50px] text-xs text-zinc-500 whitespace-nowrap pl-6">{{ $item->code }}</td>
                                     <td class="px-3 py-1.5 w-[55%] font-medium text-zinc-800 {{ $item->name === 'LABA BERSIH' ? 'uppercase' : '' }}">{{ $item->name }}</td>
                                     <td class="px-3 py-1.5 w-[30%] text-right font-medium whitespace-nowrap {{ $item->balance == 0 ? 'text-zinc-400' : 'text-zinc-900' }}">
                                         {{ $item->balance == 0 ? '-' : number_format($item->balance, 0, ',', '.') }}
@@ -170,7 +170,7 @@
                         </table>
                     </div>
                     {{-- TOTAL LIABILITIES & EQUITY pinned to the bottom with margin-top auto --}}
-                    <div class="mt-auto border-t-2 border-zinc-400 bg-[#78a2a8] text-zinc-900">
+                    <div class="mt-auto border-t-2 border-zinc-400 bg-zinc-200/60 text-zinc-900">
                         <table class="w-full min-w-[300px]">
                             <tr>
                                 <td class="px-3 py-4 font-extrabold text-center uppercase text-sm" style="width: 70%;">TOTAL PASIVA</td>

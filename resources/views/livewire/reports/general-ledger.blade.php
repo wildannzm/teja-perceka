@@ -59,16 +59,13 @@
         <div class="bg-white rounded-xl border border-brand-100 shadow-sm overflow-hidden mb-6 pb-6">
             <div class="px-4 sm:px-6 py-4 border-b border-zinc-100 text-center">
                 <p class="text-sm font-bold text-zinc-900 uppercase">{{ $entityName }}</p>
-                <p class="text-sm font-bold text-zinc-900 uppercase">BUKU BESAR - {{ $data['selectedAccount']->name }}</p>
-                <p class="text-sm text-zinc-600">Kode Akun: {{ $data['selectedAccount']->code }} | Saldo Normal: <span class="uppercase">{{ $data['normalBalance'] }}</span></p>
-            </div>
-            
-            <div class="flex justify-end px-4 sm:px-6 py-3 bg-zinc-50 border-b border-zinc-200">
-                <div class="text-right">
-                    <p class="text-xs font-bold text-zinc-500 uppercase">SALDO AWAL</p>
-                    <p class="text-sm font-bold text-brand-700">Rp {{ number_format($data['openingBalance'], 0, ',', '.') }}</p>
+                <p class="text-sm font-bold text-zinc-900 uppercase">BUKU BESAR</p>
+                <div class="mt-1 flex items-center justify-between text-sm text-zinc-600">
+                    <p>Nama Akun : {{ $data['selectedAccount']->name }}</p>
+                    <p>Kode Akun : {{ $data['selectedAccount']->code }}</p>
                 </div>
             </div>
+            
 
             <div class="overflow-hidden md:overflow-x-auto">
                 <table class="w-full text-sm text-left text-zinc-600">
@@ -101,11 +98,8 @@
                                 </td>
                                 <td class="px-5 py-4 min-w-[200px]">
                                     {{ $journal->description }}
-                                    @if($journal->businessUnit)
-                                    <div class="text-xs text-brand-600 mt-1 font-medium">{{ $journal->businessUnit->name }}</div>
-                                    @endif
                                 </td>
-                                <td class="px-5 py-4 whitespace-nowrap font-mono text-xs">
+                                <td class="px-5 py-4 whitespace-nowrap text-xs">
                                     {{ $journal->voucher_number }}
                                 </td>
                                 <td class="px-5 py-4 text-right font-medium whitespace-nowrap {{ $journal->debit > 0 ? 'text-zinc-900' : 'text-zinc-400' }}">

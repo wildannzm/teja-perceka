@@ -69,7 +69,7 @@
 
         .text-right { text-align: right !important; }
         .text-center { text-align: center !important; }
-        .font-mono { font-family: 'Courier New', Courier, monospace; }
+        .font-mono { font-family: 'Times New Roman', Times, serif; }
         .indent { padding-left: 20px !important; }
 
         /* ── FOOTER ── */

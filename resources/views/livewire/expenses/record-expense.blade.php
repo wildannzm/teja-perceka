@@ -156,7 +156,7 @@
                             </td>
                             <td class="py-3.5 px-4 whitespace-nowrap">
                                 <span
-                                    class="text-xs font-mono font-semibold text-zinc-600">{{ $journal->voucher_number }}</span>
+                                    class="text-xs font-semibold text-zinc-600">{{ $journal->voucher_number }}</span>
                             </td>
                             <td class="py-3.5 px-4">
                                 <span class="text-sm text-zinc-700 line-clamp-2">{{ $journal->description }}</span>
@@ -164,7 +164,7 @@
                             <td class="py-3.5 px-4 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
                                     <span
-                                        class="px-2 py-1 rounded-md text-xs font-bold bg-brand-50 text-brand-700 border border-brand-100 font-mono">
+                                        class="px-2 py-1 rounded-md text-xs font-bold bg-brand-50 text-brand-700 border border-brand-100">
                                         {{ $journal->account->code }}
                                     </span>
                                     <span class="text-sm text-zinc-600 truncate max-w-[160px]"
@@ -233,11 +233,11 @@
                 <div class="p-4 space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-zinc-500">{{ \Carbon\Carbon::parse($journal->transaction_date)->translatedFormat('d M Y') }}</span>
-                        <span class="text-xs font-mono text-zinc-500">{{ $journal->voucher_number }}</span>
+                        <span class="text-xs text-zinc-500">{{ $journal->voucher_number }}</span>
                     </div>
                     <p class="text-sm text-zinc-700">{{ $journal->description }}</p>
                     <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded-md text-xs font-bold bg-brand-50 text-brand-700 border border-brand-100 font-mono">
+                        <span class="px-2 py-0.5 rounded-md text-xs font-bold bg-brand-50 text-brand-700 border border-brand-100">
                             {{ $journal->account->code }}
                         </span>
                         <span class="text-xs text-zinc-600 truncate">{{ $journal->account->name }}</span>

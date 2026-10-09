@@ -100,7 +100,7 @@
         {{-- Table --}}
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
-                <thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-semibold">
+                <thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-semibold text-base uppercase">
                     <tr>
                         <th class="px-4 sm:px-5 py-3">Keterangan</th>
                         <th class="px-4 sm:px-5 py-3 text-center">%</th>
@@ -170,7 +170,7 @@
 
                     {{-- ── Articles of Association header section ────────────────────────────── --}}
                     <tr class="bg-zinc-50 border-b border-zinc-200">
-                        <td class="px-4 sm:px-5 py-2.5 text-xs font-bold text-zinc-500 uppercase tracking-wider" colspan="{{ $this->canEdit ? 4 : 3 }}">
+                        <td class="px-4 sm:px-5 py-2.5 text-sm font-bold text-zinc-500 uppercase tracking-wider" colspan="{{ $this->canEdit ? 4 : 3 }}">
                             Alokasi Laba Bersih sesuai AD/ART
                         </td>
                     </tr>

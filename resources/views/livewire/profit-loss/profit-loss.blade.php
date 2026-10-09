@@ -123,7 +123,7 @@
                     </tr>
                     @foreach($revenueRows as $row)
                         <tr class="flex flex-col md:table-row border-b border-zinc-100 hover:bg-zinc-50 transition-colors px-4 py-3 md:p-0">
-                            <td class="block md:table-cell md:px-6 md:py-3 font-mono text-xs text-zinc-500 order-2 md:order-none">{{ $row->code }}</td>
+                            <td class="block md:table-cell md:px-6 md:py-3 text-xs text-zinc-500 order-2 md:order-none">{{ $row->code }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-base md:text-sm font-semibold md:font-normal text-zinc-900 order-1 md:order-none mb-1 md:mb-0">{{ $row->name }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-left md:text-right font-bold md:font-medium text-brand-700 md:text-zinc-800 order-3 md:order-none mt-2 md:mt-0 text-base md:text-sm">
                                 {{ $row->amount != 0 ? 'Rp '.number_format($row->amount, 0, ',', '.') : '-' }}
@@ -151,7 +151,7 @@
                     </tr>
                     @foreach($cogsRows as $row)
                         <tr class="flex flex-col md:table-row border-b border-zinc-100 hover:bg-zinc-50 transition-colors px-4 py-3 md:p-0">
-                            <td class="block md:table-cell md:px-6 md:py-3 font-mono text-xs text-zinc-500 order-2 md:order-none">{{ $row->code }}</td>
+                            <td class="block md:table-cell md:px-6 md:py-3 text-xs text-zinc-500 order-2 md:order-none">{{ $row->code }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-base md:text-sm font-semibold md:font-normal text-zinc-900 order-1 md:order-none mb-1 md:mb-0">{{ $row->name }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-left md:text-right font-bold md:font-medium text-brand-700 md:text-zinc-800 order-3 md:order-none mt-2 md:mt-0 text-base md:text-sm">
                                 {{ $row->amount != 0 ? 'Rp '.number_format($row->amount, 0, ',', '.') : '-' }}
@@ -190,7 +190,7 @@
                     </tr>
                     @foreach($expenseRows as $row)
                         <tr class="flex flex-col md:table-row border-b border-zinc-100 hover:bg-zinc-50 transition-colors px-4 py-3 md:p-0">
-                            <td class="block md:table-cell md:px-6 md:py-3 font-mono text-xs text-zinc-500 order-2 md:order-none">{{ $row->code }}</td>
+                            <td class="block md:table-cell md:px-6 md:py-3 text-xs text-zinc-500 order-2 md:order-none">{{ $row->code }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-base md:text-sm font-semibold md:font-normal text-zinc-900 order-1 md:order-none mb-1 md:mb-0">{{ $row->name }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-left md:text-right font-bold md:font-medium text-red-700 md:text-zinc-800 order-3 md:order-none mt-2 md:mt-0 text-base md:text-sm">
                                 {{ $row->amount != 0 ? 'Rp '.number_format($row->amount, 0, ',', '.') : '-' }}
@@ -218,7 +218,7 @@
                     </tr>
                     @foreach($otherRevenueRows as $row)
                         <tr class="flex flex-col md:table-row border-b border-zinc-100 hover:bg-zinc-50 transition-colors px-4 py-3 md:p-0">
-                            <td class="block md:table-cell md:px-6 md:py-3 font-mono text-xs text-zinc-500 order-2 md:order-none">{{ $row->code }}</td>
+                            <td class="block md:table-cell md:px-6 md:py-3 text-xs text-zinc-500 order-2 md:order-none">{{ $row->code }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-base md:text-sm font-semibold md:font-normal text-zinc-900 order-1 md:order-none mb-1 md:mb-0">{{ $row->name }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-left md:text-right font-bold md:font-medium text-brand-700 md:text-zinc-800 order-3 md:order-none mt-2 md:mt-0 text-base md:text-sm">
                                 {{ $row->amount != 0 ? 'Rp '.number_format($row->amount, 0, ',', '.') : '-' }}
@@ -228,7 +228,7 @@
                     @endforeach
                     @foreach($otherExpenseRows as $row)
                         <tr class="flex flex-col md:table-row border-b border-zinc-100 hover:bg-zinc-50 transition-colors px-4 py-3 md:p-0">
-                            <td class="block md:table-cell md:px-6 md:py-3 font-mono text-xs text-zinc-500 order-2 md:order-none">{{ $row->code }}</td>
+                            <td class="block md:table-cell md:px-6 md:py-3 text-xs text-zinc-500 order-2 md:order-none">{{ $row->code }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-base md:text-sm font-semibold md:font-normal text-zinc-900 order-1 md:order-none mb-1 md:mb-0">{{ $row->name }}</td>
                             <td class="block md:table-cell md:px-6 md:py-3 text-left md:text-right font-bold md:font-medium text-red-700 md:text-zinc-800 order-3 md:order-none mt-2 md:mt-0 text-base md:text-sm">
                                 {{ $row->amount != 0 ? 'Rp '.number_format($row->amount, 0, ',', '.') : '-' }}
