@@ -15,7 +15,7 @@ return new class extends Migration
         $role = Role::firstOrCreate(['name' => 'super_admin']);
 
         $admin = User::firstOrCreate(
-            ['email' => 'admin@tejaperceka.com'],
+            ['email' => 'admin@tejaperceka.test'],
             [
                 'name' => 'Administrator',
                 'password' => Hash::make('password'),

@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
 
         // 0. Super Admin
         $superAdmin = User::firstOrCreate(
-            ['email' => 'admin@tejaperceka.com'],
+            ['email' => 'admin@tejaperceka.test'],
             [
                 'name' => 'Administrator',
                 'password' => $password,
@@ -30,7 +30,7 @@ class UserSeeder extends Seeder
         // 1. Sawah Bengkok unit head
         $sawahBengkok = BusinessUnit::where('code', 'SB')->first();
         $unitHead = User::firstOrCreate(
-            ['email' => 'kepala.sawahbengkok@tejaperceka.com'],
+            ['email' => 'kepala.sawahbengkok@tejaperceka.test'],
             [
                 'name' => 'Kepala Unit Sawah Bengkok',
                 'password' => $password,
@@ -42,7 +42,7 @@ class UserSeeder extends Seeder
         // 2. Situ Ciranca unit head
         $situCiranca = BusinessUnit::where('code', 'SC')->first();
         $unitHeadSC = User::firstOrCreate(
-            ['email' => 'kepala.situciranca@tejaperceka.com'],
+            ['email' => 'kepala.situciranca@tejaperceka.test'],
             [
                 'name' => 'Kepala Unit Situ Ciranca',
                 'password' => $password,
@@ -54,7 +54,7 @@ class UserSeeder extends Seeder
         // 3. Bukit Sampora unit head
         $bukitSampora = BusinessUnit::where('code', 'BS')->first();
         $unitHeadBS = User::firstOrCreate(
-            ['email' => 'kepala.bukitsampora@tejaperceka.com'],
+            ['email' => 'kepala.bukitsampora@tejaperceka.test'],
             [
                 'name' => 'Kepala Unit Bukit Sampora',
                 'password' => $password,
@@ -66,7 +66,7 @@ class UserSeeder extends Seeder
         // 4. Buper Ciranca unit head
         $buperCiranca = BusinessUnit::where('code', 'BC')->first();
         $unitHeadBC = User::firstOrCreate(
-            ['email' => 'kepala.buperciranca@tejaperceka.com'],
+            ['email' => 'kepala.buperciranca@tejaperceka.test'],
             [
                 'name' => 'Kepala Unit Buper Ciranca',
                 'password' => $password,
@@ -78,7 +78,7 @@ class UserSeeder extends Seeder
         // 5. TPS unit head
         $tps = BusinessUnit::where('code', 'TPS')->first();
         $unitHeadTPS = User::firstOrCreate(
-            ['email' => 'kepala.tps@tejaperceka.com'],
+            ['email' => 'kepala.tps@tejaperceka.test'],
             [
                 'name' => 'Kepala Unit TPS',
                 'password' => $password,
@@ -89,7 +89,7 @@ class UserSeeder extends Seeder
 
         // 6. Secretary
         $secretary = User::firstOrCreate(
-            ['email' => 'sekretaris@tejaperceka.com'],
+            ['email' => 'sekretaris@tejaperceka.test'],
             [
                 'name' => 'Sekretaris BUMDes',
                 'password' => $password,
@@ -99,7 +99,7 @@ class UserSeeder extends Seeder
 
         // 7. Treasurer
         $treasurer = User::firstOrCreate(
-            ['email' => 'bendahara@tejaperceka.com'],
+            ['email' => 'bendahara@tejaperceka.test'],
             [
                 'name' => 'Bendahara BUMDes',
                 'password' => $password,
@@ -109,7 +109,7 @@ class UserSeeder extends Seeder
 
         // 8. BUMDes director
         $director = User::firstOrCreate(
-            ['email' => 'direktur@tejaperceka.com'],
+            ['email' => 'direktur@tejaperceka.test'],
             [
                 'name' => 'Direktur BUMDes',
                 'password' => $password,
@@ -119,7 +119,7 @@ class UserSeeder extends Seeder
 
         // 9. Village head
         $villageHead = User::firstOrCreate(
-            ['email' => 'kepaladesa@tejaperceka.com'],
+            ['email' => 'kepaladesa@tejaperceka.test'],
             [
                 'name' => 'Kepala Desa Teja',
                 'password' => $password,
@@ -129,7 +129,7 @@ class UserSeeder extends Seeder
 
         // 10. Supervisor
         $supervisor = User::firstOrCreate(
-            ['email' => 'pengawas@tejaperceka.com'],
+            ['email' => 'pengawas@tejaperceka.test'],
             [
                 'name' => 'Pengawas BUMDes',
                 'password' => $password,
