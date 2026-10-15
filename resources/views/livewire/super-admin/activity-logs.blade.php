@@ -1,5 +1,18 @@
 <div class="space-y-6">
-    <x-page-header title="Audit Log Aktivitas Sistem" description="Catatan lengkap mengenai aksi, login, dan penyamaran (impersonation) oleh pengguna." />
+    <x-page-header title="Audit Log Aktivitas Sistem" description="Catatan lengkap mengenai aksi, login, dan penyamaran (impersonation) oleh pengguna.">
+        <x-slot:actions>
+            <button type="button" wire:click="confirmClear('filtered')" @disabled($logs->total() === 0)
+                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-red-700 bg-white border border-red-200 rounded-xl hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                <flux:icon icon="trash" class="size-4" />
+                <span>Hapus</span>
+            </button>
+            <button type="button" wire:click="confirmClear('all')" @disabled($logs->total() === 0)
+                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-red-600 border border-transparent rounded-xl hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                <flux:icon icon="arrow-path" class="size-4" />
+                <span>Reset Semua</span>
+            </button>
+        </x-slot:actions>
+    </x-page-header>
 
 
     <!-- Filters & Search -->
@@ -84,8 +97,47 @@
         </div>
 
         <!-- Pagination -->
-        <div class="px-5 py-4 border-t border-zinc-200">
-            {{ $logs->links() }}
-        </div>
+        @if ($logs->hasPages())
+            <div class="px-5 py-4 border-t border-zinc-200">
+                {{ $logs->links() }}
+            </div>
+        @endif
     </div>
+
+    {{-- Clear confirmation modal --}}
+    @if ($showClearModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div wire:click="$set('showClearModal', false)" class="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm transition-opacity"></div>
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col gap-0 overflow-hidden z-10">
+                <div class="px-6 py-5 flex flex-col gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="size-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                            <svg class="size-5 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-semibold text-zinc-900">
+                                {{ $clearMode === 'all' ? 'Reset Semua Log?' : 'Hapus Log?' }}
+                            </h2>
+                            <p class="text-sm text-zinc-500 mt-0.5">
+                                {{ $clearMode === 'all'
+                                    ? 'Seluruh data log aktivitas akan dihapus permanen dan tidak dapat dikembalikan.'
+                                    : 'Log yang tampil sesuai pencarian & filter saat ini akan dihapus permanen.' }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-1">
+                        <button type="button" wire:click="$set('showClearModal', false)" class="px-4 py-2 rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
+                            Batal
+                        </button>
+                        <button type="button" wire:click="executeClear" wire:loading.attr="disabled"
+                            class="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-60">
+                            Ya, Lanjutkan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

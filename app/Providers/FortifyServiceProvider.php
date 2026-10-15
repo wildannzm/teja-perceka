@@ -76,9 +76,11 @@ class FortifyServiceProvider extends ServiceProvider
             if (! $user->is_active) {
                 // Throw a validation exception with a clear message
                 throw ValidationException::withMessages([
-                    'email' => __('Akun Anda tidak aktif. Hubungi Direktur BUMDes untuk mengaktifkan kembali.'),
+                    'email' => __('Akun Anda tidak aktif.'),
                 ]);
             }
+
+            session(['session_version' => (int) ($user->session_version ?? 0)]);
 
             return $user;
         });

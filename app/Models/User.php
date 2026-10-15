@@ -30,8 +30,10 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property int|null $business_unit_id
+ * @property bool $is_active
+ * @property int $session_version
  */
-#[Fillable(['name', 'email', 'password', 'business_unit_id', 'is_active'])]
+#[Fillable(['name', 'email', 'email_verified_at', 'password', 'business_unit_id', 'is_active'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements FortifyPasskeyUser
 {
@@ -49,6 +51,7 @@ class User extends Authenticatable implements FortifyPasskeyUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'session_version' => 'integer',
         ];
     }
 

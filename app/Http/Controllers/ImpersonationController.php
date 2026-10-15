@@ -44,6 +44,7 @@ class ImpersonationController extends Controller
 
         // Store original admin ID in new target user session and save explicitly
         $request->session()->put('impersonator_id', $adminId);
+        $request->session()->put('session_version', (int) ($user->session_version ?? 0));
         $request->session()->save();
 
         return redirect()->route('dashboard')->with('status', "Anda sekarang mengimpersonasi akun {$user->name}.");
@@ -75,6 +76,7 @@ class ImpersonationController extends Controller
 
         // Re-authenticate as admin
         Auth::login($admin);
+        $request->session()->put('session_version', (int) ($admin->session_version ?? 0));
         $request->session()->save();
 
         return redirect()->route('super-admin.dashboard')->with('status', 'Kembali ke sesi Administrator.');
