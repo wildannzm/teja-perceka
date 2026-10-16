@@ -2,9 +2,10 @@
 
 namespace App\Livewire\UnitHead;
 
-use App\Models\DailyTransaction;
 use App\Models\BusinessUnit;
+use App\Models\DailyTransaction;
 use App\Traits\DashboardChartData;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -24,6 +25,8 @@ class Dashboard extends Component
     public ?BusinessUnit $unit = null;
 
     public bool $isCurrentPeriodSubmitted = false;
+
+    public string $period = 'bulanan';
 
     public function mount(): void
     {
@@ -55,62 +58,14 @@ class Dashboard extends Component
         }
     }
 
-    public function getTodayIncomeProperty(): float
+    public function updatedPeriod(): void
     {
-        return DailyTransaction::where('business_unit_id', $this->unitId)
-            ->whereDate('transaction_date', Carbon::today())
-            ->sum('total_income');
+        $this->period = $this->normalizeDashboardPeriod($this->period);
+        $this->refreshDashboardChart($this->period, $this->unitId);
     }
 
-    public function getThisWeekIncomeProperty(): float
+    public function render(): View
     {
-        return DailyTransaction::where('business_unit_id', $this->unitId)
-            ->whereBetween('transaction_date', [
-                Carbon::now()->startOfWeek(),
-                Carbon::now()->endOfWeek(),
-            ])
-            ->sum('total_income');
-    }
-
-    public function getThisMonthIncomeProperty(): float
-    {
-        return DailyTransaction::where('business_unit_id', $this->unitId)
-            ->whereMonth('transaction_date', Carbon::now()->month)
-            ->whereYear('transaction_date', Carbon::now()->year)
-            ->sum('total_income');
-    }
-
-    public function getThisYearIncomeProperty(): float
-    {
-        return DailyTransaction::where('business_unit_id', $this->unitId)
-            ->whereYear('transaction_date', Carbon::now()->year)
-            ->sum('total_income');
-    }
-
-    public function getLatestTransactionsProperty()
-    {
-        return DailyTransaction::where('business_unit_id', $this->unitId)
-            ->orderBy('transaction_date', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->limit(7)
-            ->get();
-    }
-
-    public function getThisMonthTransactionCountProperty(): int
-    {
-        return DailyTransaction::where('business_unit_id', $this->unitId)
-            ->whereMonth('transaction_date', Carbon::now()->month)
-            ->whereYear('transaction_date', Carbon::now()->year)
-            ->count();
-    }
-
-    public function render()
-    {
-        $chartData = $this->getChartData($this->unitId);
-
-        return view('livewire.unit-head.dashboard', [
-            'incomeChart' => $chartData['income'],
-            'expenseChart' => $chartData['expenses'],
-        ]);
+        return view('livewire.unit-head.dashboard', $this->dashboardViewData($this->period, $this->unitId));
     }
 }

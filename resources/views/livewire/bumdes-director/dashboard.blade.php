@@ -1,8 +1,10 @@
     <div class="flex h-full w-full flex-col gap-6 max-w-full mx-auto pb-10">
-        
-        <x-page-header title="Dashboard" description="Tinjauan ringkas performa keuangan seluruh unit BUMDes pada bulan ini." />
 
-        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <x-page-header title="Dashboard" description="Tinjauan ringkas performa keuangan seluruh unit BUMDes." />
+
+        <x-dashboard-period-filter :period="$period" :periodLabel="$periodLabel" :periodRange="$periodRange" />
+
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3" wire:loading.remove.grid wire:target="period">
             {{-- Income --}}
             <div class="bg-white p-4 sm:p-6 rounded-2xl border border-zinc-200 shadow-sm flex items-start gap-3 sm:gap-4 transition-shadow hover:shadow-md">
                 <div class="size-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
@@ -11,7 +13,7 @@
                     </svg>
                 </div>
                 <div class="flex flex-col">
-                    <h3 class="text-sm font-semibold text-zinc-500">Total Pemasukan (Bulan Ini)</h3>
+                    <h3 class="text-sm font-semibold text-zinc-500">Total Pemasukan</h3>
                     <p class="mt-1 text-xl sm:text-2xl font-bold text-zinc-900 break-all">Rp {{ number_format($income, 0, ',', '.') }}</p>
                 </div>
             </div>
@@ -24,7 +26,7 @@
                     </svg>
                 </div>
                 <div class="flex flex-col">
-                    <h3 class="text-sm font-semibold text-zinc-500">Total Pengeluaran (Bulan Ini)</h3>
+                    <h3 class="text-sm font-semibold text-zinc-500">Total Pengeluaran</h3>
                     <p class="mt-1 text-xl sm:text-2xl font-bold text-zinc-900 break-all">Rp {{ number_format($expenses, 0, ',', '.') }}</p>
                 </div>
             </div>
@@ -37,84 +39,29 @@
                     </svg>
                 </div>
                 <div class="flex flex-col">
-                    <h3 class="text-sm font-semibold text-zinc-500">Laba Bersih (Bulan Ini)</h3>
+                    <h3 class="text-sm font-semibold text-zinc-500">Laba Bersih</h3>
                     <p class="mt-1 text-xl sm:text-2xl font-bold text-emerald-600 break-all">Rp {{ number_format($netIncome, 0, ',', '.') }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-zinc-200 shadow-sm flex-1 flex flex-col">
+        <div wire:loading.grid wire:target="period" class="grid grid-cols-1 gap-4 lg:grid-cols-3" aria-hidden="true">
+            <x-dashboard-card-skeleton cardClass="bg-white p-4 sm:p-6 rounded-2xl border border-zinc-200 shadow-sm flex items-start gap-3 sm:gap-4" valueClass="mt-1 h-7 sm:h-8 w-40 max-w-full rounded-md bg-zinc-200" />
+            <x-dashboard-card-skeleton cardClass="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex items-start gap-4" valueClass="mt-1 h-7 sm:h-8 w-40 max-w-full rounded-md bg-zinc-200" />
+            <x-dashboard-card-skeleton cardClass="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex items-start gap-4" valueClass="mt-1 h-7 sm:h-8 w-40 max-w-full rounded-md bg-zinc-200" />
+        </div>
+
+        <div wire:loading.block wire:target="period" class="bg-white p-4 sm:p-6 rounded-2xl border border-zinc-200 shadow-sm flex-1 flex flex-col animate-pulse" aria-hidden="true">
+            <div class="h-7 w-44 rounded-md bg-zinc-200 mb-4"></div>
+            <div class="flex-1 w-full min-h-[350px] rounded-xl bg-zinc-100"></div>
+        </div>
+
+        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-zinc-200 shadow-sm flex-1 flex flex-col" wire:loading.remove.block wire:target="period">
             <h2 class="text-lg font-bold text-zinc-900 mb-4">Grafik Rekapitulasi</h2>
-            <div class="flex-1 w-full relative min-h-[350px]">
-                <canvas id="recapChart"></canvas>
+            <div class="flex-1 w-full relative min-h-[350px]" wire:ignore>
+                <canvas id="recapChart" role="img" aria-label="Grafik rekapitulasi pemasukan dan pengeluaran"></canvas>
             </div>
         </div>
     </div>
 
-@script
-<script>
-    const ctx = document.getElementById('recapChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
-            datasets: [
-                {
-                    label: 'Pemasukan',
-                    data: @json($incomeChart),
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.3
-                },
-                {
-                    label: 'Pengeluaran',
-                    data: @json($expenseChart),
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.3
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            if (context.parsed.y !== null) {
-                                label += new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(context.parsed.y);
-                            }
-                            return label;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    suggestedMax: 1000000,
-                    ticks: {
-                        callback: function(value) {
-                            if (value === 0) return '0';
-                            let valInJuta = value / 1000000;
-                            return 'Rp ' + valInJuta.toLocaleString('id-ID', { maximumFractionDigits: 2 }) + ' Jt';
-                        }
-                    }
-                }
-            }
-        }
-    });
-</script>
-@endscript
+@include('livewire.partials.recap-chart')
